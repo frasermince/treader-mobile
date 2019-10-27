@@ -184,6 +184,8 @@ PODS:
   - React-jsinspector (0.61.2)
   - react-native-orientation (3.2.6):
     - React
+  - react-native-slider (2.0.2):
+    - React
   - react-native-static-server (0.4.2):
     - React
   - react-native-webview (7.4.3):
@@ -227,6 +229,8 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.6.2):
     - React
+  - RNVectorIcons (6.6.0):
+    - React
   - RNZipArchive (5.0.0):
     - React
     - RNZipArchive/Core (= 5.0.0)
@@ -255,6 +259,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - "react-native-orientation (from `../node_modules/@lightbase/react-native-orientation`)"
+  - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-static-server (from `../node_modules/react-native-static-server`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -270,6 +275,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
+  - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNZipArchive (from `../node_modules/react-native-zip-archive`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -309,6 +315,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-orientation:
     :path: "../node_modules/@lightbase/react-native-orientation"
+  react-native-slider:
+    :path: "../node_modules/@react-native-community/slider"
   react-native-static-server:
     :path: "../node_modules/react-native-static-server"
   react-native-webview:
@@ -337,6 +345,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rn-fetch-blob"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
+  RNVectorIcons:
+    :path: "../node_modules/react-native-vector-icons"
   RNZipArchive:
     :path: "../node_modules/react-native-zip-archive"
   Yoga:
@@ -359,6 +369,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 8909917ff7d8f21a57e443a866fd8d4560e50c65
   React-jsinspector: 111d7d342b07a904c400592e02a2b958f1098b60
   react-native-orientation: 6ea9b5a795dd8a726bc0408ae653e6aa155fa09a
+  react-native-slider: 5d61590f26a51cf0a858bfd1543f6d6ec8b78a6e
   react-native-static-server: 4ddb9afa1cda0f65194df42b8debd81b6e314531
   react-native-webview: 82d6456dfae1b3ef70c3939135536342afc96373
   React-RCTActionSheet: 89b037c0fb7d2671607cb645760164e7e0c013f6
@@ -373,6 +384,7 @@ SPEC CHECKSUMS:
   ReactCommon: 5848032ed2f274fcb40f6b9ec24067787c42d479
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNCAsyncStorage: 60a80e72d95bf02a01cace55d3697d9724f0d77f
+  RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   RNZipArchive: be636657a6630e9771d4a3223dc8fd0bd0137b55
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   Yoga: 14927e37bd25376d216b150ab2a561773d57911f
