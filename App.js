@@ -26,6 +26,8 @@ class EpubReader extends Component {
       origin: "",
       title: "",
       toc: [],
+      height: 0,
+      width: 0,
       showBars: true,
       showNav: false,
       sliderDisabled: true
@@ -62,8 +64,14 @@ class EpubReader extends Component {
         <StatusBar hidden={!this.state.showBars}
           translucent={true}
           animated={false} />
+        <View onLayout={(event) => {
+          let {x, y, width, height} = event.nativeEvent.layout;
+          this.setState({height, width});
+        } } style={styles.wrapper}>
         <Epub style={styles.reader}
               ref="epub"
+              height={this.state.height}
+              width={this.state.width}
               //src={"https://s3.amazonaws.com/epubjs/books/moby-dick.epub"}
               src={this.state.src}
               flow={this.state.flow}
@@ -123,6 +131,7 @@ class EpubReader extends Component {
                 console.log("EPUBJS-Webview", message);
               }}
             />
+            </View>
             <View
               style={[styles.bar, { top:0 }]}>
               <TopBar
@@ -170,10 +179,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  wrapper: {
+    flex: 1,
+    marginTop: 40,
+    marginBottom: 40
+  },
   reader: {
     flex: 1,
     alignSelf: 'stretch',
-    backgroundColor: '#3F3F3C'
+    backgroundColor: '#3F3F3C',
   },
   bar: {
     position:"absolute",
