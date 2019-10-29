@@ -11,8 +11,8 @@ import {
 
 import { Epub, Streamer } from "epubjs-rn";
 
-import TopBar from './app/TopBar'
 import { reactComponent as BottomBar} from "./output/BottomBar";
+import { reactComponent as TopBar} from "./output/TopBar";
 import Nav from './app/Nav'
 
 class EpubReader extends Component {

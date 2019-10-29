@@ -10,6 +10,7 @@ You can edit this file as you like.
     , "debug"
     , "effect"
     , "psci-support"
+    , "react-basic"
     , "react-basic-hooks"
     , "react-basic-native"
     ]
