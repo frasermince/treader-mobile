@@ -57,3 +57,6 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+output/
+.spago/
+.psc-dependencies-cache
