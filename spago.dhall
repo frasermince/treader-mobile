@@ -6,6 +6,7 @@ You can edit this file as you like.
     "my-project"
 , dependencies =
     [ "aff"
+    , "aff-promise"
     , "console"
     , "debug"
     , "effect"
