@@ -1,6 +1,5 @@
 module Markup where
 import Prelude
-import Control.Monad.Free (Free, foldFree, hoistFree, liftF)
 import React.Basic.DOM.Internal (CSS)
 import React.Basic.Native as RN
 import React.Basic.Hooks (JSX)
@@ -55,7 +54,8 @@ statusBar = child RN.statusBar
 
 string s = jsx $ RN.string s
 
-element component = parent (H.element component)
+parentElement component = parent (H.element component)
+childElement component = child (H.element component)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
