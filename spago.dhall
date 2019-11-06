@@ -10,6 +10,7 @@ You can edit this file as you like.
     , "console"
     , "debug"
     , "effect"
+    , "fixed-precision"
     , "psci-support"
     , "react-basic"
     , "react-basic-hooks"

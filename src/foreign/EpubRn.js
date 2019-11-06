@@ -1,7 +1,22 @@
-var epubRn = require "epubjs-rn";
+var epubRn = require("epubjs-rn");
 
-var streamer = new epubRn.Streamer();
+exports._createStreamer = function() {
+  return new epubRn.Streamer();
+}
 exports.epub = epubRn.Epub;
-exports._startStream = streamer.start;
-exports._streamGet = streamer.get;
-exports.killStream = streamer.kill;
+exports._startStream = function(streamer) {
+  return function() {
+    return streamer.start();
+  }
+}
+exports._streamGet = function(streamer) {
+  return function (string) {
+    return function() {
+      console.log("Here", string);
+      return streamer.get(string);
+    }
+  }
+}
+exports._killStream = function(streamer) {
+  return streamer.kill;
+}

@@ -123,6 +123,16 @@ let upstream =
 
 let overrides = {=}
 
-let additions = {=}
+let additions = { fixed-precision = 
+                  { dependencies =
+                    [
+                      "bigints",
+                      "maybe",
+                      "integers"
+                    ]
+                  , repo = "https://github.com/lumihq/purescript-fixed-precision"
+                  , version = "v4.0.1"
+                  }
+                }
 
 in  upstream // overrides // additions

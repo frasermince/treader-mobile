@@ -21,7 +21,7 @@ reactComponent =
         (component "BottomBar") buildJsx
 
 
-type Props = { shown :: Boolean, disabled :: Boolean, value :: Int, onSlidingComplete :: Effect Unit}
+type Props = { shown :: Boolean, disabled :: Boolean, value :: Int, onSlidingComplete :: Number -> Effect Unit}
 styles = {
   footer: {
     backgroundColor: "#cdcdcd",

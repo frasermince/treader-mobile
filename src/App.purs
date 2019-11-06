@@ -2,10 +2,11 @@ module App where
 
 import Effect (Effect)
 import Prelude
+import Debug.Trace (spy)
 import Effect.Class (liftEffect)
-import EpubRn (epub, startStream, streamGet, killStream)
+import EpubRn (epub, createStreamer, startStream, streamGet, killStream)
 import Effect.Unsafe (unsafePerformEffect)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef)
 import Effect.Uncurried (mkEffectFn1)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..))
 import React.Basic.Native as RN
@@ -17,30 +18,38 @@ import React.Basic.Events (merge, EventFn)
 import Effect.Console (log)
 import Record as Record
 import TopBar as TopBar
+import BottomBar as BottomBar
+import Nav (nav)
+import Data.Fixed (fromNumber)
+import Data.Nullable (null)
+import Data.Traversable (traverse_)
+import Data.Int (fromString)
+import Data.Maybe (Maybe(..))
 
-styles = {
-  container: {
-    flex: 1
-  },
-  wrapper: {
-    flex: 1,
-    marginTop: 40,
-    marginBottom: 40
-  },
-  reader: {
-    flex: 1,
-    alignSelf: "stretch",
-    backgroundColor: "#3F3F3C"
-  },
-  bar: {
-    position:"absolute",
-    left:0,
-    right:0,
-    height:55
+styles =
+  { container:
+    { flex: 1
+    }
+  , wrapper:
+    { flex: 1
+    , marginTop: 40
+    , marginBottom: 40
+    }
+  , reader:
+    { flex: 1
+    , alignSelf: "stretch"
+    , backgroundColor: "#3F3F3C"
+    }
+  , bar:
+    { position: "absolute"
+    , left: 0
+    , right: 0
+    , height: 55
+    }
   }
-}
 
-type Props = {}
+type Props
+  = {}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -49,38 +58,59 @@ reactComponent =
         (component "App") buildJsx
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
-  where e :: RN.LayoutChangeEvent -> Effect Unit
-        e event = do
-          let {x, y, width, height} = event.nativeEvent.layout
-          setHeight \_ -> height
-          setWidth \_ -> height
+  where
+  e :: RN.LayoutChangeEvent -> Effect Unit
+  e event = do
+    let
+      { x, y, width, height } = (spy "event" event).nativeEvent.layout
+    _ <- setHeight \_ -> height
+    _ <- setWidth \_ -> width
+    pure unit
 
-locationChange setLocation = mkEffectFn1 e
-  where e :: String -> Effect Unit
-        e location = setLocation \_ -> location
+locationChange setVisibleLocation = mkEffectFn1 e
+  where
+  e :: String -> Effect Unit
+  e location = setLocation $ fromString (location)
+
+  setLocation Nothing = pure unit
+
+  setLocation (Just l) = setVisibleLocation \_ -> l
 
 locationsReady setSliderDisabled = mkEffectFn1 e
-   where e :: String -> Effect Unit
-         e locations = setSliderDisabled \_ -> false
+  where
+  e :: String -> Effect Unit
+  e locations = setSliderDisabled \_ -> false
 
 ready setTitle setToc = mkEffectFn1 e
-  where e :: {package :: {metadata :: {title :: String}}, navigation :: {toc :: Array String}} -> Effect Unit
-        e book = do
-           setTitle \_ -> book.package.metadata.title
-           setToc \_ -> book.navigation.toc
+  where
+  e ::
+    { package ::
+      { metadata :: { title :: String } }
+    , navigation :: { toc :: Array String }
+    } ->
+    Effect Unit
+  e book = do
+    setTitle \_ -> book.package.metadata.title
+    setToc \_ -> book.navigation.toc
 
 press toggleBars = mkEffectFn1 e
-  where e :: {} -> Effect Unit
-        e book = toggleBars
+  where
+  e :: {} -> Effect Unit
+  e book = toggleBars
 
 error = mkEffectFn1 e
-  where e :: String -> Effect Unit
-        e message = log $ "EPUBJS-Webview " <> message
+  where
+  e :: String -> Effect Unit
+  e message = log $ "EPUBJS-Webview " <> message
+
+callShow ref = do
+  r <- readRefMaybe ref
+  traverse_ _.show r
 
 buildJsx props = React.do
   flow /\ setFlow <- useState "paginated"
   location /\ setLocation <- useState "6"
-  url /\ setUrl <- useState  "https://s3.amazonaws.com/epubjs/books/moby-dick.epub"
+  url /\ setUrl <- useState "https://s3.amazonaws.com/epubjs/books/moby-dick.epub"
   src /\ setSrc <- useState ""
   origin /\ setOrigin <- useState ""
   title /\ setTitle <- useState ""
@@ -90,24 +120,73 @@ buildJsx props = React.do
   showBars /\ setShowBars <- useState true
   showNav /\ setShowNav <- useState false
   sliderDisabled /\ setSliderDisabled <- useState true
-  let toggleBars = setShowBars $ \_ -> not showBars
-
+  visibleLocation /\ setVisibleLocation <- useState 0
+  _nav <- useRef null
+  let
+    streamer = createStreamer
+  let
+    toggleBars = setShowBars $ \_ -> not showBars
   useEffect unit do
-    launchAff_ $ do
-       let delayAndToggle = do
-             delay $ Milliseconds 1000.0
-             liftEffect $ toggleBars
-       fiber <- forkAff $ delayAndToggle
-       origin <- startStream
-       liftEffect $ setOrigin $ \_ -> origin
-       src <- streamGet origin
-       liftEffect $ setSrc $ \_ -> src
-    pure $ killStream
-
-  pure $ M.getJsx $ M.view {style: M.css styles.container} do
-    M.statusBar {hidden: not showBars, translucent: true, animated: false}
-    M.view {style: M.css styles.wrapper, onLayout: layoutEvent setHeight setWidth} do
-       M.childElement epub {style: M.css styles.reader, height: height, width: width, src: src, flow: flow, locaation: location, onLocationChange: locationChange setLocation, onLocationsReady: locationsReady setSliderDisabled, onReady: ready setTitle setToc, onPress: press toggleBars, origin: origin, onError: error }
-    M.view {style: M.css $ Record.merge styles.bar {top: 0}} do
-       M.childElement TopBar.reactComponent {title: title, shown: showBars, onLeftButtonPressed: capture_ $ pure unit, onRightButtonPressed: capture_ $ pure unit}--, onLeftButtonPressed: liftEffect}
-
+    launchAff_
+      $ do
+          let
+            delayAndToggle = do
+              delay $ Milliseconds 1000.0
+              liftEffect $ toggleBars
+          fiber <- forkAff $ delayAndToggle
+          origin <- (startStream streamer)
+          liftEffect $ setOrigin $ \_ -> origin
+          src <- streamGet streamer url
+          liftEffect $ setSrc $ \_ -> src
+    pure $ killStream streamer
+  pure $ M.getJsx
+    $ M.view
+        { style: M.css styles.container
+        } do
+        M.statusBar
+          { hidden: not showBars
+          , translucent: true
+          , animated: false
+          }
+        M.view
+          { style: M.css styles.wrapper
+          , onLayout: layoutEvent setHeight setWidth
+          } do
+          M.childElement epub
+            { style: M.css styles.reader
+            , height: height
+            , width: width
+            , src: src
+            , flow: flow
+            , location: location
+            , onLocationChange: locationChange setVisibleLocation
+            , onLocationsReady: locationsReady setSliderDisabled
+            , onReady: ready setTitle setToc
+            , onPress: press toggleBars
+            , origin: origin
+            , onError: error
+            }
+        M.view
+          { style: M.css $ Record.merge styles.bar { top: 0 }
+          } do
+          M.childElement TopBar.reactComponent
+            { title: title
+            , shown: showBars
+            , onLeftButtonPressed: capture_ $ callShow _nav
+            , onRightButtonPressed: capture_ $ pure unit
+            } --, onLeftButtonPressed: liftEffect}
+        M.view
+          { style: M.css $ Record.merge styles.bar { bottom: 0 }
+          } do
+          M.childElement BottomBar.reactComponent
+            { disabled: sliderDisabled
+            , value: visibleLocation
+            , shown: showBars
+            , onSlidingComplete: \number -> setLocation \_ -> show $ number
+            }
+          M.view {} do
+            M.childElement nav
+              { ref: _nav
+              , display: mkEffectFn1 \loc -> setLocation \_ -> loc
+              , toc: toc
+              }
