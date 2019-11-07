@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 
 import {
   StyleSheet,
@@ -15,65 +15,32 @@ import {
 import Icon from 'react-native-vector-icons/EvilIcons'
 
 
-class Nav extends Component<{}> {
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      error: '',
-      dataSource: this.props.toc || [],
-      modalVisible: false
-    }
+const Nav = (props) => {
+  let [error, setError] = useState('')
+  let [dataSource, setDataSource] = useState(props.toc)
+  let [modalVisible, setModalVisible] = useState(props.shown)
+  let show = function() {
+    setModalVisible(true);
   }
 
-  componentDidMount() {
-    if (this.props.shown) {
-      this.show();
-    } else {
-      this.hide();
-    }
+  let hide = function() {
+    setModalVisible(false);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevProps.toc !== this.props.toc) {
-      this.setState({
-        dataSource: this.props.toc || []
-      });
-    }
-
-    if (prevProps.shown !== this.props.shown) {
-      if (this.props.shown) {
-        this.show();
-      } else {
-        this.hide();
-      }
-    }
+  let _closeModal = function() {
+    props.onClose();
   }
 
-  show() {
-    this.setState({modalVisible: true});
-  }
-
-  hide() {
-    this.setState({modalVisible: false});
-  }
-
-  _closeModal() {
-    this.props.onClose();
-  }
-
-  _onPress(item) {
+  let _onPress = function(item) {
     // var item = this.props.toc[event.selectedIndex];
-    if(this.props.display) {
-      this.props.display(item.href);
+    if(props.display) {
+      props.display(item.href);
     }
-    this.hide();
+    hide();
   }
-
-  renderRow(row) {
+  let renderRow = function(row) {
     return (
-      <TouchableHighlight onPress={() => this._onPress(row)}>
+      <TouchableHighlight onPress={() => _onPress(row)}>
         <View style={styles.row}>
           <Text style={styles.title}>
             {row.label}
@@ -83,37 +50,46 @@ class Nav extends Component<{}> {
     );
   }
 
-  render() {
+  useEffect(function() {
+    if (props.shown) {
+      show();
+    } else {
+      hide();
+    }
+  }, [props.shown]);
 
-    return (
-      <View style={styles.container}>
-        <Modal
-          animationType={"slide"}
-          visible={this.state.modalVisible}
-          onRequestClose={() => console.log("close requested")}
-          >
-          <View
-            style={styles.header}>
-            <Text style={styles.headerTitle}>Table of Contents</Text>
-            <TouchableOpacity style={styles.backButton}
-              onPress={() => this.hide()}>
-              <Icon name="close" size={34} />
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            style={styles.container}
-            data={this.state.dataSource}
-            renderItem={(row) => {
-              return this.renderRow(row.item);
-            }}
-            keyExtractor={item => item.id}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
-        </Modal>
-      </View>
-    );
-  }
-}
+  useEffect(function() {
+    setDataSource(props.toc);
+  }, [props.toc.length]);
+
+  return (
+    <View style={styles.container}>
+      <Modal
+        animationType={"slide"}
+        visible={modalVisible}
+        onRequestClose={() => console.log("close requested")}
+        >
+        <View
+          style={styles.header}>
+          <Text style={styles.headerTitle}>Table of Contents</Text>
+          <TouchableOpacity style={styles.backButton}
+            onPress={() => hide()}>
+            <Icon name="close" size={34} />
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          style={styles.container}
+          data={dataSource}
+          renderItem={(row) => {
+            return renderRow(row.item);
+          }}
+          keyExtractor={item => item.id}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      </Modal>
+    </View>
+  );
+};
 
 
 const styles = StyleSheet.create({

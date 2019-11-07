@@ -121,7 +121,7 @@ buildJsx props = React.do
   showNav /\ setShowNav <- useState false
   sliderDisabled /\ setSliderDisabled <- useState true
   visibleLocation /\ setVisibleLocation <- useState 0
-  _nav <- useRef null
+  showNav /\ setShowNav <- useState false
   let
     streamer = createStreamer
   let
@@ -172,7 +172,7 @@ buildJsx props = React.do
           M.childElement TopBar.reactComponent
             { title: title
             , shown: showBars
-            , onLeftButtonPressed: capture_ $ callShow _nav
+            , onLeftButtonPressed: capture_ $ setShowNav \_ -> true
             , onRightButtonPressed: capture_ $ pure unit
             } --, onLeftButtonPressed: liftEffect}
         M.view
@@ -186,7 +186,7 @@ buildJsx props = React.do
             }
           M.view {} do
             M.childElement nav
-              { ref: _nav
+              { shown: showNav
               , display: mkEffectFn1 \loc -> setLocation \_ -> loc
               , toc: toc
               }
