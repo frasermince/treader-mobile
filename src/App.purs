@@ -20,10 +20,9 @@ import Record as Record
 import TopBar as TopBar
 import BottomBar as BottomBar
 import Nav (nav)
-import Data.Fixed (fromNumber)
 import Data.Nullable (null)
 import Data.Traversable (traverse_)
-import Data.Int (fromString)
+import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..))
 
 styles =
@@ -69,12 +68,8 @@ layoutEvent setHeight setWidth = mkEffectFn1 e
 
 locationChange setVisibleLocation = mkEffectFn1 e
   where
-  e :: String -> Effect Unit
-  e location = setLocation $ fromString (location)
-
-  setLocation Nothing = pure unit
-
-  setLocation (Just l) = setVisibleLocation \_ -> l
+  e :: {start :: {percentage :: Int}} -> Effect Unit
+  e event = setVisibleLocation \_ -> event
 
 locationsReady setSliderDisabled = mkEffectFn1 e
   where
@@ -120,7 +115,7 @@ buildJsx props = React.do
   showBars /\ setShowBars <- useState true
   showNav /\ setShowNav <- useState false
   sliderDisabled /\ setSliderDisabled <- useState true
-  visibleLocation /\ setVisibleLocation <- useState 0
+  visibleLocation /\ setVisibleLocation <- useState {start: {percentage: 0}}
   showNav /\ setShowNav <- useState false
   let
     streamer = createStreamer
@@ -180,9 +175,9 @@ buildJsx props = React.do
           } do
           M.childElement BottomBar.reactComponent
             { disabled: sliderDisabled
-            , value: visibleLocation
+            , value: visibleLocation.start.percentage
             , shown: showBars
-            , onSlidingComplete: \number -> setLocation \_ -> show $ number
+            , onSlidingComplete: \number -> setLocation \_ -> show number
             }
           M.view {} do
             M.childElement nav

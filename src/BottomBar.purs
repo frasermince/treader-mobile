@@ -13,6 +13,7 @@ import Platform as Platform
 import Effect (Effect)
 import Data.Symbol (SProxy(..))
 import Slider (slider)
+import Effect.Uncurried (EffectFn1, mkEffectFn1)
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -59,5 +60,5 @@ buildJsx props = React.do
      pure mempty
 
   pure $ element view {style: Record.insert opacity fade styles.footer, children: [
-    element slider {style: styles.slider, disabled: props.disabled, value: props.value, onSlidingComplete: props.onSlidingComplete}
+    element slider {style: styles.slider, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete}
   ]}
