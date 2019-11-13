@@ -1,200 +1,39 @@
-import React, { Component } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  Modal,
-  StatusBar
-} from 'react-native';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
+import { reactComponent as HomeScreen} from "./output/App";
+import { reactComponent as AuthLoadingScreen} from "./output/AuthLoading";
+import { reactComponent as SignInScreen} from "./output/SignIn";
+import { createStackNavigator } from 'react-navigation-stack';
+import { Provider as PaperProvider } from 'react-native-paper';
+import React from 'react';
+import { ApolloProvider } from '@apollo/react-hooks';
+import client from './src/ApolloClient';
 
-import { Epub, Streamer } from "epubjs-rn";
+// Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
+// goes here.
 
-import { reactComponent as BottomBar} from "./output/BottomBar";
-import { reactComponent as TopBar} from "./output/TopBar";
-import Nav from './src/NavComponent.js'
+const AppStack = createStackNavigator({ Home: HomeScreen});
+const AuthStack = createStackNavigator({ SignIn: SignInScreen });
 
-class EpubReader extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      flow: "paginated", // paginated || scrolled-continuous
-      location: 6,
-      url: "https://s3.amazonaws.com/epubjs/books/moby-dick.epub",
-      src: "",
-      origin: "",
-      title: "",
-      toc: [],
-      height: 0,
-      width: 0,
-      showBars: true,
-      showNav: false,
-      sliderDisabled: true
-    };
+const Routing = createAppContainer(
+  createSwitchNavigator(
+    {
+      AuthLoading: AuthLoadingScreen,
+      App: AppStack,
+      Auth: AuthStack,
+    },
+    {
+      initialRouteName: 'AuthLoading',
+    }
+  )
+);
 
-    this.streamer = new Streamer();
-  }
+export default App = () => {
+  return (
 
-  componentDidMount() {
-    this.streamer.start()
-      .then((origin) => {
-        this.setState({origin})
-        return this.streamer.get(this.state.url);
-      })
-      .then((src) => {
-        return this.setState({src});
-      });
-
-    setTimeout(() => this.toggleBars(), 1000);
-  }
-
-  componentWillUnmount() {
-    this.streamer.kill();
-  }
-
-  toggleBars() {
-    this.setState({ showBars: !this.state.showBars });
-  }
-
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <StatusBar hidden={!this.state.showBars}
-          translucent={true}
-          animated={false} />
-        <View onLayout={(event) => {
-          let {x, y, width, height} = event.nativeEvent.layout;
-          this.setState({height, width});
-        } } style={styles.wrapper}>
-        <Epub style={styles.reader}
-              ref="epub"
-              height={this.state.height}
-              width={this.state.width}
-              //src={"https://s3.amazonaws.com/epubjs/books/moby-dick.epub"}
-              src={this.state.src}
-              flow={this.state.flow}
-              location={this.state.location}
-              onLocationChange={(visibleLocation)=> {
-                console.log("locationChanged", visibleLocation)
-                this.setState({visibleLocation});
-              }}
-              onLocationsReady={(locations)=> {
-                // console.log("location total", locations.total);
-                this.setState({sliderDisabled : false});
-              }}
-              onReady={(book)=> {
-                // console.log("Metadata", book.package.metadata)
-                // console.log("Table of Contents", book.toc)
-                this.setState({
-                  title : book.package.metadata.title,
-                  toc: book.navigation.toc
-                });
-              }}
-              onPress={(cfi, position, rendition)=> {
-                this.toggleBars();
-                console.log("press", cfi);
-              }}
-              onLongPress={(cfi, rendition)=> {
-                console.log("longpress", cfi);
-              }}
-              onViewAdded={(index) => {
-                console.log("added", index)
-              }}
-              beforeViewRemoved={(index) => {
-                console.log("removed", index)
-              }}
-              onSelected={(cfiRange, rendition) => {
-                console.log("selected", cfiRange)
-                // Add marker
-                rendition.highlight(cfiRange, {});
-              }}
-              onMarkClicked={(cfiRange, data, rendition) => {
-                console.log("mark clicked", cfiRange)
-                rendition.unhighlight(cfiRange);
-              }}
-              // themes={{
-              //   tan: {
-              //     body: {
-              //       "-webkit-user-select": "none",
-              //       "user-select": "none",
-              //       "background-color": "tan"
-              //     }
-              //   }
-              // }}
-              // theme="tan"
-              // regenerateLocations={true}
-              // generateLocations={true}
-              origin={this.state.origin}
-              onError={(message) => {
-                console.log("EPUBJS-Webview", message);
-              }}
-            />
-            </View>
-            <View
-              style={[styles.bar, { top:0 }]}>
-              <TopBar
-                title={this.state.title}
-                shown={this.state.showBars}
-                onLeftButtonPressed={() => this._nav.show()}
-                onRightButtonPressed={
-                  (value) => {
-                    if (this.state.flow === "paginated") {
-                      this.setState({flow: "scrolled-continuous"});
-                    } else {
-                      this.setState({flow: "paginated"});
-                    }
-                  }
-                }
-               />
-            </View>
-            <View
-              style={[styles.bar, { bottom:0 }]}>
-              <BottomBar
-                disabled= {this.state.sliderDisabled}
-                value={this.state.visibleLocation ? this.state.visibleLocation.start.percentage : 0}
-                shown={this.state.showBars}
-                onSlidingComplete={
-                  (value) => {
-                    this.setState({location: value.toFixed(6)})
-                  }
-                }/>
-            </View>
-            <View>
-              <Nav ref={(nav) => this._nav = nav }
-                display={(loc) => {
-                  this.setState({ location: loc });
-                }}
-                toc={this.state.toc}
-              />
-            </View>
-      </View>
-
-    );
-  }
+    <ApolloProvider client={client}>
+      <PaperProvider>
+        <Routing/>
+      </PaperProvider>
+    </ApolloProvider>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  wrapper: {
-    flex: 1,
-    marginTop: 40,
-    marginBottom: 40
-  },
-  reader: {
-    flex: 1,
-    alignSelf: 'stretch',
-    backgroundColor: '#3F3F3C',
-  },
-  bar: {
-    position:"absolute",
-    left:0,
-    right:0,
-    height:55
-  }
-});
-
-export default EpubReader;

@@ -7,14 +7,17 @@ You can edit this file as you like.
 , dependencies =
     [ "aff"
     , "aff-promise"
+    , "apollo"
     , "console"
     , "debug"
     , "effect"
     , "fixed-precision"
+    , "graphql"
     , "psci-support"
     , "react-basic"
     , "react-basic-hooks"
     , "react-basic-native"
+    , "tuples-native"
     ]
 , packages =
     ./packages.dhall

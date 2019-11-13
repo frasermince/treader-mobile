@@ -40,6 +40,8 @@ parent el props kids =
 child :: forall p. (Record p -> JSX) -> Record p -> Markup Unit
 child el props = jsx $ el props
 
+wrappedChild :: forall p m. Functor m => (Record p -> m JSX) -> Record p -> m (Markup Unit)
+wrappedChild el props = jsx <$> el props
 
 --touchableOpacity :: forall p. Lacks "children" p => Record p -> Markup JSX -> Markup JSX
 touchableOpacity = parent RN.touchableOpacity

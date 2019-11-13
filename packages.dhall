@@ -133,6 +133,56 @@ let additions = { fixed-precision =
                   , repo = "https://github.com/lumihq/purescript-fixed-precision"
                   , version = "v4.0.1"
                   }
+                  , tuples-native =
+                    { dependencies =
+                      [
+                        "prelude",
+                        "unsafe-coerce",
+                        "typelevel",
+                        "generics-rep"
+                      ]
+                    , repo =
+                      "https://github.com/athanclark/purescript-tuples-native"
+                    , version =
+                      "v2.0.1"
+                    }
+                  , graphql =
+                    { dependencies =
+                      [
+                        "argonaut-codecs",
+                        "argonaut-core",
+                        "enums",
+                        "foldable-traversable",
+                        "nullable",
+                        "numbers",
+                        "prelude",
+                        "psci-support",
+                        "record",
+                        "spec",
+                        "string-parsers"
+                      ]
+                    , repo =
+                        "https://github.com/hendrikniemann/purescript-graphql"
+                    , version =
+                        "9171bf94c5ba8ddb7813b603c6c684eac2687eb3"
+                    }
+
+                  , apollo =
+                      { dependencies =
+                        [ "aff-promise"
+                        , "console"
+                        , "effect"
+                        , "graphql"
+                        , "psci-support"
+                        , "react-basic-hooks"
+                        , "tuples-native"
+                        , "typelevel"
+                        ]
+                      , repo =
+                        "https://github.com/frasermince/purescript-apollo"
+                      , version =
+                        "master"
+                      }
                 }
 
 in  upstream // overrides // additions
