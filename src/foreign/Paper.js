@@ -1,3 +1,5 @@
 var paper = require('react-native-paper');
 
-exports.textInput = paper.TextInput;
+exports._textInput = paper.TextInput;
+exports._surface = paper.Surface;
+exports._button = paper.Button;
