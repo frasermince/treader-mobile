@@ -12,6 +12,12 @@ import React.Basic.Hooks as H
 
 newtype Markup a = Markup (Tuple JSX a)
 
+instance semigroupMarkup :: Semigroup a => Semigroup (Markup a) where
+  append a b = Markup (Tuple jsx value)
+    where jsx = (getJsx a) <> (getJsx b)
+          value = (runMarkup a) <> (runMarkup b)
+instance monoidMarkup :: Monoid a => Monoid (Markup a) where
+  mempty = Markup (Tuple mempty mempty)
 instance functorMarkup :: Functor (Markup)  where
   map f (Markup (Tuple jsx a)) = Markup (Tuple jsx (f a))
 instance applyMarkup :: Apply (Markup) where
@@ -28,6 +34,9 @@ instance monadMarkup :: Monad Markup
 
 getJsx :: forall a. Markup a -> JSX
 getJsx (Markup (Tuple jsx a)) = jsx
+
+runMarkup :: forall a. Markup a -> a
+runMarkup (Markup (Tuple jsx a)) = a
 
 jsx :: JSX -> Markup Unit
 jsx j = Markup (Tuple (j) unit)

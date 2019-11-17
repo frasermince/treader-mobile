@@ -11,6 +11,7 @@ import React.Basic.Hooks as React
 import Data.Array (head)
 import Data.Maybe (fromMaybe)
 import Data.Eq (class Eq)
+import QueryHooks (useUserBooks, Book, User)
 
 type Props
   = {navigation :: {navigate :: EffectFn1 String Unit}}
@@ -21,34 +22,9 @@ reactComponent =
     $ do
         (component "AuthLoading") buildJsx
 
-type Book
-  = { name :: String, slug :: String, __typename :: String, id :: String }
-
-type User
-  = {currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, books :: Array Book, id :: String, __typename :: String}}
-
-query :: DocumentNode
-query =
-  gql
-    """
-query getUser {
-  currentUser {
-    id
-    firstName
-    lastName
-    email
-    isGuest
-    books {
-      id
-      name
-      slug
-    }
-  }
-}
-"""
 
 buildJsx props = React.do
-  queryResult <- useQuery query {}
+  queryResult <- useUserBooks {}
   useEffect queryResult do
      effectForState queryResult props
      pure mempty
@@ -61,7 +37,7 @@ domForState _ = RN.text {children: [RN.string "loading"]}
 
 effectForState :: QueryState User -> Props -> Effect Unit
 effectForState (Data d) props
-  | spy "isGuest" d.currentUser.isGuest = runEffectFn1 (spy "nav" props.navigation.navigate) "Auth"
-  | otherwise = runEffectFn1 (spy "nav" props.navigation.navigate) "App"
+  | d.currentUser.isGuest = runEffectFn1 props.navigation.navigate "Auth"
+  | otherwise = runEffectFn1 props.navigation.navigate "App"
   
-effectForState _ _ = spy "here" (pure unit)
+effectForState _ _ = (pure unit)

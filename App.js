@@ -1,5 +1,6 @@
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
-import { reactComponent as HomeScreen} from "./output/App";
+import { reactComponent as BookScreen} from "./output/App";
+import { reactComponent as IndexScreen} from "./output/BookIndex";
 import { reactComponent as AuthLoadingScreen} from "./output/AuthLoading";
 import { reactComponent as SignInScreen} from "./output/SignIn";
 import { createStackNavigator } from 'react-navigation-stack';
@@ -11,7 +12,7 @@ import client from './src/ApolloClient';
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
 
-const AppStack = createStackNavigator({ Home: HomeScreen});
+const AppStack = createStackNavigator({ Index: IndexScreen, Book: BookScreen }, {headerMode: 'screen'});
 const AuthStack = createStackNavigator({ SignIn: SignInScreen });
 
 const Routing = createAppContainer(

@@ -24,6 +24,9 @@ import Data.Nullable (null)
 import Data.Traversable (traverse_)
 import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..))
+import AsyncStorage (clear)
+import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Paper (navigationOptions)
 
 styles =
   { container:
@@ -48,13 +51,11 @@ styles =
   }
 
 type Props
-  = {}
-
-reactComponent :: ReactComponent Props
-reactComponent =
-  unsafePerformEffect
-    $ do
-        (component "App") buildJsx
+  = {navigation :: {navigate :: EffectFn1 String Unit}}
+reactComponent = navigationOptions c {headerShown: false}
+  where c :: ReactComponent Props
+        c = unsafePerformEffect $ do
+           (component "App") buildJsx
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
   where
@@ -168,7 +169,9 @@ buildJsx props = React.do
             { title: title
             , shown: showBars
             , onLeftButtonPressed: capture_ $ setShowNav \_ -> true
-            , onRightButtonPressed: capture_ $ pure unit
+            , onRightButtonPressed: capture_ $ launchAff_ do
+               clear
+               liftEffect $ runEffectFn1 props.navigation.navigate "Auth"
             } --, onLeftButtonPressed: liftEffect}
         M.view
           { style: M.css $ Record.merge styles.bar { bottom: 0 }
