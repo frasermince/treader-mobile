@@ -18,6 +18,7 @@ You can edit this file as you like.
     , "react-basic-hooks"
     , "react-basic-native"
     , "tuples-native"
+    , "typelevel-prelude"
     ]
 , packages =
     ./packages.dhall

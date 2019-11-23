@@ -11,6 +11,7 @@ import React.Basic.Hooks as React
 import Data.Array (head)
 import Data.Maybe (fromMaybe)
 import Data.Eq (class Eq)
+import Data.Traversable (traverse_)
 import QueryHooks (useUserBooks, Book, User)
 
 type Props
@@ -26,18 +27,12 @@ reactComponent =
 buildJsx props = React.do
   queryResult <- useUserBooks {}
   useEffect queryResult do
-     effectForState queryResult props
+     traverse_ (effectForState props) queryResult
      pure mempty
-  pure $ domForState queryResult
+  pure $ mempty
 
-domForState :: QueryState User -> JSX
-domForState (Error e) =  RN.text {children: [RN.string $ spy "ERROR" e.message]}
---domForState (Data d) = RN.text {children: [RN.string $ spy "data" $ show d]}
-domForState _ = RN.text {children: [RN.string "loading"]}
 
-effectForState :: QueryState User -> Props -> Effect Unit
-effectForState (Data d) props
+effectForState :: Props -> User -> Effect Unit
+effectForState props d
   | d.currentUser.isGuest = runEffectFn1 props.navigation.navigate "Auth"
   | otherwise = runEffectFn1 props.navigation.navigate "App"
-  
-effectForState _ _ = (pure unit)

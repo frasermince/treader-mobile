@@ -1,0 +1,166 @@
+# source: http://localhost:4000/api/
+# timestamp: Fri Nov 15 2019 15:48:20 GMT-0600 (Central Standard Time)
+
+schema {
+  query: RootQueryType
+  mutation: RootMutationType
+}
+
+type Book implements Node {
+  epubUrl: String
+
+  """The ID of an object"""
+  id: ID!
+  name: String!
+  processedEpubUrl: String
+  slug: String!
+}
+
+input BookInput {
+  file: Upload!
+  name: String!
+  slug: String!
+}
+
+type BookPayload {
+  book: Book!
+}
+
+type Comment implements Node {
+  book: String!
+  cfirange: String!
+
+  """The ID of an object"""
+  id: ID!
+  text: String!
+}
+
+input CommentInput {
+  book: String!
+  cfirange: String!
+  text: String!
+}
+
+type CommentPayload {
+  result: Boolean!
+}
+
+type Flashcard implements Node {
+  """The ID of an object"""
+  id: ID!
+  translation: String!
+  word: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LoginPayload {
+  session: Session!
+}
+
+"""An object with an ID"""
+interface Node {
+  """The id of the object."""
+  id: ID!
+}
+
+type RootMutationType {
+  book(input: BookInput!): BookPayload
+  comment(input: CommentInput!): CommentPayload
+  login(input: LoginInput!): LoginPayload
+  translate(input: TranslateInput!): TranslatePayload
+  unsubscribe: UnsubscribePayload
+  user(input: UserInput!): UserPayload
+  waitlistUser(input: WaitlistUserInput!): WaitlistUserPayload
+  wordFrequency(input: WordFrequencyInput!): WordFrequencyPayload
+}
+
+type RootQueryType {
+  book(slug: String): Book
+  books: [Book]
+  comments(book: String, cfirange: String): [Comment]
+  currentUser(book: String): User
+  flashcards(book: String, chapterTitle: String, pos: String): [Flashcard]
+
+  """Fetches an object given its ID"""
+  node(
+    """The id of an object."""
+    id: ID!
+  ): Node
+}
+
+type Session {
+  token: String
+}
+
+input TranslateInput {
+  language: String!
+  snippet: String!
+}
+
+type TranslatePayload {
+  translation: String!
+}
+
+type UnsubscribePayload {
+  result: Boolean!
+}
+
+"""
+Represents an uploaded file.
+
+"""
+scalar Upload
+
+type User implements Node {
+  books: [Book]
+  email: String!
+  firstName: String!
+
+  """The ID of an object"""
+  id: ID!
+  isGuest: Boolean
+  lastName: String!
+}
+
+input UserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  tokenId: String!
+}
+
+type UserPayload {
+  session: Session!
+}
+
+type WaitlistUser implements Node {
+  email: String!
+
+  """The ID of an object"""
+  id: ID!
+  name: String!
+}
+
+input WaitlistUserInput {
+  email: String!
+  name: String!
+}
+
+type WaitlistUserPayload {
+  result: Boolean!
+}
+
+input WordFrequencyInput {
+  bookId: Int
+  file: Upload!
+  frequencyJson: String
+}
+
+type WordFrequencyPayload {
+  result: Boolean!
+}

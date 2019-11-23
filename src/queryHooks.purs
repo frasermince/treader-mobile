@@ -1,7 +1,19 @@
 module QueryHooks where
 import Prelude
+import Effect (Effect)
 import React.Basic.Native as RN
+import React.Basic.Hooks as React
+import React.Basic.Hooks (useContext, useEffect, Hook, UseEffect, UseContext, JSX, coerceHook)
+import Data.Newtype (class Newtype)
+import Data.Either (Either(..))
 import ApolloHooks (useQuery, gql, QueryState(..), DocumentNode)
+import Context (renderContext, Context)
+import Data.Maybe (Maybe(..))
+import Type.Row (RProxy)
+import Prim.RowList (class RowToList)
+import Type.Proxy (Proxy(..))
+import Data.Eq (class EqRecord)
+import Debug.Trace (spy)
 
 type Book
   = { name :: String, slug :: String, __typename :: String, id :: String }
@@ -10,8 +22,8 @@ type User
   = {currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, books :: Array Book, id :: String, __typename :: String}}
 
 
-query :: DocumentNode
-query =
+userBooksQuery :: DocumentNode
+userBooksQuery =
   gql
     """
 query getUser {
@@ -30,8 +42,27 @@ query getUser {
 }
 """
 
-useUserBooks opts = useQuery query opts
+useUserBooks opts = useData (Proxy :: Proxy User) userBooksQuery opts
+newtype UseData (d :: Type) hooks = UseData (UseEffect (QueryState d) (UseContext Context (UseEffect Unit hooks)))
+derive instance ntUseData :: Newtype (UseData d hooks) _
+class Queryable (recordType :: # Type) where
+  useData :: forall opts . Proxy (Record recordType) -> DocumentNode -> Record opts -> Hook (UseData (Record recordType)) (Maybe (Record recordType))
 
-handleState (Loading) fn = RN.text {children: [RN.string "loading"]}
-handleState (Error e) fn = RN.text {children: [RN.string $ e.message]}
-handleState (Data d) fn = fn d
+instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a) where
+  useData _ query options = coerceHook $ React.do
+    result <- useQuery query options
+    context <- renderContext
+    {setLoading, setError} <- useContext context
+    useEffect result $ do
+      dataEffect setLoading setError result
+      pure $ mempty
+    pure $ fetchData result
+
+dataEffect :: forall d . ((Boolean -> Boolean) -> Effect Unit) -> ((String -> String) -> Effect Unit) ->  QueryState (Record d) -> Effect Unit
+dataEffect setLoading setError (Data _) = pure unit
+dataEffect setLoading setError Loading = setLoading \_ -> true
+dataEffect setLoading setError (Error e) = setError \_ -> spy "message" e.message
+fetchData :: forall a . QueryState a -> Maybe a
+fetchData (Data d) = Just d
+fetchData Loading = Nothing
+fetchData (Error e) = Nothing
