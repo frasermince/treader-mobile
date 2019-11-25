@@ -1,5 +1,5 @@
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
-import { reactComponent as BookScreen} from "./output/App";
+import { reactComponent as BookScreen} from "./output/BookView";
 import { reactComponent as IndexScreen} from "./output/BookIndex";
 import { reactComponent as AuthLoadingScreen} from "./output/AuthLoading";
 import { reactComponent as SignInScreen} from "./output/SignIn";

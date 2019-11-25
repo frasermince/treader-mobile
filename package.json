@@ -22,6 +22,7 @@
     "apollo-link-context": "^1.0.19",
     "apollo-link-error": "^1.1.12",
     "apollo-link-http": "^1.5.16",
+    "epubjs": "^0.3.85",
     "epubjs-rn": "frasermince/epubjs-rn",
     "graphql": "^14.5.8",
     "graphql-tag": "^2.10.1",
