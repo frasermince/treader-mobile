@@ -18,6 +18,8 @@ import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
+import ApolloHooks (useMutation)
+import EpubUtil (renditionHandler, mkRenditionData)
 
 type VisibleLocation = {start :: {percentage :: Int}}
 
@@ -133,12 +135,44 @@ useStreamer toggleBars book = coerceHook $ React.do
           src <- streamGet streamer url
           liftEffect $ setSrc $ \_ -> src
 
+mutation = gql """
+  mutation translateMutation($input: TranslateInput!) {
+    translate(input: $input) {
+      translation
+    }
+  }
+"""
 
+useRenditionData location = React.do
+  mutationFn /\ result <- useMutation mutation {}
+  translation <- useState $ (Nothing :: Maybe String)
+  highlightedContent <- useState $ (Nothing :: Maybe String)
+  epubcfi <- useState $ (Nothing :: Maybe String)
+  morphology <- useState $ (Nothing :: Maybe {})
+  language <- useState $ (Nothing :: Maybe String)
+  highlightedVerbs <- useState true
+  highlightedNouns <- useState true
+  highlightedAdjectives <- useState true
+  chapterTitle <- useState $ (Nothing :: Maybe String)
 
+  pure
+    { mutationFn
+    , translation
+    , highlightedContent
+    , epubcfi
+    , morphology
+    , language
+    , highlightedVerbs
+    , highlightedNouns
+    , highlightedAdjectives
+    , chapterTitle
+    , location
+    }
 
 buildJsx props = React.do
   flow /\ setFlow <- useState "paginated"
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
+  renditionData <- useRenditionData props.location
   case streamResult of
        Nothing -> pure mempty
        Just {src, origin} -> pure $ element
@@ -146,7 +180,7 @@ buildJsx props = React.do
             { style: M.css styles.reader
             , height: props.height
             , width: props.width
-            --, onRendition: onRendition
+            , onRendition: renditionHandler $ mkRenditionData renditionData
             , src: src
             , flow: flow
             , location: props.location

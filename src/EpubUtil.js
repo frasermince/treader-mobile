@@ -10,7 +10,7 @@ const commit = (renditionData, snippet, language) => {
       }
     }
   ).then(function(response){
-    renditionData.setHighlightedContent((h) => response.data.translate.translation);
+    renditionData.setTranslation((h) => response.data.translate.translation);
   })
 }
 
@@ -81,9 +81,9 @@ const setTheme = (renditionData) => {
   return themes;
 }
 
-const setTitles = (rendition, renditionData) => {
+const setTitles = (rendition, location, setChapterTitle, setLanguage) => {
   let book = rendition.book
-  let locationCfi = renditionData.location
+  let locationCfi = location
   let spineItem = book.spine.get(locationCfi);
   let bookTitle = book.package.metadata.title
   let language = book.package.metadata.language.toLowerCase();
@@ -109,14 +109,14 @@ const setTitles = (rendition, renditionData) => {
     }
     chapterTitle = navItem == null ? "" : navItem.label.trim()
   }
-  renditionData.setChapterTitle((c) => chapterTitle);
-  renditionData.setLanguage((l) => language);
-} 
+  setChapterTitle((c) => chapterTitle);
+  setLanguage((l) => language);
+}
 
 function setWordInformation(snippet, epubcfi, wordData) {
-  renditionData.setSnippet((s) => snippet);
+  renditionData.setHighlightedContent((s) => snippet);
   renditionData.setEpubcfi((e) => epubcfi);
-  renditionData.setWordData((w) => wordData);
+  renditionData.setMorphology((w) => wordData);
 }
 
 export function renditionHandler(rendition, renditionData) {
@@ -141,10 +141,10 @@ export function renditionHandler(rendition, renditionData) {
     }
 
     contents.on("deselected", function() {
-      renditionData.setHighlightedContent((h) => null);
+      renditionData.setTranslation((h) => null);
       setWordInformation(null, null, null);
     });
-    setTitles(rendition);
+    setTitles(rendition, renditionData.location, renditionData.setChapterTitle, renditionData.setLanguage);
   });
 
   rendition.themes.default(setTheme(renditionData));

@@ -47,14 +47,6 @@ styles =
     }
   }
 
-mutation = gql """
-  mutation translateMutation($input: TranslateInput!) {
-    translate(input: $input) {
-      translation
-    }
-  }
-"""
-
 type JSProps
   = {navigation :: {navigate :: EffectFn1 String Unit, state :: {params :: {slug :: Nullable String}}}}
 
