@@ -2,49 +2,55 @@ module EpubUtil where
 
 import Prelude
 import Effect (Effect)
-import Effect.Uncurried (mkEffectFn1, EffectFn1, runEffectFn1)
+import Effect.Uncurried (mkEffectFn1, EffectFn1, runEffectFn1, EffectFn2, runEffectFn2)
 import Effect.Aff (Aff)
 import Data.Maybe (Maybe(..), fromMaybe)
 import React.Basic.Hooks ((/\))
-import Data.Function.Uncurried (Fn1, mkFn1)
+import Data.Function.Uncurried (Fn1, mkFn1, runFn1)
 import Data.Tuple (Tuple)
-foreign import _renditionHandler :: forall x y . EffectFn1 (RenditionData x y) Unit
+import Data.Nullable (toMaybe, toNullable, Nullable)
+import Data.Tuple.Native (T2, t2)
+
+foreign import bridgeFile :: String
 
 type StateChangeFn a = EffectFn1 (Fn1 a a) Unit
 
-type StateChangeTuple a = Tuple a (StateChangeFn a)
+type StateChangeTuple a = T2 a (StateChangeFn a)
+
+type MaybeStateChangeTuple a = T2 (Nullable a) (EffectFn1 (Fn1 (Nullable a) (Nullable a)) Unit)
 
 mkStateChangeTuple :: forall a . Tuple a ((a -> a) -> Effect Unit) -> StateChangeTuple a
-mkStateChangeTuple a = value /\ mkStateChangeFn fn
+mkStateChangeTuple a = t2 value (mkStateChangeFn fn)
   where (value /\ fn) = a
 mkStateChangeFn :: forall a . ((a -> a) -> Effect Unit) -> StateChangeFn a
 mkStateChangeFn fn = mkEffectFn1 $ paramFn fn
   where paramFn fn x = mkFn1 fn x
-type RenditionData x y =  {
-  mutationFn ::  Record (x) -> Aff (Record y),
-  translation :: StateChangeTuple (Maybe String),
-  highlightedContent :: StateChangeTuple (Maybe String),
-  epubcfi :: StateChangeTuple (Maybe String),
-  morphology :: StateChangeTuple (Maybe {}),
-  language :: StateChangeTuple (Maybe String),
-  highlightedVerbs :: StateChangeTuple Boolean,
-  highlightedNouns :: StateChangeTuple Boolean,
-  highlightedAdjectives :: StateChangeTuple Boolean,
-  chapterTitle :: StateChangeTuple (Maybe String),
-  location :: String
+
+mkMaybeStateChangeTuple :: forall a . (Tuple (Maybe a) ((Maybe a -> Maybe a) -> Effect Unit)) -> MaybeStateChangeTuple a
+mkMaybeStateChangeTuple (value /\ fn) = t2 (toNullable value) (mkEffectFn1 $ effectFn fn)
+  where effectFn :: ((Maybe a -> Maybe a) -> Effect Unit) -> (Fn1 (Nullable a) ( Nullable a)) -> Effect Unit
+        effectFn fn stateChange = fn $ paramFn stateChange
+        paramFn :: (Fn1 (Nullable a) (Nullable a)) -> Maybe a -> Maybe a
+        paramFn fn x = toMaybe $ runFn1 fn $ toNullable x
+type StateChangeListeners =  {
+  translation :: MaybeStateChangeTuple String,
+  highlightedContent :: MaybeStateChangeTuple String,
+  epubcfi :: MaybeStateChangeTuple String,
+  morphology :: MaybeStateChangeTuple {},
+  language :: MaybeStateChangeTuple String,
+  chapterTitle :: MaybeStateChangeTuple String
  }
 
-mkRenditionData rd = rd
-  { translation = mkStateChangeTuple $ rd.translation
-  , highlightedContent = mkStateChangeTuple rd.highlightedContent
-  , epubcfi = mkStateChangeTuple rd.epubcfi
-  , morphology = mkStateChangeTuple rd.morphology
-  , language = mkStateChangeTuple rd.language
-  , highlightedVerbs = mkStateChangeTuple rd.highlightedVerbs
-  , highlightedNouns = mkStateChangeTuple rd.highlightedNouns
-  , highlightedAdjectives = mkStateChangeTuple rd.highlightedAdjectives
-  , chapterTitle = mkStateChangeTuple rd.chapterTitle
+type BridgeData x y = {
+  mutationFn :: Record (x) -> Aff (Record y)
+}
+
+mkStateChangeListeners rd = rd
+  { translation = mkMaybeStateChangeTuple $ rd.translation
+  , highlightedContent = mkMaybeStateChangeTuple rd.highlightedContent
+  , epubcfi = mkMaybeStateChangeTuple rd.epubcfi
+  , morphology = mkMaybeStateChangeTuple rd.morphology
+  , language = mkMaybeStateChangeTuple rd.language
+  , chapterTitle = mkMaybeStateChangeTuple rd.chapterTitle
   }
 
-renditionHandler :: forall x y . RenditionData x y -> Effect Unit
-renditionHandler r = runEffectFn1 _renditionHandler r

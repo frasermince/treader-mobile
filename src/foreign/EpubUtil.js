@@ -1,3 +1,1 @@
-var util = require('../EpubUtil');
-
-exports._renditionHandler = util.renditionHandler;
+exports.bridgeFile = process.env.CUSTOM_BRIDGE

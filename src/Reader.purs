@@ -2,11 +2,14 @@ module Reader where
 import Prelude
 import Effect (Effect)
 import Effect.Class (liftEffect)
+import Data.Tuple (Tuple)
 import ApolloHooks (gql)
+import Debug.Trace (spy)
 import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
 import EpubRn (epub, createStreamer, startStream, streamGet, killStream)
+import Effect.Uncurried (mkEffectFn1)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..))
 import Data.Nullable (Nullable, toMaybe)
@@ -19,9 +22,14 @@ import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
 import ApolloHooks (useMutation)
-import EpubUtil (renditionHandler, mkRenditionData)
+import EpubUtil (mkStateChangeListeners, bridgeFile)
+import Data.Symbol (SProxy(..))
+import Record.Builder (build, insert, modify)
+import AsyncStorage (getItem, setItem)
 
 type VisibleLocation = {start :: {percentage :: Int}}
+
+colors = {noun: {color: "orange"}, adjective: {color: "red"}, verb: {color: "green"}, none: {color: "black"}}
 
 type Props = {
   location :: String,
@@ -101,7 +109,7 @@ ready setTitle setToc = mkEffectFn1 e
 
 reactComponent :: ReactComponent Props
 reactComponent = unsafePerformEffect $ do
-  (component "Reader") buildJsx
+  component "Reader" $ buildJsx
 
 newtype UseStreamer h = UseStreamer (UseEffect (Maybe String) (UseState String (UseState String (UseData Query h))))
 derive instance ntUseStreamer :: Newtype (UseStreamer h) _
@@ -143,36 +151,104 @@ mutation = gql """
   }
 """
 
-useRenditionData location = React.do
+useRenditionData = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation <- useState $ (Nothing :: Maybe String)
   highlightedContent <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology <- useState $ (Nothing :: Maybe {})
   language <- useState $ (Nothing :: Maybe String)
-  highlightedVerbs <- useState true
-  highlightedNouns <- useState true
-  highlightedAdjectives <- useState true
   chapterTitle <- useState $ (Nothing :: Maybe String)
+  let mutateAndStateChange = \(value /\ setter) x -> launchAff_ do
+        result <- mutationFn x
+        liftEffect $ setter \_ -> result.data.translate.translation
 
-  pure
-    { mutationFn
-    , translation
+
+  pure $
+    { translation: translation
     , highlightedContent
     , epubcfi
     , morphology
     , language
-    , highlightedVerbs
-    , highlightedNouns
-    , highlightedAdjectives
     , chapterTitle
-    , location
-    }
+    } /\ { mutationFn: mutateAndStateChange translation}
+
+
+getPosStates = do
+  verb <- getPosState "verb"
+  noun <- getPosState "noun"
+  adjective <- getPosState "adjective"
+  pure $ {verb, noun, adjective}
+  where getPosState :: String -> Aff Boolean
+        getPosState pos =  do
+           maybeValue <- (getItem $ posStorageKey pos)
+           let valueWithDefault = fromMaybe "true" maybeValue
+           pure $ valueWithDefault == "true"
+
+posStorageKey pos = ("highlight-" <> pos)
+togglePos :: String -> Tuple Boolean ((Boolean -> Boolean) -> Effect Unit) -> Effect Unit
+togglePos pos (value /\ setter) = launchAff_ $ do
+    setItem (posStorageKey pos) $ show $ not value
+    liftEffect $ setter \h -> not h
+
+type Theme = {
+  "[data-pos=\"VERB\"]" :: {color :: String},
+  "[data-pos=\"AUX\"]" :: {color :: String},
+  "[data-pos=\"NOUN\"]" :: {color :: String},
+  "[data-pos=\"ADJ\"]" :: {color :: String}
+}
+
+
+setTheme :: Boolean -> Boolean -> Boolean -> Theme
+setTheme highlightVerbs highlightNouns highlightAdjectives =
+  adjectives $ nouns $ verbs $ defaultTheme
+  where
+        verbs = setVerbs highlightVerbs
+        nouns = setNouns highlightNouns
+        adjectives = setAdjectives highlightAdjectives
+
+        verbKey = SProxy :: SProxy "[data-pos=\"VERB\"]"
+        auxKey = SProxy :: SProxy "[data-pos=\"AUX\"]"
+        nounKey = SProxy :: SProxy "[data-pos=\"NOUN\"]"
+        adjKey = SProxy :: SProxy "[data-pos=\"ADJ\"]"
+        defaultTheme :: Theme
+        defaultTheme = build (
+            insert verbKey colors.verb >>>
+            insert auxKey colors.verb >>>
+            insert nounKey colors.noun >>>
+            insert adjKey colors.adjective
+          ) {}
+
+        setVerbs true theme = theme
+        setVerbs false theme = build (
+            modify verbKey (\_ -> colors.none) >>>
+              modify auxKey (\_ -> colors.none)
+          ) theme
+        setNouns true theme = theme
+        setNouns false theme = build (
+            modify nounKey (\_ -> colors.none)
+          ) theme
+        setAdjectives true theme = theme
+        setAdjectives false theme = build (
+            modify adjKey (\_ -> colors.none)
+          ) theme
 
 buildJsx props = React.do
   flow /\ setFlow <- useState "paginated"
+  highlightVerbs /\ setHighlightVerbs <- useState $ true
+  highlightNouns /\ setHighlightNouns <- useState $ true
+  highlightAdjectives /\ setHighlightAdjectives <- useState $ true
+  useEffect unit $ do
+     launchAff_ do
+        {verb, noun, adjective} <- getPosStates
+        liftEffect $ setHighlightVerbs \_ -> verb
+        liftEffect $ setHighlightNouns \_ -> noun
+        liftEffect $ setHighlightAdjectives \_ -> adjective
+     pure mempty
+
+
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
-  renditionData <- useRenditionData props.location
+  stateChangeListeners /\ eventFns <- useRenditionData
   case streamResult of
        Nothing -> pure mempty
        Just {src, origin} -> pure $ element
@@ -180,13 +256,17 @@ buildJsx props = React.do
             { style: M.css styles.reader
             , height: props.height
             , width: props.width
-            , onRendition: renditionHandler $ mkRenditionData renditionData
+            , stateChangeListeners: mkStateChangeListeners stateChangeListeners
+            , eventFns: eventFns
+            , bridge: bridgeFile
             , src: src
             , flow: flow
             , location: props.location
             , onLocationChange: locationChange props.setVisibleLocation
             , onLocationsReady: locationsReady props.setSliderDisabled
             , onReady: ready props.setTitle props.setToc
+            , themes: {highlighted: setTheme highlightVerbs highlightNouns highlightAdjectives}
+            , theme: "highlighted"
             , onPress: press props.toggleBars
             , origin: origin
             , onError: error

@@ -27,7 +27,6 @@ import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
 import Data.Either (either)
-import EpubUtil (renditionHandler)
 import Reader as Reader
 
 styles =

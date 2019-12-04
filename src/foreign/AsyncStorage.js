@@ -9,3 +9,8 @@ exports._setItem = function(key) {
     }
   }
 }
+exports._getItem = function(key) {
+  return function () {
+    return rn.AsyncStorage.getItem(key);
+  }
+}
