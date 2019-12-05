@@ -22,7 +22,15 @@ import Paper (menu, menuItem)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
-type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
+type Props = {
+  shown :: Boolean,
+  onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit,
+  onRightButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit,
+  title :: String,
+  setHighlightVerb :: (Boolean -> Boolean) -> Effect Unit,
+  setHighlightNoun :: (Boolean -> Boolean) -> Effect Unit,
+  setHighlightAdjective :: (Boolean -> Boolean) -> Effect Unit,
+  }
 styles = {
   title: {
     textAlign: "center",
