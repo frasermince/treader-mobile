@@ -49,10 +49,10 @@ buildJsx props = React.do
   pure $ M.getJsx do
      surface {} do
         textInput {label: "Email", onChangeText: changeField setEmail, value: email}
-        textInput {label: "Password", onChangeText: changeField setPassword, value: password}
+        textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true}
         button {onPress: RNE.capture_ (press mutate email password)} (M.jsx $ RN.string "submit")
   where press mutate email password = launchAff_ do
           result <- mutate $ {variables: {input: {email, password}}}
           let session = "Bearer " <> result.data.login.session.token
-          spy "here" $ setItem "treader-session" session
+          setItem "treader-session" session
           liftEffect $ runEffectFn1 props.navigation.navigate "App"
