@@ -21,7 +21,7 @@ instance monoidMarkup :: Monoid a => Monoid (Markup a) where
 instance functorMarkup :: Functor (Markup)  where
   map f (Markup (Tuple jsx a)) = Markup (Tuple jsx (f a))
 instance applyMarkup :: Apply (Markup) where
-  apply (Markup (Tuple firstJsx fn)) (Markup (Tuple secondJsx a)) 
+  apply (Markup (Tuple firstJsx fn)) (Markup (Tuple secondJsx a))
     = Markup (Tuple (firstJsx <> secondJsx) (fn a))
 instance applicativeMarkup :: Applicative Markup where
   pure x = Markup (Tuple mempty x)

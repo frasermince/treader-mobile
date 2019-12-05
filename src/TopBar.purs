@@ -3,12 +3,14 @@ import Prelude
 import Platform as Platform
 import Effect.Aff (Aff, launchAff_)
 import React.Basic.DOM.Internal (CSS)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
+import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useRef, readRefMaybe, useEffect)
 import Unsafe.Coerce (unsafeCoerce)
+import Markup as M
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
 import Animated (view, timing, value)
 import Effect.Unsafe (unsafePerformEffect)
+import React.Basic.Native.Events (capture_)
 import Record as Record
 import Platform as Platform
 import Effect (Effect)
@@ -16,6 +18,7 @@ import Data.Symbol (SProxy(..))
 import Icon (icon)
 import Effect.Uncurried (EffectFn1)
 import React.Basic.Native.Events (NativeSyntheticEvent)
+import Paper (menu, menuItem)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
@@ -79,15 +82,18 @@ reactComponent =
 
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
+  menuVisible /\ setMenuVisible <- useState false
+  let
+    menuButton = M.getJsx $ M.touchableOpacity { onPress: capture_ $ setMenuVisible $ \_ -> true} do
+       M.childElement icon {name: "gear", size: 34}
+
   useEffect props.shown do
      launchAff_ $ runAnimation props.shown fade
      pure mempty
-  pure $ element view {style: Record.insert opacity fade styles.header, children: children props }
-
-children props = [
-  RN.touchableOpacity {style: css styles.backButton, onPress: props.onLeftButtonPressed, children: [element icon {name: "navicon", size: 34}]},
-  RN.text {style: css styles.title, children: [RN.string props.title]},
-  RN.touchableOpacity {style: css styles.backButton, onPress: props.onRightButtonPressed, children: [element icon {name: "gear", size: 34}]}
-]
-  
-
+  pure $ M.getJsx $ M.parentElement view {style: Record.insert opacity fade styles.header} do
+    M.touchableOpacity {style: css styles.backButton, onPress: props.onLeftButtonPressed} do
+      M.childElement icon {name: "navicon", size: 34}
+    M.text {style: css styles.title} do
+      M.string props.title
+    menu {visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton} do
+      menuItem {onPress: props.onRightButtonPressed, title: "Sign out"}

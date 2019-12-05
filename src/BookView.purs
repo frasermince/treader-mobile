@@ -88,6 +88,7 @@ buildJsx jsProps = React.do
   showBars /\ setShowBars <- useState true
   visibleLocation /\ setVisibleLocation <- useState {start: {percentage: 0}}
   showNav /\ setShowNav <- useState false
+
   let
     toggleBars = setShowBars $ \_ -> not showBars
   pure $ M.getJsx

@@ -18,6 +18,9 @@ foreign import listIcon :: forall props. ReactComponent props
 
 foreign import _title :: forall props. ReactComponent props
 
+foreign import _menu :: forall props. ReactComponent props
+foreign import _menuItem :: forall props. ReactComponent props
+
 foreign import navigationOptions ::
   forall props opts.
   ReactComponent props -> Record opts -> ReactComponent props
@@ -33,3 +36,6 @@ listSection = parentElement _listSection
 listItem = childElement _listItem
 
 title = parentElement _title
+
+menu = parentElement _menu
+menuItem = childElement _menuItem

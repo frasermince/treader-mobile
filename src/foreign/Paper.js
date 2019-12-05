@@ -6,6 +6,8 @@ exports._button = paper.Button;
 exports._listSection = paper.List.Section
 exports._listItem = paper.List.Item
 exports._title = paper.Title
+exports._menu = paper.Menu
+exports._menuItem = paper.Menu.Item
 exports.listIcon = paper.List.Icon
 exports.navigationOptions = function(component) {
   return function (options) {
