@@ -24,7 +24,7 @@ import Data.Traversable (traverse_)
 import ApolloHooks (useMutation)
 import EpubUtil (mkStateChangeListeners, bridgeFile)
 import Data.Symbol (SProxy(..))
-import Record.Builder (build, insert, modify)
+import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
 
 type VisibleLocation = {start :: {percentage :: Int}}
@@ -201,7 +201,7 @@ type Theme = {
 
 setTheme :: Boolean -> Boolean -> Boolean -> Theme
 setTheme highlightVerbs highlightNouns highlightAdjectives =
-  adjectives $ nouns $ verbs $ defaultTheme
+  build (adjectives $ nouns $ verbs $ defaultTheme) {}
   where
         verbs = setVerbs highlightVerbs
         nouns = setNouns highlightNouns
@@ -211,27 +211,28 @@ setTheme highlightVerbs highlightNouns highlightAdjectives =
         auxKey = SProxy :: SProxy "[data-pos=\"AUX\"]"
         nounKey = SProxy :: SProxy "[data-pos=\"NOUN\"]"
         adjKey = SProxy :: SProxy "[data-pos=\"ADJ\"]"
-        defaultTheme :: Theme
-        defaultTheme = build (
+        defaultTheme :: Builder {} Theme
+        defaultTheme =
             insert verbKey colors.verb >>>
             insert auxKey colors.verb >>>
             insert nounKey colors.noun >>>
             insert adjKey colors.adjective
-          ) {}
 
         setVerbs true theme = theme
-        setVerbs false theme = build (
+        setVerbs false theme =
+            defaultTheme >>>
             modify verbKey (\_ -> colors.none) >>>
               modify auxKey (\_ -> colors.none)
-          ) theme
+
         setNouns true theme = theme
-        setNouns false theme = build (
+        setNouns false theme =
+            defaultTheme >>>
             modify nounKey (\_ -> colors.none)
-          ) theme
+
         setAdjectives true theme = theme
-        setAdjectives false theme = build (
+        setAdjectives false theme =
+            defaultTheme >>>
             modify adjKey (\_ -> colors.none)
-          ) theme
 
 buildJsx props = React.do
   flow /\ setFlow <- useState "paginated"
