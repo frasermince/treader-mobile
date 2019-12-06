@@ -84,16 +84,16 @@ buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
   menuVisible /\ setMenuVisible <- useState false
   let
-    menuButton = M.getJsx $ M.touchableOpacity { onPress: capture_ $ setMenuVisible $ \_ -> true} do
+    menuButton = M.getJsx $ M.touchableOpacity { onPress: capture_ $ setMenuVisible $ \_ -> props.shown} do
        M.childElement icon {name: "gear", size: 34}
 
   useEffect props.shown do
      launchAff_ $ runAnimation props.shown fade
      pure mempty
   pure $ M.getJsx $ M.parentElement view {style: Record.insert opacity fade styles.header} do
-    M.touchableOpacity {style: css styles.backButton, onPress: props.onLeftButtonPressed} do
+    M.touchableOpacity {style: M.css styles.backButton, onPress: props.onLeftButtonPressed} do
       M.childElement icon {name: "navicon", size: 34}
-    M.text {style: css styles.title} do
+    M.text {style: M.css styles.title} do
       M.string props.title
     menu {visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton} do
       menuItem {onPress: props.onRightButtonPressed, title: "Sign out"}
