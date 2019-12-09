@@ -20,6 +20,7 @@ foreign import _title :: forall props. ReactComponent props
 
 foreign import _menu :: forall props. ReactComponent props
 foreign import _menuItem :: forall props. ReactComponent props
+foreign import _switch :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
@@ -34,6 +35,8 @@ button = parentElement _button
 listSection = parentElement _listSection
 
 listItem = childElement _listItem
+
+switch = childElement _switch
 
 title = parentElement _title
 

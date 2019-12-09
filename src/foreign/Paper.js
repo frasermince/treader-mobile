@@ -8,6 +8,7 @@ exports._listItem = paper.List.Item
 exports._title = paper.Title
 exports._menu = paper.Menu
 exports._menuItem = paper.Menu.Item
+exports._switch = paper.Switch
 exports.listIcon = paper.List.Icon
 exports.navigationOptions = function(component) {
   return function (options) {
