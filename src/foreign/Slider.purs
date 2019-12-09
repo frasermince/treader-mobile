@@ -1,4 +1,7 @@
 module Slider where
 
 import React.Basic.Hooks (ReactComponent)
-foreign import slider :: forall props . ReactComponent props
+import Markup
+foreign import _slider :: forall props . ReactComponent props
+
+slider = childElement _slider

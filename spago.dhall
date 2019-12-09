@@ -13,6 +13,7 @@ You can edit this file as you like.
     , "effect"
     , "fixed-precision"
     , "graphql"
+    , "heterogeneous"
     , "psci-support"
     , "react-basic"
     , "react-basic-hooks"

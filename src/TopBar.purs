@@ -90,7 +90,7 @@ buildJsx props = React.do
   useEffect props.shown do
      launchAff_ $ runAnimation props.shown fade
      pure mempty
-  pure $ M.getJsx $ M.parentElement view {style: Record.insert opacity fade styles.header} do
+  pure $ M.getJsx $ view {style: Record.insert opacity fade styles.header} do
     M.touchableOpacity {style: M.css styles.backButton, onPress: props.onLeftButtonPressed} do
       M.childElement icon {name: "navicon", size: 34}
     M.text {style: M.css styles.title} do
