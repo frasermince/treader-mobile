@@ -20,4 +20,5 @@ exports._timing = function(animation) {
     }
   }
 }
-exports.view = native.Animated.View
+exports._view = native.Animated.View
+exports._scrollView = native.Animated.ScrollView

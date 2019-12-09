@@ -33,12 +33,7 @@ styles =
   { container:
     { flex: 1
     }
-  , wrapper:
-    { flex: 1
-    , marginTop: 40
-    , marginBottom: 40
-    }
-  , bar:
+    , bar:
     { position: "absolute"
     , left: 0
     , right: 0
@@ -61,16 +56,6 @@ reactComponent = navigationOptions c {headerShown: false}
   where c :: ReactComponent JSProps
         c = unsafePerformEffect $ do
            (component "BookView") buildJsx
-
-layoutEvent setHeight setWidth = mkEffectFn1 e
-  where
-  e :: RN.LayoutChangeEvent -> Effect Unit
-  e event = do
-    let
-      { x, y, width, height } = (spy "event" event).nativeEvent.layout
-    _ <- setHeight \_ -> height
-    _ <- setWidth \_ -> width
-    pure unit
 
 callShow ref = do
   r <- readRefMaybe ref
@@ -100,21 +85,21 @@ buildJsx jsProps = React.do
           , translucent: true
           , animated: false
           }
-        M.view
-          { style: M.css styles.wrapper
-          , onLayout: layoutEvent setHeight setWidth
-          } do
-          M.childElement Reader.reactComponent {
-            height,
-            width,
-            location,
-            toggleBars,
-            setToc,
-            navigation,
-            setTitle,
-            setSliderDisabled,
-            setVisibleLocation
-          }
+        M.childElement Reader.reactComponent {
+          height,
+          width,
+          location,
+          toggleBars,
+          setToc,
+          navigation,
+          setTitle,
+          setSliderDisabled,
+          setVisibleLocation,
+          setHeight,
+          setWidth,
+          showBars,
+          setShowBars
+        }
         M.view
           { style: M.css $ Record.merge styles.bar { top: 0 }
           } do

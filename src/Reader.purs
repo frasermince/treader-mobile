@@ -3,6 +3,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
+import React.Basic.Native as RN
 import ApolloHooks (gql)
 import Debug.Trace (spy)
 import React.Basic.Hooks as React
@@ -26,6 +27,9 @@ import EpubUtil (mkStateChangeListeners, bridgeFile)
 import Data.Symbol (SProxy(..))
 import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
+import Data.Tuple (fst)
+import BottomContent as BottomContent
+import Debug.Trace (spy)
 
 type VisibleLocation = {start :: {percentage :: Int}}
 
@@ -40,6 +44,10 @@ type Props = {
   setTitle :: (String -> String) -> Effect Unit,
   setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit,
   setVisibleLocation :: (VisibleLocation -> VisibleLocation) -> Effect Unit,
+  showBars :: Boolean,
+  setShowBars :: (Boolean -> Boolean) -> Effect Unit,
+  setHeight :: (Number -> Number) -> Effect Unit,
+  setWidth :: (Number -> Number) -> Effect Unit,
   navigation :: {
     navigate :: String -> Effect Unit,
     state :: {params :: {slug :: String}}
@@ -51,6 +59,11 @@ styles = {
     { flex: 1
     , alignSelf: "stretch"
     , backgroundColor: "#3F3F3C"
+    }
+  , wrapper:
+    { flex: 1
+    , marginTop: 40
+    , marginBottom: 40
     }
 }
 
@@ -90,10 +103,15 @@ error = mkEffectFn1 e
   e :: String -> Effect Unit
   e message = log $ "EPUBJS-Webview " <> message
 
-press toggleBars = mkEffectFn1 e
+press toggleBars {highlightedContent: _ /\ setHighlightedContent, morphology: _ /\ setMorphology, translation: _ /\ setTranslation} = 
+  mkEffectFn1 e
   where
   e :: {} -> Effect Unit
-  e book = toggleBars
+  e book = do
+     setHighlightedContent \_ -> Nothing
+     setMorphology \_ -> Nothing
+     setTranslation \_ -> Nothing
+     toggleBars
 
 ready setTitle setToc = mkEffectFn1 e
   where
@@ -151,28 +169,38 @@ mutation = gql """
   }
 """
 
-useRenditionData = React.do
+useRenditionData showBars setShowBars = React.do
   mutationFn /\ result <- useMutation mutation {}
-  translation <- useState $ (Nothing :: Maybe String)
-  highlightedContent <- useState $ (Nothing :: Maybe String)
+  translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
+  highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
-  morphology <- useState $ (Nothing :: Maybe {})
+  morphology /\ setMorphology <- useState $ (Nothing :: Maybe {})
   language <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
-  let mutateAndStateChange = \(value /\ setter) x -> launchAff_ do
+  let mutateAndStateChange = \ setter x -> launchAff_ do
         result <- mutationFn x
-        liftEffect $ setter \_ -> result.data.translate.translation
+        liftEffect $ setShowBars \_ -> false
+        liftEffect $ setter \_ -> Just $ (spy "result" result).data.translate.translation
 
 
   pure $
-    { translation: translation
-    , highlightedContent
+    { translation: translation /\ setTranslation
+    , highlightedContent: highlightedContent /\ setHighlightedContent
     , epubcfi
-    , morphology
+    , morphology: morphology /\ setMorphology 
     , language
     , chapterTitle
-    } /\ { mutationFn: mutateAndStateChange translation}
+    } /\ { mutationFn: mkEffectFn1 $ mutateAndStateChange setTranslation}
 
+layoutEvent setHeight setWidth = mkEffectFn1 e
+  where
+  e :: RN.LayoutChangeEvent -> Effect Unit
+  e event = do
+    let
+      { x, y, width, height } = (spy "event" event).nativeEvent.layout
+    _ <- setHeight \_ -> height
+    _ <- setWidth \_ -> width
+    pure unit
 
 getPosStates = do
   verb <- getPosState "verb"
@@ -249,27 +277,37 @@ buildJsx props = React.do
 
 
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
-  stateChangeListeners /\ eventFns <- useRenditionData
+  stateChangeListeners /\ eventFns <- useRenditionData props.showBars props.setShowBars
+  useEffect (fst stateChangeListeners.highlightedContent) $ do
+     log $ "listeners: " <>  (fromMaybe "Nothing" $ fst stateChangeListeners.highlightedContent)
+     pure mempty
   case streamResult of
        Nothing -> pure mempty
-       Just {src, origin} -> pure $ element
-         epub
-            { style: M.css styles.reader
-            , height: props.height
-            , width: props.width
-            , stateChangeListeners: mkStateChangeListeners stateChangeListeners
-            , eventFns: eventFns
-            , bridge: bridgeFile
-            , src: src
-            , flow: flow
-            , location: props.location
-            , onLocationChange: locationChange props.setVisibleLocation
-            , onLocationsReady: locationsReady props.setSliderDisabled
-            , onReady: ready props.setTitle props.setToc
-            , themes: {highlighted: setTheme highlightVerbs highlightNouns highlightAdjectives}
-            , theme: "highlighted"
-            , onPress: press props.toggleBars
-            , origin: origin
-            , onError: error
-            }
+       Just {src, origin} -> pure $ M.getJsx $ do
+          M.view
+            { style: M.css styles.wrapper
+            , onLayout: layoutEvent props.setHeight props.setWidth
+            } do
+
+              M.childElement epub
+                { style: M.css styles.reader
+                , height: props.height
+                , width: props.width
+                , stateChangeListeners: mkStateChangeListeners stateChangeListeners
+                , eventFns: eventFns
+                , bridge: bridgeFile
+                , src: src
+                , flow: flow
+                , location: props.location
+                , onLocationChange: locationChange props.setVisibleLocation
+                , onLocationsReady: locationsReady props.setSliderDisabled
+                , onReady: ready props.setTitle props.setToc
+                , themes: {highlighted: setTheme highlightVerbs highlightNouns highlightAdjectives}
+                , theme: "highlighted"
+                , onPress: press props.toggleBars stateChangeListeners
+                , origin: origin
+                , onError: error
+                }
+          M.childElement BottomContent.reactComponent
+            {translation: fst stateChangeListeners.translation, morphology: fst stateChangeListeners.morphology}
 

@@ -5,13 +5,13 @@ window.onerror = function (message, file, line, col, error) {
 
 (function () {
 // TODO Change storage
-const commit = (snippet, language) => {
+const commit = (snippet, language, sendMessage) => {
   let data = {
       variables: {
         input: {snippet, language}
       }
     }
-  sendMessage({method:"mutationFn", value: data});
+  sendMessage({method:"mutationFn", jsonValue: JSON.stringify(data)});
 }
 
 const setTitlesAndLanguage = (rendition, location) => {
@@ -65,10 +65,29 @@ const setTitlesAndLanguage = (rendition, location) => {
   return language;
 }
 
-function setWordInformation(snippet, epubcfi, morphology) {
+function setWordInformation(highlightedContent, epubcfi, morphology) {
+  var sendMessage = function(obj) {
+    // window.postMessage(JSON.stringify(obj), targetOrigin);
+    if (!window.ReactNativeWebView.postMessage) {
+      setTimeout(() => {
+        sendMessage(obj);
+      }, 1);
+    } else {
+      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+    }
+  };
+
+  console.log = function() {
+    sendMessage({method:"log", value: Array.from(arguments)});
+  }
+  console.error = function() {
+    sendMessage({method:"error", value: Array.from(arguments)});
+  }
+  console.log("***SET");
+  console.log("***INFO", highlightedContent, epubcfi, morphology);
   sendMessage({method:"set", key: "highlightedContent", value: highlightedContent});
   sendMessage({method:"set", key: "epubcfi", value: epubcfi});
-  sendMessage({method:"set", key: "morphology", value: morphology});
+  sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
 }
 
 function renditionHandler(rendition, location) {
@@ -106,6 +125,7 @@ function renditionHandler(rendition, location) {
           this.emit("selected", cfirange);
           this.emit("selectedRange", range);
         } else if (this.previouslySelected) {
+          console.log("***DESELECT");
           this.previouslySelected = false;
           this.emit("deselected");
         }
@@ -127,11 +147,14 @@ function renditionHandler(rendition, location) {
       let span = range.commonAncestorContainer.parentElement; //TODO
       let text = range.toString();
       if (span && span.tagName.toLowerCase() == 'span' ) {
+        console.log("SPAN", JSON.stringify(span.dataset));
+        console.log("HIGHLIGHTED", text);
         setWordInformation(text, cfiRange, span.dataset);
-        commit(text, language)
+        commit(text, language, sendMessage)
       } else {
+        console.log("HIGHLIGHTED MULTI", text);
         setWordInformation(text, cfiRange, null);
-        commit(text, language)
+        commit(text, language, sendMessage)
       }
     });
   });
@@ -531,6 +554,7 @@ function renditionHandler(rendition, location) {
       });
 
       rendition.on("selected", function (cfiRange) {
+        console.log("***BRIDGE SELECT");
         sendMessage({method:"selected", cfiRange: cfiRange});
       });
 
