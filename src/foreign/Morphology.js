@@ -1,0 +1,22 @@
+exports.valueNames = {
+  "ADP": "adposition",
+  "VERB": "verb",
+  "NOUN": "noun",
+  "PROPN": "proper noun",
+  "ADJ": "adjective",
+  "CONJ": "conjunction",
+  "ADV": "adverb",
+  "DET": "determiner",
+  "Pres": "present",
+  "Sing": "singular",
+  "Plur": "plural",
+  "Fin": "finite",
+  "Masc": "masculine",
+  "Fem": "feminine",
+  "Inf": "infinitive",
+  "AUX": "auxiliary",
+  "Ger": "gerund",
+  "Imp": "imperfect",
+  "SCONJ": "subordinating conjunctions",
+  "PRON": "pronoun"
+}

@@ -16,38 +16,15 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Heterogeneous.Folding (hfoldlWithIndex)
 import Paper (surface)
 import Record (get)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
+import Foreign.Object (lookup, Object, fold)
+import Morphology (valueNames)
 
-valueMap = {
-  "ADP": "adposition",
-  "VERB": "verb",
-  "NOUN": "noun",
-  "PROPN": "proper noun",
-  "ADJ": "adjective",
-  "CONJ": "conjunction",
-  "ADV": "adverb",
-  "DET": "determiner",
-  "Pres": "present",
-  "Sing": "singular",
-  "Plur": "plural",
-  "Fin": "finite",
-  "Masc": "masculine",
-  "Fem": "feminine",
-  "Inf": "infinitive",
-  "AUX": "auxiliary",
-  "Ger": "gerund",
-  "Imp": "imperfect",
-  "SCONJ": "subordinating conjunctions",
-  "PRON": "pronoun"
-}
-
-mapValue :: forall sym . IsSymbol sym => SProxy sym -> String -> String
-mapValue key value 
-  | reflectSymbol key == "infinitive" = value
-  | otherwise = reifySymbol value \x -> get x valueMap
+mapValue ::  String -> String -> String
+mapValue "infinitive" value = value
+mapValue key value = fromMaybe (spy "value" value) $ spy "lookup" $ lookup value $ spy "names" valueNames
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -56,7 +33,7 @@ reactComponent =
         (component "BottomContent") buildJsx
 
 
-type Props = { translation :: Maybe String, morphology :: Maybe {} }
+type Props = { translation :: Maybe String, morphology :: Maybe (Object String) }
 styles = {
   footer: {
     --backgroundColor: "#cdcdcd",
@@ -89,11 +66,11 @@ buildJsx props = React.do
         translationText
         maybeDataMap props.morphology
    where visible = isJust props.translation || isJust props.morphology
-         translationText = fromMaybe mempty (M.text {} <$> M.string <$> props.translation)
-maybeDataMap :: Maybe {} -> M.Markup Unit
-maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
-  where dataMap d = hfoldlWithIndex foldFn (mempty :: M.Markup Unit) d
-        foldFn :: forall a . M.Markup Unit -> String -> SProxy a -> M.Markup Unit
-        foldFn accum value key = accum <> M.view {} do
-           M.view {} $ M.string "hi"--key
-           M.view {} $ M.string $ mapValue key value
+         translationText = fromMaybe mempty (M.text {} <$> M.string <$> (append "Translation: ") <$> props.translation)
+maybeDataMap :: Maybe (Object String) -> M.Markup Unit
+maybeDataMap morphology = fromMaybe mempty (dataMap <$> spy "MORPHOLOGY" morphology)
+  where dataMap d = fold foldFn (mempty :: M.Markup Unit) d
+        foldFn :: forall a . M.Markup Unit -> String -> String -> M.Markup Unit
+        foldFn accum key value = accum <> M.view {style: M.css {flex: 1, alignSelf: "stretch", flexDirection: "row"}} do
+           M.view {style: M.css {flex: 1, alignSelf: "stretch"}} $ M.text {} $ M.string key
+           M.view {style: M.css {flex: 1, alignSelf: "stretch"}} $ M.text {} $ M.string $ mapValue key value
