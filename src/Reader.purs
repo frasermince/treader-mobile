@@ -29,6 +29,7 @@ import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
+import Foreign.Object (Object)
 import Debug.Trace (spy)
 
 type VisibleLocation = {start :: {percentage :: Int}}
@@ -174,7 +175,7 @@ useRenditionData showBars setShowBars = React.do
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
-  morphology /\ setMorphology <- useState $ (Nothing :: Maybe {})
+  morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
   let mutateAndStateChange = \ setter x -> launchAff_ do
