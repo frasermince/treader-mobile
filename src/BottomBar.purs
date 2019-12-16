@@ -24,8 +24,8 @@ reactComponent =
 
 
 type Props = { shown :: Boolean, disabled :: Boolean, value :: Int, onSlidingComplete :: Number -> Effect Unit}
-styles = {
-  footer: {
+footerStyles fade =
+  {
     backgroundColor: "#cdcdcd",
     paddingTop: 0,
     bottom: 0,
@@ -37,17 +37,25 @@ styles = {
     position: "absolute",
     alignItems:"center",
     justifyContent:"center",
-    flexDirection: "row"
-  },
-  slider: {
-    height: 30,
-    alignItems:"center",
-    justifyContent:"center",
     flexDirection: "row",
-    flex: 1,
-    marginLeft: 50,
-    marginRight: 50
+    opacity: fade,
+    zIndex: zIndex
   }
+  where
+    zIndex :: Int
+    zIndex = fade.interpolate {
+      inputRange: [ 0, 1],
+      outputRange: [-1, 9]
+    }
+
+sliderStyles = {
+  height: 30,
+  alignItems:"center",
+  justifyContent:"center",
+  flexDirection: "row",
+  flex: 1,
+  marginLeft: 50,
+  marginRight: 50
 }
 
 runAnimation true fade = timing fade {toValue: 1, duration: 20}
@@ -61,5 +69,5 @@ buildJsx props = React.do
      pure mempty
 
   pure $ M.getJsx $ do
-     view {style: Record.insert opacity fade styles.footer} do
-        slider {style: styles.slider, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete}
+     view {style: footerStyles fade} do
+        slider {style: sliderStyles, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete}

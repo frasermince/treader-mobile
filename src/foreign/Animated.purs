@@ -6,7 +6,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Markup
 
-type Animation = {}
+type Animation = {interpolate :: {inputRange :: Array Int, outputRange :: Array Int} -> Int}
 
 foreign import value :: Int -> Animation
 foreign import _view :: forall attrs. ReactComponent (Record attrs)

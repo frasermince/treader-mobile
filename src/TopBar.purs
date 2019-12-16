@@ -23,6 +23,34 @@ import Paper (menu, menuItem)
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
 type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
+headerStyles fade = {
+  backgroundColor: "#cdcdcd",
+  paddingTop: Platform.select {ios: 40, android: 24},
+  top: 0,
+  height: Platform.select {
+    ios: 84,
+    android: 74
+  },
+  right: 0,
+  left: 0,
+  borderBottomWidth: 1,
+  borderBottomColor:"#000",
+  position: "absolute",
+  display: "flex",
+  alignItems:"center",
+  justifyContent:"center",
+  flexDirection: "row",
+  flex: 14,
+  opacity: fade,
+  zIndex: zIndex
+}
+  where
+    zIndex :: Int
+    zIndex = fade.interpolate {
+      inputRange: [ 0, 1],
+      outputRange: [-1, 9]
+    }
+
 styles = {
   title: {
     textAlign: "center",
@@ -34,25 +62,6 @@ styles = {
       ios: "Baskerville",
       android: "serif"
     }
-  },
-  header: {
-    backgroundColor: "#cdcdcd",
-    paddingTop: Platform.select {ios: 40, android: 24},
-    top: 0,
-    height: Platform.select {
-      ios: 84,
-      android: 74
-    },
-    right: 0,
-    left: 0,
-    borderBottomWidth: 1,
-    borderBottomColor:"#000",
-    position: "absolute",
-    display: "flex",
-    alignItems:"center",
-    justifyContent:"center",
-    flexDirection: "row",
-    flex: 14
   },
   backButton: {
     width: 34,
@@ -72,7 +81,6 @@ styles = {
 
 runAnimation true fade = timing fade {toValue: 1, duration: 20}
 runAnimation false fade = timing fade {toValue: 0, duration: 20}
-opacity = SProxy :: SProxy "opacity"
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -90,7 +98,7 @@ buildJsx props = React.do
   useEffect props.shown do
      launchAff_ $ runAnimation props.shown fade
      pure mempty
-  pure $ M.getJsx $ view {style: Record.insert opacity fade styles.header} do
+  pure $ M.getJsx $ view {style: headerStyles fade} do
     M.touchableOpacity {style: M.css styles.backButton, onPress: props.onLeftButtonPressed} do
       M.childElement icon {name: "navicon", size: 34}
     M.text {style: M.css styles.title} do
