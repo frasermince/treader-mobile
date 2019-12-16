@@ -10,12 +10,13 @@ import Paper (textInput, surface, button)
 import React.Basic.Events (EventFn, unsafeEventFn)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import Unsafe.Coerce (unsafeCoerce)
-import ApolloHooks (useMutation, gql, QueryState(..), DocumentNode)
+import ApolloHooks (useMutation, gql, QueryState(..), DocumentNode, useApolloClient)
 import Debug.Trace
 import AsyncStorage (setItem)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, launchAff_)
 import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Data.Traversable (traverse_)
 
 type Props
   = {navigation :: {navigate :: EffectFn1 String Unit}}
@@ -43,6 +44,7 @@ changeField setField = RNE.handler text \t ->
   setField \_ -> t
 
 buildJsx props = React.do
+  client <- useApolloClient
   mutate /\ d <- useMutation mutation {}
   email /\ setEmail <- useState ""
   password /\ setPassword <- useState ""
@@ -50,9 +52,10 @@ buildJsx props = React.do
      surface {} do
         textInput {label: "Email", onChangeText: changeField setEmail, value: email}
         textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true}
-        button {onPress: RNE.capture_ (press mutate email password)} (M.jsx $ RN.string "submit")
-  where press mutate email password = launchAff_ do
+        button {onPress: RNE.capture_ (press mutate email password client)} (M.jsx $ RN.string "submit")
+  where press mutate email password client = launchAff_ do
           result <- mutate $ {variables: {input: {email, password}}}
           let session = "Bearer " <> result.data.login.session.token
+          liftEffect $ traverse_ _.resetStore client
           setItem "treader-session" session
           liftEffect $ runEffectFn1 props.navigation.navigate "App"

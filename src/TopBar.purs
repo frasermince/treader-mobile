@@ -19,10 +19,12 @@ import Icon (icon)
 import Effect.Uncurried (EffectFn1)
 import React.Basic.Native.Events (NativeSyntheticEvent)
 import Paper (menu, menuItem)
+import ApolloHooks (useApolloClient, Client)
+import Data.Maybe (Maybe(..))
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
-type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
+type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
 headerStyles fade = {
   backgroundColor: "#cdcdcd",
   paddingTop: Platform.select {ios: 40, android: 24},
@@ -90,6 +92,7 @@ reactComponent =
 
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
+  client <- useApolloClient
   menuVisible /\ setMenuVisible <- useState false
   let
     menuButton = M.getJsx $ M.touchableOpacity { onPress: capture_ $ setMenuVisible $ \_ -> props.shown} do
@@ -104,4 +107,4 @@ buildJsx props = React.do
     M.text {style: M.css styles.title} do
       M.string props.title
     menu {visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton} do
-      menuItem {onPress: props.onRightButtonPressed, title: "Sign out"}
+      menuItem {onPress: props.onRightButtonPressed client, title: "Sign out"}

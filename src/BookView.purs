@@ -107,9 +107,10 @@ buildJsx jsProps = React.do
             { title: title
             , shown: showBars
             , onLeftButtonPressed: capture_ $ setShowNav \_ -> true
-            , onRightButtonPressed: capture_ $ launchAff_ do
-              clear
-              liftEffect $ props.navigation.navigate "Auth"
+            , onRightButtonPressed: \client -> capture_ $ launchAff_ do
+               clear
+               liftEffect $ traverse_ _.resetStore client
+               liftEffect $ props.navigation.navigate "Auth"
             } --, onLeftButtonPressed: liftEffect}
         M.view
           { style: M.css $ Record.merge styles.bar { bottom: 0 }
