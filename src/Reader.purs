@@ -176,12 +176,11 @@ useRenditionData showBars setShowBars = React.do
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
-  language <- useState $ (Nothing :: Maybe String)
+  language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
-  let mutateAndStateChange = \ setter x -> launchAff_ do
-        result <- mutationFn x
-        liftEffect $ setShowBars \_ -> false
-        liftEffect $ setter \_ -> Just $ (spy "result" result).data.translate.translation
+  useEffect highlightedContent $ do
+     launchAff_ $ mutateAndChangeState mutationFn (spy "***H" highlightedContent) (spy "***L" language) setShowBars setTranslation
+     pure mempty
 
 
   pure $
@@ -189,9 +188,17 @@ useRenditionData showBars setShowBars = React.do
     , highlightedContent: highlightedContent /\ setHighlightedContent
     , epubcfi
     , morphology: morphology /\ setMorphology 
-    , language
+    , language: language /\ setLanguage
     , chapterTitle
-    } /\ { mutationFn: mkEffectFn1 $ mutateAndStateChange setTranslation}
+    }
+    where
+          mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
+            let payload = { variables: { input: {snippet: highlightedContent, language: language} } }
+            result <- mutationFn $ payload
+            liftEffect $ setShowBars \_ -> false
+            liftEffect $ setTranslation \_ -> Just $ (spy "result" result).data.translate.translation
+          mutateAndChangeState _ _ _ _ _ = pure $ unit
+
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
   where
@@ -278,7 +285,7 @@ buildJsx props = React.do
 
 
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
-  stateChangeListeners /\ eventFns <- useRenditionData props.showBars props.setShowBars
+  stateChangeListeners <- useRenditionData props.showBars props.setShowBars
   useEffect (fst stateChangeListeners.highlightedContent) $ do
      log $ "listeners: " <>  (fromMaybe "Nothing" $ fst stateChangeListeners.highlightedContent)
      pure mempty
@@ -295,7 +302,6 @@ buildJsx props = React.do
                 , height: props.height
                 , width: props.width
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
-                , eventFns: eventFns
                 , bridge: bridgeFile
                 , src: src
                 , flow: flow

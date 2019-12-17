@@ -4,17 +4,8 @@ window.onerror = function (message, file, line, col, error) {
 };
 
 (function () {
-// TODO Change storage
-const commit = (snippet, language, sendMessage) => {
-  let data = {
-      variables: {
-        input: {snippet, language}
-      }
-    }
-  sendMessage({method:"mutationFn", jsonValue: JSON.stringify(data)});
-}
 
-const setTitlesAndLanguage = (rendition, location) => {
+const findTitlesAndLanguage = (rendition, location) => {
   var sendMessage = function(obj) {
     // window.postMessage(JSON.stringify(obj), targetOrigin);
     if (!window.ReactNativeWebView.postMessage) {
@@ -60,6 +51,21 @@ const setTitlesAndLanguage = (rendition, location) => {
     }
     chapterTitle = navItem == null ? "" : navItem.label.trim()
   }
+  return [chapterTitle, language];
+}
+
+function setTitlesAndLanguage(rendition, location) {
+  var sendMessage = function(obj) {
+    // window.postMessage(JSON.stringify(obj), targetOrigin);
+    if (!window.ReactNativeWebView.postMessage) {
+      setTimeout(() => {
+        sendMessage(obj);
+      }, 1);
+    } else {
+      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+    }
+  };
+  const [chapterTitle, language] = findTitlesAndLanguage(rendition, location);
   sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
   sendMessage({method:"set", key: "language", value: language});
   return language;
@@ -108,11 +114,7 @@ function renditionHandler(rendition, location) {
   console.error = function() {
     sendMessage({method:"error", value: Array.from(arguments)});
   }
-  console.log("***HANDLER");
-  //console.log("***HERE", rendition);
-  //rendition.override("line-height", "1.5");
   rendition.hooks.content.register(function(contents, view) {
-    console.log("***HOOK");
     contents.triggerSelectedEvent = function(selection){
       var range, cfirange;
 
@@ -136,29 +138,10 @@ function renditionHandler(rendition, location) {
       sendMessage({method:"set", key: "translation", value: null});
       setWordInformation(null, null, null);
     });
-    console.log("***AFTER HOOK");
   });
 
-  console.log("***BEFORE TITLES");
-  let language = setTitlesAndLanguage(rendition, location);
-  console.log("***AFTER TITLES");
-  rendition.on("selected", function(cfiRange) {
-    this.book.getRange(cfiRange).then((range) => {
-      let span = range.commonAncestorContainer.parentElement; //TODO
-      let text = range.toString();
-      if (span && span.tagName.toLowerCase() == 'span' ) {
-        console.log("SPAN", JSON.stringify(span.dataset));
-        console.log("HIGHLIGHTED", text);
-        setWordInformation(text, cfiRange, span.dataset);
-        commit(text, language, sendMessage)
-      } else {
-        console.log("HIGHLIGHTED MULTI", text);
-        setWordInformation(text, cfiRange, null);
-        commit(text, language, sendMessage)
-      }
-    });
-  });
-}
+  setTitlesAndLanguage(rendition, location);
+  }
   function _ready() {
     var contents;
     var targetOrigin = "*";
@@ -544,18 +527,28 @@ function renditionHandler(rendition, location) {
 
       }.bind(this));
 
-      console.log("***BEFORE RENDITION");
       //console.log("***RENDITION", rendition.);
 
       rendition.on("relocated", function(location){
         console.log("RELOCATED");
-        renditionHandler(rendition, options.location);
+        //renditionHandler(rendition, options.location);
+        const [chapterTitle, language] = findTitlesAndLanguage(rendition, options.location);
+        sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
         sendMessage({method:"relocated", location: location});
       });
 
-      rendition.on("selected", function (cfiRange) {
-        console.log("***BRIDGE SELECT");
-        sendMessage({method:"selected", cfiRange: cfiRange});
+      rendition.on("selected", function(cfiRange) {
+        this.book.getRange(cfiRange).then((range) => {
+          let span = range.commonAncestorContainer.parentElement; //TODO
+          let text = range.toString();
+          if (span && span.tagName.toLowerCase() == 'span' ) {
+            console.log("HIGHLIGHTED", text);
+            setWordInformation(text, cfiRange, span.dataset);
+          } else {
+            console.log("HIGHLIGHTED MULTI", text);
+            setWordInformation(text, cfiRange, null);
+          }
+        });
       });
 
       rendition.on("markClicked", function (cfiRange, data) {

@@ -24,7 +24,7 @@ import Morphology (valueNames)
 
 mapValue ::  String -> String -> String
 mapValue "infinitive" value = value
-mapValue key value = fromMaybe (spy "value" value) $ spy "lookup" $ lookup value $ spy "names" valueNames
+mapValue key value = fromMaybe value $ lookup value $ valueNames
 
 reactComponent :: ReactComponent Props
 reactComponent =
