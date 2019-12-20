@@ -32,7 +32,7 @@ import BottomContent as BottomContent
 import Foreign.Object (Object)
 import Debug.Trace (spy)
 
-type VisibleLocation = {start :: {percentage :: Int}}
+type VisibleLocation = {start :: {percentage :: Int, cfi :: String}}
 
 colors = {noun: {color: "orange"}, adjective: {color: "red"}, verb: {color: "green"}, none: {color: "black"}}
 
@@ -43,6 +43,7 @@ type Props = {
   toggleBars :: Effect Unit,
   setToc :: (Array String -> Array String) -> Effect Unit,
   setTitle :: (String -> String) -> Effect Unit,
+  title :: String,
   setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit,
   setVisibleLocation :: (VisibleLocation -> VisibleLocation) -> Effect Unit,
   showBars :: Boolean,
@@ -88,10 +89,12 @@ query = gql """
   }
 """
 
-locationChange setVisibleLocation = mkEffectFn1 e
+locationChange title setVisibleLocation = mkEffectFn1 e
   where
-  e :: {start :: {percentage :: Int}} -> Effect Unit
-  e event = setVisibleLocation \_ -> event
+  e :: VisibleLocation -> Effect Unit
+  e event = launchAff_ do
+    setItem title event.start.cfi
+    liftEffect $ setVisibleLocation \_ -> event
 
 locationsReady setSliderDisabled = mkEffectFn1 e
   where
@@ -104,7 +107,7 @@ error = mkEffectFn1 e
   e :: String -> Effect Unit
   e message = log $ "EPUBJS-Webview " <> message
 
-press toggleBars {highlightedContent: _ /\ setHighlightedContent, morphology: _ /\ setMorphology, translation: _ /\ setTranslation} = 
+press toggleBars {highlightedContent: _ /\ setHighlightedContent, morphology: _ /\ setMorphology, translation: _ /\ setTranslation} =
   mkEffectFn1 e
   where
   e :: {} -> Effect Unit
@@ -187,7 +190,7 @@ useRenditionData showBars setShowBars = React.do
     { translation: translation /\ setTranslation
     , highlightedContent: highlightedContent /\ setHighlightedContent
     , epubcfi
-    , morphology: morphology /\ setMorphology 
+    , morphology: morphology /\ setMorphology
     , language: language /\ setLanguage
     , chapterTitle
     }
@@ -306,7 +309,7 @@ buildJsx props = React.do
                 , src: src
                 , flow: flow
                 , location: props.location
-                , onLocationChange: locationChange props.setVisibleLocation
+                , onLocationChange: locationChange props.title props.setVisibleLocation
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc
                 , themes: {highlighted: setTheme highlightVerbs highlightNouns highlightAdjectives}

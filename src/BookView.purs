@@ -22,7 +22,7 @@ import Data.Traversable (traverse_)
 import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Nullable (Nullable, toMaybe)
-import AsyncStorage (clear)
+import AsyncStorage (clear, getItem)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
@@ -71,8 +71,13 @@ buildJsx jsProps = React.do
   title /\ setTitle <- useState ""
   sliderDisabled /\ setSliderDisabled <- useState true
   showBars /\ setShowBars <- useState true
-  visibleLocation /\ setVisibleLocation <- useState {start: {percentage: 0}}
+  visibleLocation /\ setVisibleLocation <- useState {start: {percentage: 0, cfi: "0"}}
   showNav /\ setShowNav <- useState false
+  useEffect title do
+     launchAff_ do
+       l <- getItem title
+       liftEffect $ traverse_ (\l -> setLocation \_ -> l) l
+     pure mempty
 
   let
     toggleBars = setShowBars $ \_ -> not showBars
@@ -93,6 +98,7 @@ buildJsx jsProps = React.do
           setToc,
           navigation,
           setTitle,
+          title,
           setSliderDisabled,
           setVisibleLocation,
           setHeight,

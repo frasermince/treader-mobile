@@ -73,7 +73,7 @@ buildJsx props = React.do
    where visible = isJust props.translation || isJust props.morphology
          translationText = fromMaybe mempty (M.text {} <$> M.string <$> (append "Translation: ") <$> props.translation)
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
-maybeDataMap morphology = fromMaybe mempty (dataMap <$> spy "MORPHOLOGY" morphology)
+maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
   where dataMap d = fold foldFn (mempty :: M.Markup Unit) d
         foldFn :: forall a . M.Markup Unit -> String -> String -> M.Markup Unit
         foldFn accum key value = accum <> M.view {style: M.css {flex: 1, alignSelf: "stretch", flexDirection: "row"}} do
