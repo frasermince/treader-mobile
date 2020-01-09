@@ -2,9 +2,7 @@ window.onerror = function (message, file, line, col, error) {
   var msg = JSON.stringify({method:"error", value: message});
   window.postMessage(msg, "*");
 };
-
 (function () {
-
 const findTitlesAndLanguage = (rendition, location) => {
   var sendMessage = function(obj) {
     // window.postMessage(JSON.stringify(obj), targetOrigin);
@@ -390,7 +388,7 @@ function renditionHandler(rendition, location) {
     function openEpub(url, options) {
       var settings = Object.assign({
         manager: "continuous",
-        overflow: "visible",
+        overflow: "hidden",
         method: "blobUrl",
         fullsize: true,
         snap: isChrome

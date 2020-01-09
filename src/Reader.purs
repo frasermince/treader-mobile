@@ -13,7 +13,7 @@ import EpubRn (epub, createStreamer, startStream, streamGet, killStream)
 import Effect.Uncurried (mkEffectFn1)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..))
-import Data.Nullable (Nullable, toMaybe)
+import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Markup as M
 import Control.Alt ((<|>))
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -23,8 +23,9 @@ import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
 import ApolloHooks (useMutation)
-import EpubUtil (mkStateChangeListeners, bridgeFile)
+import EpubUtil (mkStateChangeListeners, bridgeFile, bookHtml)
 import Data.Symbol (SProxy(..))
+import Record (merge)
 import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
@@ -148,6 +149,7 @@ useStreamer toggleBars book = coerceHook $ React.do
   useEffect maybeUrl $ do
     traverse_ affFn maybeUrl
     pure $ killStream streamer
+  --pure $ streamerResult (Just {book: {epubUrl: toNullable $ Just $ "https://s3.amazonaws.com/epubjs/books/moby-dick.epub", processedEpubUrl: null}}) src origin
   pure $ streamerResult result src origin
 
   where streamerResult d src origin = (bookUrl >>> streamerRecord src origin) <$> d
@@ -238,6 +240,17 @@ type Theme = {
 }
 
 
+defaultTheme = {
+  body: {
+    "-webkit-touch-callout": "none",
+    "-webkit-user-select": "none",
+    "-khtml-user-select": "none",
+    "-moz-user-select": "none",
+    "-ms-user-select": "none",
+    "user-select": "none"
+  }
+}
+
 setTheme :: Boolean -> Boolean -> Boolean -> Theme
 setTheme highlightVerbs highlightNouns highlightAdjectives =
   build (adjectives $ nouns $ verbs $ defaultTheme) {}
@@ -312,9 +325,9 @@ buildJsx props = React.do
                 , onLocationChange: locationChange props.title props.setVisibleLocation
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc
-                , themes: {highlighted: setTheme highlightVerbs highlightNouns highlightAdjectives}
+                , themes: {highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme}
                 , theme: "highlighted"
-                , onPress: press props.toggleBars stateChangeListeners
+--                , onPress: press props.toggleBars stateChangeListeners
                 , origin: origin
                 , onError: error
                 }
