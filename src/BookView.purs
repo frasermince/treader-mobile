@@ -101,6 +101,7 @@ buildJsx jsProps = React.do
           title,
           setSliderDisabled,
           setVisibleLocation,
+          visibleLocation,
           setHeight,
           setWidth,
           showBars,

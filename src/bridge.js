@@ -3,6 +3,72 @@ window.onerror = function (message, file, line, col, error) {
   window.postMessage(msg, "*");
 };
 (function () {
+function getWordRange(e) {
+  // FF gives us a shortcut
+  var target = e.explicitOriginalTarget || e.target,
+    // We will use this to get the positions of our textNodes
+    range = document.createRange(),
+    rect, i;
+  // so first let's get the textNode that was clicked
+  if (target.nodeType !== 3) {
+    var children = target.childNodes;
+    var node = null;
+    i = 0;
+    while (i < children.length) {
+      range.selectNode(children[i]);
+      rect = range.getBoundingClientRect();
+      if (rect.left <= e.pageX && rect.right >= e.pageX &&
+        rect.top <= e.pageY && rect.bottom >= e.pageY) {
+        target = children[i];
+        if (target.nodeType !== 3 && target.tagName == "SPAN") {
+          target = target.childNodes[0];
+        }
+        break;
+      }
+      i++;
+    }
+  }
+  range.selectNode(target);
+  console.log("***TARGET", target.tagName);
+  if (target.nodeType !== 3) {
+    return null;
+  }
+  console.log("***SHOULD HIT");
+
+  var text = target.nodeValue || target.textContent;
+  // Return range if span only has one word.
+  console.log("TEXT", text);
+  if (!text.includes(' ')) {
+    range.setEnd(target, text.length);
+    return range;
+  }
+  // Now, let's split its content to words
+  var words = text.split(' '),
+    textNode, newText;
+  console.log("***WORDS", words)
+  i = 0;
+  while (i < words.length) {
+    // create a new textNode with only this word
+    textNode = document.createTextNode((i ? ' ' : '') + words[i]);
+    newText = words.slice(i + 1);
+    // update the original node's text
+    target.nodeValue = newText.length ? (' ' + newText.join(' ')) : '';
+    // insert our new textNode
+    target.parentNode.insertBefore(textNode, target);
+    // get its position
+    range.selectNode(textNode);
+    rect = range.getBoundingClientRect();
+    // if it is the one
+    if (rect.left <= e.clientX && rect.right >= e.clientX &&
+      rect.top <= e.clientY && rect.bottom >= e.clientY) {
+      console.log("RANGE", range.startOffset, range.endOffset);
+      range.setEnd(textNode, newText.length);
+      console.log("RANGE", range.startOffset, range.endOffset);
+      return range;
+    }
+    i++;
+  }
+};
 const findTitlesAndLanguage = (rendition, location) => {
   var sendMessage = function(obj) {
     // window.postMessage(JSON.stringify(obj), targetOrigin);
@@ -23,7 +89,6 @@ const findTitlesAndLanguage = (rendition, location) => {
   }
   let book = rendition.book
   let spineItem = book.spine.get(location);
-  console.log("***SPINE", JSON.stringify(book.package));
   let bookTitle = book.package.metadata.title
   console.log("***TITLE VARS");
   let language = book.package.metadata.language.toLowerCase();
@@ -112,31 +177,6 @@ function renditionHandler(rendition, location) {
   console.error = function() {
     sendMessage({method:"error", value: Array.from(arguments)});
   }
-  rendition.hooks.content.register(function(contents, view) {
-    contents.triggerSelectedEvent = function(selection){
-      var range, cfirange;
-
-      if (selection && selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-        if(!range.collapsed) {
-          this.previouslySelected = true;
-          // cfirange = this.section.cfiFromRange(range);
-          cfirange = new EpubCFI(range, this.cfiBase).toString();
-          this.emit("selected", cfirange);
-          this.emit("selectedRange", range);
-        } else if (this.previouslySelected) {
-          console.log("***DESELECT");
-          this.previouslySelected = false;
-          this.emit("deselected");
-        }
-      }
-    }
-
-    contents.on("deselected", function() {
-      sendMessage({method:"set", key: "translation", value: null});
-      setWordInformation(null, null, null);
-    });
-  });
 
   setTitlesAndLanguage(rendition, location);
   }
@@ -394,11 +434,34 @@ function renditionHandler(rendition, location) {
         snap: isChrome
       }, options);
 
+      console.log("OPEN", url);
       window.book = book = ePub(url);
 
+      console.log("AFTER EPUB");
       window.rendition = rendition = book.renderTo(document.body, settings);
       
       rendition.hooks.content.register(function(contents, rendition) {
+        contents.triggerSelectedEvent = function(cfi){
+          var range, cfirange;
+          console.log("***SELECTED");
+          if(cfi) {
+            this.previouslySelected = true;
+            // cfirange = this.section.cfiFromRange(range);
+            this.emit("selected", cfi);
+            //this.emit("selectedRange", range);
+          } else if (this.previouslySelected) {
+            console.log("***DESELECT");
+            this.previouslySelected = false;
+            this.emit("deselected");
+          }
+        }
+
+        contents.on("deselected", function() {
+          debugger;
+          sendMessage({method:"set", key: "translation", value: null});
+          setWordInformation(null, null, null);
+        });
+
         var doc = contents.document;
         var startPosition = { x: -1, y: -1 };
         var currentPosition = { x: -1, y: -1 };
@@ -407,9 +470,11 @@ function renditionHandler(rendition, location) {
         var touchduration = 300;
         var preventTap;
         var $body = doc.getElementsByTagName('body')[0];
+        var previous = ""
 
         function touchStartHandler(e) {
           var f, target;
+
           startPosition.x = e.targetTouches[0].pageX;
           startPosition.y = e.targetTouches[0].pageY;
           currentPosition.x = e.targetTouches[0].pageX;
@@ -459,6 +524,14 @@ function renditionHandler(rendition, location) {
         }
 
         function touchEndHandler(e) {
+          var txt = document.getSelection().toString();
+            console.log("***SELECTED", txt);
+          if (txt || previous && !(txt && previous)) {
+            console.log("***SEND EVENT");
+            window.ReactNativeSelectDetection.postMessage(txt);
+            previous = txt;
+          }
+
           var cfi;
           clearTimeout(longPressTimer);
 
@@ -477,8 +550,23 @@ function renditionHandler(rendition, location) {
                 target.getAttribute("ref") === "epubjs-ul") {
               return;
             }
+                        //var elem = e.target;
+            //var selRange = elem.createTextRange();
+            //var start = 0;
+            //var end = elem.value.length;
+            //selRange.collapse(true);
+            //selRange.moveStart('character', start);
+            //selRange.moveEnd('character', end);
+            //selRange.select();
 
-            cfi = contents.cfiFromNode(target).toString();
+            var range = getWordRange(e)
+            if (range) {
+              cfi = contents.cfiFromRange(range);
+              contents.triggerSelectedEvent(cfi);
+            } else {
+              contents.triggerSelectedEvent(null);
+              cfi = contents.cfiFromNode(target).toString();
+            }
 
             if(isLongPress) {
               sendMessage({method:"longpress", position: currentPosition, cfi: cfi});

@@ -47,6 +47,7 @@ type Props = {
   title :: String,
   setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit,
   setVisibleLocation :: (VisibleLocation -> VisibleLocation) -> Effect Unit,
+  visibleLocation :: VisibleLocation,
   showBars :: Boolean,
   setShowBars :: (Boolean -> Boolean) -> Effect Unit,
   setHeight :: (Number -> Number) -> Effect Unit,
@@ -175,7 +176,7 @@ mutation = gql """
   }
 """
 
-useRenditionData showBars setShowBars = React.do
+useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe String)
@@ -183,6 +184,11 @@ useRenditionData showBars setShowBars = React.do
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
+  useEffect visibleLocation $ do
+     spy "HERE" (setHighlightedContent \_ -> Nothing)
+     spy "HERE" (setTranslation \_ -> Nothing)
+     spy "HERE" (setMorphology \_ -> Nothing)
+     pure mempty
   useEffect highlightedContent $ do
      launchAff_ $ mutateAndChangeState mutationFn (spy "***H" highlightedContent) (spy "***L" language) setShowBars setTranslation
      pure mempty
@@ -301,7 +307,7 @@ buildJsx props = React.do
 
 
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
-  stateChangeListeners <- useRenditionData props.showBars props.setShowBars
+  stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent) $ do
      log $ "listeners: " <>  (fromMaybe "Nothing" $ fst stateChangeListeners.highlightedContent)
      pure mempty
