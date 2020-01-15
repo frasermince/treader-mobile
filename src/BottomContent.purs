@@ -3,6 +3,7 @@ module BottomContent where
 import Prelude
 import Debug.Trace (spy)
 import Effect.Aff (Aff, launchAff_)
+import React.Basic.DOM.Internal (CSS)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
@@ -17,10 +18,13 @@ import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
 import Paper (surface)
-import Record (get)
+import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
 import Morphology (valueNames)
+import EpubUtil (HighlightedContent)
+import Dimensions (window)
+import Data.Int (floor)
 
 mapValue ::  String -> String -> String
 mapValue "infinitive" value = value
@@ -33,12 +37,17 @@ reactComponent =
         (component "BottomContent") buildJsx
 
 
-type Props = { translation :: Maybe String, morphology :: Maybe (Object String) }
+type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number }
+
+--styles :: CSS -> Number -> Maybe Number -> CSS
+placement height Nothing = {top: height - 200}
+placement height (Just wordPlacement)
+  | (spy "HEIGHT" height) - (spy "PLACEMENT" (floor wordPlacement)) < 200 = {top: 25}
+  | otherwise = {top: height - 200}
 styles fade = {
   --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
-  bottom: 0,
-  height: 200, --Platform.select {ios: 64, android: 54},
+  height: 200,
   right: 0,
   left: 0,
   borderTopWidth: 1,
@@ -66,7 +75,7 @@ buildJsx props = React.do
      launchAff_ $ runAnimation visible fade
      pure mempty
 
-  pure $ M.getJsx $ surface {style: M.css $ styles fade} do
+  pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
         translationText
         maybeDataMap props.morphology

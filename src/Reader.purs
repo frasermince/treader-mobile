@@ -23,7 +23,7 @@ import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
 import ApolloHooks (useMutation)
-import EpubUtil (mkStateChangeListeners, bridgeFile, bookHtml)
+import EpubUtil (mkStateChangeListeners, bridgeFile, bookHtml, HighlightedContent)
 import Data.Symbol (SProxy(..))
 import Record (merge)
 import Record.Builder (build, insert, modify, Builder)
@@ -179,7 +179,7 @@ mutation = gql """
 useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
-  highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe String)
+  highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
@@ -204,11 +204,12 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     }
     where
           mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
-            let payload = { variables: { input: {snippet: highlightedContent, language: language} } }
+            let payload = { variables: { input: {snippet: highlightedContent.text, language: language} } }
             result <- mutationFn $ payload
             liftEffect $ setShowBars \_ -> false
             liftEffect $ setTranslation \_ -> Just $ (spy "result" result).data.translate.translation
-          mutateAndChangeState _ _ _ _ _ = pure $ unit
+          mutateAndChangeState _ _ _ _ setTranslation = do
+             liftEffect $ setTranslation \_ -> Nothing
 
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
@@ -309,7 +310,7 @@ buildJsx props = React.do
   streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
   stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent) $ do
-     log $ "listeners: " <>  (fromMaybe "Nothing" $ fst stateChangeListeners.highlightedContent)
+     log $ "listeners: " <> (fromMaybe "Nothing" ((_.text) <$> fst stateChangeListeners.highlightedContent))
      pure mempty
   case streamResult of
        Nothing -> pure mempty
@@ -338,5 +339,5 @@ buildJsx props = React.do
                 , onError: error
                 }
           M.childElement BottomContent.reactComponent
-            {translation: fst stateChangeListeners.translation, morphology: fst stateChangeListeners.morphology}
+            {translation: spy "TRANSLATION" (fst stateChangeListeners.translation), morphology: spy "MORPH" (fst stateChangeListeners.morphology), wordPlacement: spy "***HC" $ _.fromTop <$> (fst stateChangeListeners.highlightedContent)}
 
