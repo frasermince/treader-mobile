@@ -13,7 +13,6 @@ import Data.Nullable (toMaybe, toNullable, Nullable)
 import Data.Tuple.Native (T2, t2)
 import Debug.Trace (spy)
 
-foreign import bookHtml :: String
 foreign import bridgeFile :: String
 --foreign import webview :: forall props . ReactComponent props
 
