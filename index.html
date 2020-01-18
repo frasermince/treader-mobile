@@ -1,0 +1,38 @@
+<html>
+<head>
+  <script>
+console.log('***MESSAGE');
+window.ReactNativeWebView = {  postMessage: function (data) {    window.webkit.messageHandlers.ReactNativeWebView.postMessage(String(data));  }};
+var sendMessage = function(obj) {
+// window.postMessage(JSON.stringify(obj), targetOrigin);
+if (!window.ReactNativeWebView.postMessage) {
+setTimeout(() => {
+sendMessage(obj);
+}, 1);
+} else {
+window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+}
+};
+console.log = function() {
+sendMessage({method:'log', value: Array.from(arguments)});
+}
+console.error = function() {
+sendMessage({method:'error', value: Array.from(arguments)});
+}
+window.ReactNativeSelectDetection = {  postMessage: function (data) {  console.log('FN', window.webkit.messageHandlers);
+    window.webkit.messageHandlers.ReactNativeSelectDetection.postMessage(String(data));  }};
+console.log("***START");
+(function() {
+var getSelectionAndSendMessage = function() {
+//console.log('***JS EVENT');
+var txt = document.getSelection().toString();
+window.webkit.messageHandlers.ReactNativeSelectDetection.postMessage(txt);
+}
+document.ontouchstart  = getSelectionAndSendMessage ;
+}())
+  </script>
+</head>
+<body>
+  <h1>HI</h1>
+</body>
+</html>
