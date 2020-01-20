@@ -1,7 +1,6 @@
 module BottomContent where
 
 import Prelude
-import Debug.Trace (spy)
 import Effect.Aff (Aff, launchAff_)
 import React.Basic.DOM.Internal (CSS)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
@@ -42,7 +41,7 @@ type Props = { translation :: Maybe String, morphology :: Maybe (Object String),
 --styles :: CSS -> Number -> Maybe Number -> CSS
 placement height Nothing = {top: height - 200}
 placement height (Just wordPlacement)
-  | (spy "HEIGHT" height) - (spy "PLACEMENT" (floor wordPlacement)) < 200 = {top: 25}
+  | height - (floor wordPlacement) < 250 = {top: 25}
   | otherwise = {top: height - 200}
 styles fade = {
   --backgroundColor: "#cdcdcd",

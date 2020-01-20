@@ -466,6 +466,8 @@ function renditionHandler(rendition, location) {
         contents.on("deselected", function() {
           setWordInformation(null, null, null, null);
           sendMessage({method:"set", key: "translation", value: null});
+          let svg = document.getElementById("select-box");
+          svg.style.visibility = "hidden";
         });
 
         var doc = contents.document;
@@ -524,6 +526,9 @@ function renditionHandler(rendition, location) {
         }
 
         function touchMoveHandler(e) {
+          let svg = document.getElementById("select-box");
+          setWordInformation(null, null, null, null);
+          svg.style.visibility = "hidden";
           currentPosition.x = e.targetTouches[0].pageX;
           currentPosition.y = e.targetTouches[0].pageY;
           clearTimeout(longPressTimer);
@@ -633,10 +638,13 @@ function renditionHandler(rendition, location) {
       rendition.on("selected", function({cfi: cfiRange, range: range}, contents, t) {
         let span = range.startContainer;
         let text = range.toString();
-        //rendition.annotations.mark(cfiRange, {'something' : true}, (e) => {
-        //  debugger;
-        //  var bounds = e.target.getBoundingClientRect();
-        //});
+        let svg = document.getElementById("select-box");
+        let rectangle = svg.children[0];
+        svg.style.width = range.getBoundingClientRect().width + 3;
+        svg.style.height = range.getBoundingClientRect().height + 3;
+        svg.style.left = range.getBoundingClientRect().x % rendition._layout.columnWidth;
+        svg.style.top = range.getBoundingClientRect().y;
+        svg.style.visibility = "visible";
         if (span && span.tagName.toLowerCase() == 'span' ) {
           console.log("HIGHLIGHTED", text);
           setWordInformation(text, cfiRange, span.dataset, range.getBoundingClientRect().top);
