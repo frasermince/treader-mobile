@@ -6,9 +6,10 @@ import { reactComponent as SignInScreen} from "./output/SignIn";
 import { provider as DataStateContext} from "./output/Context";
 import { createStackNavigator } from 'react-navigation-stack';
 import { Provider as PaperProvider } from 'react-native-paper';
-import React, {useState} from 'react';
+import { View } from 'react-native';
+import React, {useState, useEffect} from 'react';
 import { ApolloProvider } from '@apollo/react-hooks';
-import client from './src/ApolloClient';
+import apolloClient from './src/ApolloClient';
 import { Button, Snackbar } from 'react-native-paper';
 
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
@@ -35,6 +36,12 @@ export default App = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
+  const [client, setClient] = useState(null);
+  useEffect(async function() {
+    const c = await apolloClient();
+    console.log("***C", c);
+    setClient(c);
+  }, [])
   const setSnackbar = (error) => {
     if (error === "") {
       setVisible(false)
@@ -44,25 +51,29 @@ export default App = () => {
     }
   }
   const contextValue = { setLoading: setLoading, setError: setSnackbar}
-  return (
-    <ApolloProvider client={client}>
-      <PaperProvider>
-        <DataStateContext value={contextValue}>
-          <Routing/>
-        </DataStateContext>
-        <Snackbar
-          visible={errorVisible}
-          onDismiss={() => setErrorVisible(false)}
-          action={{
-            label: 'Close',
-            onPress: () => {
-              // Do something
-            },
-          }}
-        >
-          {error}
-        </Snackbar>
-      </PaperProvider>
-    </ApolloProvider>
-  );
+  if (client) {
+    return (
+      <ApolloProvider client={client}>
+        <PaperProvider>
+          <DataStateContext value={contextValue}>
+            <Routing/>
+          </DataStateContext>
+          <Snackbar
+            visible={errorVisible}
+            onDismiss={() => setErrorVisible(false)}
+            action={{
+              label: 'Close',
+              onPress: () => {
+                // Do something
+              },
+            }}
+          >
+            {error}
+          </Snackbar>
+        </PaperProvider>
+      </ApolloProvider>
+    );
+  } else {
+    return (<View></View>);
+  }
 }
