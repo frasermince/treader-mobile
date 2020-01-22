@@ -2554,7 +2554,7 @@ envinfo@^7.1.0:
 
 epubjs-rn@frasermince/epubjs-rn:
   version "0.1.5"
-  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/b2d9baafd73a8e9066a4b66670b0716bcabb1ac0"
+  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/34a4bce8dd7ed372bb8e39c8a7043b90baa99901"
   dependencies:
     "@babel/polyfill" "^7.4.4"
     "@lightbase/react-native-orientation" "^3.2.6"
@@ -2632,9 +2632,9 @@ es-abstract@^1.15.0, es-abstract@^1.5.1, es-abstract@^1.7.0:
     string.prototype.trimright "^2.1.0"
 
 es-abstract@^1.17.0-next.1:
-  version "1.17.3"
-  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.3.tgz#d921ff5889a3664921094bb13aaf0dfd11818578"
-  integrity sha512-AwiVPKf3sKGMoWtFw0J7Y4MTZ4Iek67k4COWOwHqS8B9TOZ71DCfcoBmdamy8Y6mj4MDz0+VNUpC2HKHFHA3pg==
+  version "1.17.4"
+  resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.4.tgz#e3aedf19706b20e7c2594c35fc0d57605a79e184"
+  integrity sha512-Ae3um/gb8F0mui/jPL+QiqmglkUsaQf7FwBEHYIFkztkneosu9imhqHpBzQ3h1vit8t5iQ74t6PEVvphBZiuiQ==
   dependencies:
     es-to-primitive "^1.2.1"
     function-bind "^1.1.1"
@@ -6085,6 +6085,14 @@ react-native-dotenv@^0.2.0:
   dependencies:
     babel-plugin-dotenv "0.1.1"
 
+react-native-fs@^2.16.2:
+  version "2.16.2"
+  resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.16.2.tgz#a312ce5f418e6d91d13b51e50ba0c49b1da1ec79"
+  integrity sha512-N9V8cMAOE49+er0/Qnf/xSFzsVWVWPW7Uggr11KVh18uv7FEPLEfLwEsL1Gv9vdkTgAK+6SYT46nqrhKtJClSw==
+  dependencies:
+    base-64 "^0.1.0"
+    utf8 "^3.0.0"
+
 react-native-gesture-handler@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-1.5.0.tgz#df7dc5285c152e0656db70f55200fa632c4f45af"
@@ -7489,6 +7497,11 @@ use@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
+
+utf8@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/utf8/-/utf8-3.0.0.tgz#f052eed1364d696e769ef058b183df88c87f69d1"
+  integrity sha512-E8VjFIQ/TyQgp+TZfS6l8yp/xWppSAHzidGiRrqe4bK4XP9pTRyKFgGJpO3SN7zdX4DeomTrwaseCHovfpFcqQ==
 
 util-deprecate@~1.0.1:
   version "1.0.2"

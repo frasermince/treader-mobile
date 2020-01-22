@@ -16,7 +16,7 @@ import Data.Eq (class EqRecord)
 import Debug.Trace (spy)
 
 type Book
-  = { name :: String, slug :: String, __typename :: String, id :: String }
+  = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
 
 type User
   = {currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, books :: Array Book, id :: String, __typename :: String}}
@@ -36,6 +36,7 @@ query getUser {
     books {
       id
       name
+      filename
       slug
     }
   }
