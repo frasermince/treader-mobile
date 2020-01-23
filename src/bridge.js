@@ -478,7 +478,8 @@ function renditionHandler(rendition, location) {
         var touchduration = 300;
         var preventTap;
         var $body = doc.getElementsByTagName('body')[0];
-        var previous = ""
+        var previous = "";
+        var range = document.createRange();
 
         function touchStartHandler(e) {
           var f, target;
@@ -528,6 +529,7 @@ function renditionHandler(rendition, location) {
         function touchMoveHandler(e) {
           let svg = document.getElementById("select-box");
           setWordInformation(null, null, null, null);
+          range = document.createRange();
           svg.style.visibility = "hidden";
           currentPosition.x = e.targetTouches[0].pageX;
           currentPosition.y = e.targetTouches[0].pageY;
@@ -570,11 +572,26 @@ function renditionHandler(rendition, location) {
             //selRange.moveEnd('character', end);
             //selRange.select();
 
-            var range = getWordRange(e)
+            var lastRange = range;
+            range = getWordRange(e);
+            if (range && !lastRange.collapsed) {
+              var lastY = lastRange.getBoundingClientRect().y;
+              var currentY = range.getBoundingClientRect().y;
+              var comparison = range.compareBoundaryPoints(Range.END_TO_START, lastRange);
+
+              if(Math.abs(currentY - lastY) < 50) {
+                if (comparison == 1) {
+                  range.setStart(lastRange.startContainer, 0);
+                } else if (comparison == -1) {
+                  range.setEndAfter(lastRange.endContainer, 0);
+                }
+              }
+            }
             if (range) {
               cfi = contents.cfiFromRange(range);
               contents.triggerSelectedEvent(cfi, range);
             } else {
+              range = document.createRange();
               contents.triggerSelectedEvent(null, null);
               cfi = contents.cfiFromNode(target).toString();
             }
