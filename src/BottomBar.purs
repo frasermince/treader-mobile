@@ -22,11 +22,10 @@ reactComponent =
     $ do
         (component "BottomBar") buildJsx
 
-
 type Props = { shown :: Boolean, disabled :: Boolean, value :: Int, onSlidingComplete :: Number -> Effect Unit}
 footerStyles fade =
   {
-    backgroundColor: "#cdcdcd",
+    backgroundColor: "white",
     paddingTop: 0,
     bottom: 0,
     height: Platform.select {ios: 64, android: 54},
@@ -70,4 +69,4 @@ buildJsx props = React.do
 
   pure $ M.getJsx $ do
      view {style: footerStyles fade} do
-        slider {style: sliderStyles, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete}
+        slider {style: sliderStyles, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete, maximumTrackTintColor: "#707070"}

@@ -334,7 +334,7 @@ buildJsx props = React.do
                 , onReady: ready props.setTitle props.setToc
                 , themes: {highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme}
                 , theme: "highlighted"
---                , onPress: press props.toggleBars stateChangeListeners
+                , onPress: press props.toggleBars stateChangeListeners
                 , origin: origin
                 , onError: error
                 }

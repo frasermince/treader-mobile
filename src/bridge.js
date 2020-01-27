@@ -480,6 +480,7 @@ function renditionHandler(rendition, location) {
         var $body = doc.getElementsByTagName('body')[0];
         var previous = "";
         var range = document.createRange();
+        var multiwordSet = false;
 
         function touchStartHandler(e) {
           var f, target;
@@ -574,10 +575,11 @@ function renditionHandler(rendition, location) {
 
             var lastRange = range;
             range = getWordRange(e);
-            if (range && !lastRange.collapsed) {
+            if (range && !lastRange.collapsed && !multiwordSet) {
               var lastY = lastRange.getBoundingClientRect().y;
               var currentY = range.getBoundingClientRect().y;
               var comparison = range.compareBoundaryPoints(Range.END_TO_START, lastRange);
+              multiwordSet = true;
 
               if(Math.abs(currentY - lastY) < 50) {
                 if (comparison == 1) {
@@ -591,23 +593,24 @@ function renditionHandler(rendition, location) {
               cfi = contents.cfiFromRange(range);
               contents.triggerSelectedEvent(cfi, range);
             } else {
+              multiwordSet = false;
               range = document.createRange();
               contents.triggerSelectedEvent(null, null);
               cfi = contents.cfiFromNode(target).toString();
-            }
 
-            if(isLongPress) {
-              sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
-              isLongPress = false;
-            } else {
-              setTimeout(function() {
-                if(preventTap) {
-                  preventTap = false;
-                  isLongPress = false;
-                  return;
-                }
-                sendMessage({method:"press", position: currentPosition, cfi: cfi});
-              }, 10);
+              if(isLongPress) {
+                sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
+                isLongPress = false;
+              } else {
+                setTimeout(function() {
+                  if(preventTap) {
+                    preventTap = false;
+                    isLongPress = false;
+                    return;
+                  }
+                  sendMessage({method:"press", position: currentPosition, cfi: cfi});
+                }, 10);
+              }
             }
           }
         }

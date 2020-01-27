@@ -11,11 +11,34 @@ import React, {useState, useEffect} from 'react';
 import { ApolloProvider } from '@apollo/react-hooks';
 import apolloClient from './src/ApolloClient';
 import { Button, Snackbar } from 'react-native-paper';
+import { createMaterialBottomTabNavigator } from 'react-navigation-material-bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
 
-const AppStack = createStackNavigator({ Index: IndexScreen, Book: BookScreen }, {headerMode: 'screen'});
+const AppStack = createMaterialBottomTabNavigator(
+  { Home: {
+      screen: IndexScreen,
+      navigationOptions: {
+        tabBarIcon: ({ tintColor }) => (
+          <View>
+            <Icon style={[{color: tintColor}]} name={"home"} size={25} />
+          </View>
+        )
+      }
+    },
+    Read: {
+      screen: BookScreen,
+      navigationOptions: {
+        tabBarIcon: ({ tintColor }) => (
+          <View>
+            <Icon style={[{color: tintColor}]} name={"book"} size={25} />
+          </View>
+        )
+      }
+    }
+  }, {barStyle: {backgroundColor: "black"}});
 const AuthStack = createStackNavigator({ SignIn: SignInScreen });
 
 const Routing = createAppContainer(

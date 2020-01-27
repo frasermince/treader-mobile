@@ -26,7 +26,7 @@ css :: forall css. { | css } -> CSS
 css = unsafeCoerce
 type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
 headerStyles fade = {
-  backgroundColor: "#cdcdcd",
+  backgroundColor: "white",
   paddingTop: Platform.select {ios: 40, android: 24},
   top: 0,
   height: Platform.select {

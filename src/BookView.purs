@@ -32,6 +32,7 @@ import Reader as Reader
 styles =
   { container:
     { flex: 1
+    , backgroundColor: "white"
     }
     , bar:
     { position: "absolute"

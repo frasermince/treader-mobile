@@ -42,7 +42,7 @@ type Props = { translation :: Maybe String, morphology :: Maybe (Object String),
 placement height Nothing = {top: height - 200}
 placement height (Just wordPlacement)
   | height - (floor wordPlacement) < 250 = {top: 25}
-  | otherwise = {top: height - 200}
+  | otherwise = {top: height - 290}
 styles fade = {
   --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
@@ -65,6 +65,11 @@ styles fade = {
       outputRange: [-1, 9]
     }
 
+titleStyles = M.css {
+  fontSize: 15,
+  fontWeight: "bold",
+  marginBottom: 5
+}
 runAnimation true fade = timing fade {toValue: 1, duration: 20}
 runAnimation false fade = timing fade {toValue: 0, duration: 20}
 --buildJsx :: Props -> JSX
@@ -76,13 +81,18 @@ buildJsx props = React.do
 
   pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
-        translationText
+        fromMaybe mempty $ (append translationMarker) <$> translationText
         maybeDataMap props.morphology
    where visible = isJust props.translation || isJust props.morphology
-         translationText = fromMaybe mempty (M.text {} <$> M.string <$> (append "Translation: ") <$> props.translation)
+         translationMarker = M.text {style: titleStyles} $ M.string "Translation"
+         translationText = (M.text {} <$> M.string <$> props.translation)
+
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
-  where dataMap d = fold foldFn (mempty :: M.Markup Unit) d
+  where dataMap d = M.view {style: M.css {marginTop: 10}} do
+          M.text {style: titleStyles} $ M.string $ "Word Information"
+          fold foldFn (mempty :: M.Markup Unit) d
+
         foldFn :: forall a . M.Markup Unit -> String -> String -> M.Markup Unit
         foldFn accum key value = accum <> M.view {style: M.css {flex: 1, alignSelf: "stretch", flexDirection: "row"}} do
            M.view {style: M.css {flex: 1, alignSelf: "stretch"}} $ M.text {} $ M.string key

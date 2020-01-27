@@ -42,7 +42,7 @@ buildJsx props = React.do
        Just d -> dom d files
 
   where
-    redirect slug = runEffectFn2 props.navigation.navigate "Book" {slug: slug}
+    redirect slug = runEffectFn2 props.navigation.navigate "Read" {slug: slug}
     bookIcon :: forall p . Record p -> JSX
     bookIcon p = element listIcon $ unsafeUnion p {color: "#000", icon: "book"}
     cloudState book Nothing p = mempty
@@ -61,7 +61,8 @@ buildJsx props = React.do
                })
 
     dom d files = React.do
-      pure $ M.getJsx $ surface {style: M.css {flex: 1}} do
-        listSection {} do
-          foldl (item files) mempty d.currentUser.books
+       pure $ M.getJsx $ M.safeAreaView {style: M.css {flex: 1, backgroundColor: "#ffffff"}} do
+        surface {style: M.css {flex: 1}} do
+          listSection {} do
+            foldl (item files) mempty d.currentUser.books
 
