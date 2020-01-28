@@ -31,6 +31,7 @@ import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
+import WordReference (wordReference, WordReferenceResult)
 import Debug.Trace (spy)
 
 type VisibleLocation = {start :: {percentage :: Int, cfi :: String}}
@@ -179,6 +180,7 @@ mutation = gql """
 useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
+  wordReference /\ setWordReference <- useState $ (Nothing :: Maybe WordReferenceResult)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
@@ -190,7 +192,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
      spy "HERE" (setMorphology \_ -> Nothing)
      pure mempty
   useEffect highlightedContent $ do
-     launchAff_ $ mutateAndChangeState mutationFn (spy "***H" highlightedContent) (spy "***L" language) setShowBars setTranslation
+     launchAff_ $ mutateAndChangeState mutationFn (spy "***H" highlightedContent) (spy "***L" language) setShowBars setTranslation setWordReference
      pure mempty
 
 
@@ -198,18 +200,22 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     { translation: translation /\ setTranslation
     , highlightedContent: highlightedContent /\ setHighlightedContent
     , epubcfi
+    , wordReference: wordReference /\ setWordReference
     , morphology: morphology /\ setMorphology
     , language: language /\ setLanguage
     , chapterTitle
     }
     where
-          mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
-            let payload = { variables: { input: {snippet: highlightedContent.text, language: language} } }
+          mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation setWordReference = do
+            let payload = spy "***WAT" { variables: { input: {snippet: highlightedContent.text, language: language} } }
             result <- mutationFn $ payload
-            liftEffect $ setShowBars \_ -> false
+            liftEffect $ setShowBars \_ -> spy "***BEFORE" false
+            referenceResult <- spy "***REF" $ wordReference highlightedContent.text language "en"
             liftEffect $ setTranslation \_ -> Just $ (spy "result" result).data.translate.translation
-          mutateAndChangeState _ _ _ _ setTranslation = do
+            liftEffect $ setWordReference \_ -> Just referenceResult
+          mutateAndChangeState _ _ _ _ setTranslation setWordReference = do
              liftEffect $ setTranslation \_ -> Nothing
+             liftEffect $ setWordReference \_ -> Nothing
 
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
@@ -339,5 +345,5 @@ buildJsx props = React.do
                 , onError: error
                 }
           M.childElement BottomContent.reactComponent
-            {translation: spy "TRANSLATION" (fst stateChangeListeners.translation), morphology: spy "MORPH" (fst stateChangeListeners.morphology), wordPlacement: spy "***HC" $ _.fromTop <$> (fst stateChangeListeners.highlightedContent)}
+            {translation: spy "TRANSLATION" (fst stateChangeListeners.translation), morphology: spy "MORPH" (fst stateChangeListeners.morphology), wordPlacement: spy "***HC" $ _.fromTop <$> (fst stateChangeListeners.highlightedContent), wordReference: (fst stateChangeListeners.wordReference)}
 

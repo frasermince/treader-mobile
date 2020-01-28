@@ -1,6 +1,7 @@
 module BottomContent where
 
 import Prelude
+import Data.Array (head)
 import Effect.Aff (Aff, launchAff_)
 import React.Basic.DOM.Internal (CSS)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
@@ -24,6 +25,8 @@ import Morphology (valueNames)
 import EpubUtil (HighlightedContent)
 import Dimensions (window)
 import Data.Int (floor)
+import WordReference (WordReferenceResult)
+import Debug.Trace (spy)
 
 mapValue ::  String -> String -> String
 mapValue "infinitive" value = value
@@ -36,7 +39,7 @@ reactComponent =
         (component "BottomContent") buildJsx
 
 
-type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number }
+type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number, wordReference :: Maybe WordReferenceResult }
 
 --styles :: CSS -> Number -> Maybe Number -> CSS
 placement height Nothing = {top: height - 200}
@@ -81,10 +84,19 @@ buildJsx props = React.do
 
   pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
+        fromMaybe mempty $ (append definitionMarker) <$> spy "REF RESULT" (firstTranslation props.wordReference)
         fromMaybe mempty $ (append translationMarker) <$> translationText
         maybeDataMap props.morphology
-   where visible = isJust props.translation || isJust props.morphology
+   where firstTranslation reference = do
+           result <- reference
+           result <- head $ result.translations
+           result <- head $ result.translations
+           pure $ M.text {} $ M.string result.to
+
+
+         visible = isJust props.translation || isJust props.morphology
          translationMarker = M.text {style: titleStyles} $ M.string "Translation"
+         definitionMarker = M.text {style: titleStyles} $ M.string "Definition"
          translationText = (M.text {} <$> M.string <$> props.translation)
 
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
