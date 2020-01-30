@@ -163,8 +163,8 @@ useStreamer toggleBars book = coerceHook $ React.do
           let delayAndToggle = do
                 delay $ Milliseconds 1000.0
                 liftEffect $ toggleBars
-          fiber <- forkAff $ delayAndToggle
           origin <- (startStream streamer)
+          fiber <- forkAff $ delayAndToggle
           liftEffect $ setOrigin $ \_ -> origin
           src <- streamGet streamer url
           liftEffect $ setSrc $ \_ -> src
