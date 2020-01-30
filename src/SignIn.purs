@@ -55,7 +55,7 @@ buildJsx props = React.do
         button {onPress: RNE.capture_ (press mutate email password client)} (M.jsx $ RN.string "submit")
   where press mutate email password client = launchAff_ do
           result <- mutate $ {variables: {input: {email, password}}}
-          let session = "Bearer " <> result.data.login.session.token
+          let session = "Bearer " <> result.login.session.token
           liftEffect $ traverse_ _.resetStore client
           setItem "treader-session" session
           liftEffect $ runEffectFn1 props.navigation.navigate "App"

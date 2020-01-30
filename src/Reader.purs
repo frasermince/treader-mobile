@@ -12,7 +12,8 @@ import Type.Proxy (Proxy(..))
 import EpubRn (epub, createStreamer, startStream, streamGet, killStream)
 import Effect.Uncurried (mkEffectFn1)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
-import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..))
+import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
+import Data.Either (Either(..))
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Markup as M
 import Control.Alt ((<|>))
@@ -140,7 +141,7 @@ derive instance ntUseStreamer :: Newtype (UseStreamer h) _
 
 useStreamer :: (Effect Unit) -> String -> Hook UseStreamer (Maybe {src :: String, origin :: String, url :: String})
 useStreamer toggleBars book = coerceHook $ React.do
-  result <- useData (Proxy :: Proxy Query) query {variables: {book: book}}
+  result <- useData (Proxy :: Proxy Query) query {variables: {book: book}, errorPolicy: "all"}
   src /\ setSrc <- useState ""
   origin /\ setOrigin <- useState ""
   let streamer = createStreamer
@@ -205,9 +206,13 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     where
           mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
             let payload = { variables: { input: {snippet: highlightedContent.text, language: language} } }
-            result <- mutationFn $ payload
-            liftEffect $ setShowBars \_ -> false
-            liftEffect $ setTranslation \_ -> Just $ (spy "result" result).data.translate.translation
+            result <- try $ spy "MUTATE RESULT" $ mutationFn $ payload
+            case result of
+                 Left err -> pure unit
+                 Right r -> do
+                    liftEffect $ setShowBars \_ -> spy "***NOT HERE" false
+                    liftEffect $ setTranslation \_ -> Just $ (spy "result" r).translate.translation
+
           mutateAndChangeState _ _ _ _ setTranslation = do
              liftEffect $ setTranslation \_ -> Nothing
 
