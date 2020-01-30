@@ -41,7 +41,7 @@ type Props = { translation :: Maybe String, morphology :: Maybe (Object String),
 --styles :: CSS -> Number -> Maybe Number -> CSS
 placement height Nothing = {top: height - 200}
 placement height (Just wordPlacement)
-  | height - (floor wordPlacement) < 250 = {top: 25}
+  | height - (floor wordPlacement) < 350 = {top: 25}
   | otherwise = {top: height - 290}
 styles fade = {
   --backgroundColor: "#cdcdcd",

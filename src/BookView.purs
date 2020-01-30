@@ -29,17 +29,16 @@ import ApolloHooks (useQuery, gql)
 import Data.Either (either)
 import Reader as Reader
 
-styles =
-  { container:
-    { flex: 1
-    , backgroundColor: "white"
-    }
-    , bar:
-    { position: "absolute"
-    , left: 0
-    , right: 0
-    , height: 55
-    }
+containerStyles =
+  { flex: 1
+  , backgroundColor: "white"
+  }
+barStyles showBars = 
+  { position: "absolute"
+  , left: 0
+  , right: 0
+  , height: 55
+  , zIndex: if showBars then 1 else -1
   }
 
 type JSProps
@@ -84,7 +83,7 @@ buildJsx jsProps = React.do
     toggleBars = setShowBars $ \_ -> not showBars
   pure $ M.getJsx
     $ M.view
-        { style: M.css styles.container
+        { style: M.css containerStyles
         } do
         M.statusBar
           { hidden: not showBars
@@ -109,7 +108,7 @@ buildJsx jsProps = React.do
           setShowBars
         }
         M.view
-          { style: M.css $ Record.merge styles.bar { top: 0 }
+          { style: M.css $ Record.merge (barStyles showBars) { top: 0 }
           } do
           M.childElement TopBar.reactComponent
             { title: title
@@ -121,7 +120,7 @@ buildJsx jsProps = React.do
                liftEffect $ props.navigation.navigate "Auth"
             } --, onLeftButtonPressed: liftEffect}
         M.view
-          { style: M.css $ Record.merge styles.bar { bottom: 0 }
+          { style: M.css $ Record.merge (barStyles showBars) { bottom: 0 }
           } do
           M.childElement BottomBar.reactComponent
             { disabled: sliderDisabled
