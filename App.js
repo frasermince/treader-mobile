@@ -62,7 +62,6 @@ export default App = () => {
   const [client, setClient] = useState(null);
   useEffect(async function() {
     const c = await apolloClient();
-    console.log("***C", c);
     setClient(c);
   }, [])
   const setSnackbar = (error) => {

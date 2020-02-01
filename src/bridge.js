@@ -3,201 +3,149 @@ window.onerror = function (message, file, line, col, error) {
   window.postMessage(msg, "*");
 };
 (function () {
-function getWordRange(e) {
-  // FF gives us a shortcut
-  var target = e.explicitOriginalTarget || e.target,
-    // We will use this to get the positions of our textNodes
-    range = document.createRange(),
-    rect, i;
-  // so first let's get the textNode that was clicked
-  if (target.nodeType !== 3) {
-    var children = target.childNodes;
-    var node = null;
-    i = 0;
-    while (i < children.length) {
-      range.selectNode(children[i]);
-      rect = range.getBoundingClientRect();
-      if (rect.left <= e.pageX && rect.right >= e.pageX &&
-        rect.top <= e.pageY && rect.bottom >= e.pageY) {
-        target = children[i];
-        if (target.nodeType !== 3 && target.tagName == "SPAN") {
-          target = target.childNodes[0];
+  var messages = {};
+  function sendMessageWithoutCache(obj) {
+    if (!window.ReactNativeWebView.postMessage) {
+      setTimeout(() => {
+        sendMessageWithoutCache(obj);
+      }, 1);
+    } else {
+      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+    }
+  }
+
+  console.log = function() {
+    sendMessageWithoutCache({method:"log", value: Array.from(arguments)});
+  }
+  console.error = function() {
+    sendMessageWithoutCache({method:"error", value: Array.from(arguments)});
+  }
+
+  function sendMessage(obj) {
+    // window.postMessage(JSON.stringify(obj), targetOrigin);
+    var key = obj["key"] || obj["method"]
+    var methodInCache = JSON.stringify(messages[key]) == JSON.stringify(obj)
+    if (!methodInCache) {
+      messages[key] = obj;
+      sendMessageWithoutCache(obj);
+    }
+  };
+
+  function getWordRange(e) {
+    // FF gives us a shortcut
+    var target = e.explicitOriginalTarget || e.target,
+      // We will use this to get the positions of our textNodes
+      range = document.createRange(),
+      rect, i;
+    // so first let's get the textNode that was clicked
+    if (target.nodeType !== 3) {
+      var children = target.childNodes;
+      var node = null;
+      i = 0;
+      while (i < children.length) {
+        range.selectNode(children[i]);
+        rect = range.getBoundingClientRect();
+        if (rect.left <= e.pageX && rect.right >= e.pageX &&
+          rect.top <= e.pageY && rect.bottom >= e.pageY) {
+          target = children[i];
+          if (target.nodeType !== 3 && target.tagName == "SPAN") {
+            target = target.childNodes[0];
+          }
+          break;
         }
-        break;
+        i++;
+      }
+    }
+    range.selectNode(target);
+    if (target.nodeType !== 3) {
+      return null;
+    }
+
+    var text = target.nodeValue || target.textContent;
+    // Return range if span only has one word.
+    if (!text.includes(' ')) {
+      range.setEnd(target, text.length);
+      return range;
+    }
+    // Now, let's split its content to words
+    var words = text.split(' '),
+      textNode, newText;
+    i = 0;
+    while (i < words.length) {
+      // create a new textNode with only this word
+      textNode = document.createTextNode((i ? ' ' : '') + words[i]);
+      newText = words.slice(i + 1);
+      // update the original node's text
+      target.nodeValue = newText.length ? (' ' + newText.join(' ')) : '';
+      // insert our new textNode
+      target.parentNode.insertBefore(textNode, target);
+      // get its position
+      range.selectNode(textNode);
+      rect = range.getBoundingClientRect();
+      // if it is the one
+      if (rect.left <= e.clientX && rect.right >= e.clientX &&
+        rect.top <= e.clientY && rect.bottom >= e.clientY) {
+        range.setEnd(textNode, newText.length);
+        return range;
       }
       i++;
     }
-  }
-  range.selectNode(target);
-  console.log("***TARGET", target.tagName);
-  if (target.nodeType !== 3) {
-    return null;
-  }
-  console.log("***SHOULD HIT");
-
-  var text = target.nodeValue || target.textContent;
-  // Return range if span only has one word.
-  console.log("TEXT", text);
-  if (!text.includes(' ')) {
-    range.setEnd(target, text.length);
-    return range;
-  }
-  // Now, let's split its content to words
-  var words = text.split(' '),
-    textNode, newText;
-  console.log("***WORDS", words)
-  i = 0;
-  while (i < words.length) {
-    // create a new textNode with only this word
-    textNode = document.createTextNode((i ? ' ' : '') + words[i]);
-    newText = words.slice(i + 1);
-    // update the original node's text
-    target.nodeValue = newText.length ? (' ' + newText.join(' ')) : '';
-    // insert our new textNode
-    target.parentNode.insertBefore(textNode, target);
-    // get its position
-    range.selectNode(textNode);
-    rect = range.getBoundingClientRect();
-    // if it is the one
-    if (rect.left <= e.clientX && rect.right >= e.clientX &&
-      rect.top <= e.clientY && rect.bottom >= e.clientY) {
-      console.log("RANGE", range.startOffset, range.endOffset);
-      range.setEnd(textNode, newText.length);
-      console.log("RANGE", range.startOffset, range.endOffset);
-      return range;
-    }
-    i++;
-  }
-};
-const findTitlesAndLanguage = (rendition, location) => {
-  var sendMessage = function(obj) {
-    // window.postMessage(JSON.stringify(obj), targetOrigin);
-    if (!window.ReactNativeWebView.postMessage) {
-      setTimeout(() => {
-        sendMessage(obj);
-      }, 1);
-    } else {
-      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
-    }
   };
 
-  console.log = function() {
-    sendMessage({method:"log", value: Array.from(arguments)});
-  }
-  console.error = function() {
-    sendMessage({method:"error", value: Array.from(arguments)});
-  }
-  let book = rendition.book
-  let spineItem = book.spine.get(location);
-  let bookTitle = book.package.metadata.title
-  console.log("***TITLE VARS");
-  let language = book.package.metadata.language.toLowerCase();
-  let chapterTitle = ""
-  if (bookTitle == "Italian Riveduta 1927 (RIV)") {
-    let chapterNumber = spineItem.href.slice(-7)[0]
-    let titleHref = spineItem.href.slice(0, -7) + "0.xhtml"
-    let secondDigit = spineItem.href.slice(-8)[0]
-    if (secondDigit != ".") {
-      titleHref = spineItem.href.slice(0, -8) + "0.xhtml"
-      chapterNumber = secondDigit + chapterNumber;
-    }
-    let navItem = book.navigation.get(titleHref);
-    chapterTitle = navItem.label.trim() + ` ${chapterNumber}`
-  } else {
-    let navItem = book.navigation.get(spineItem.href);
-    if (navItem == null) {
-      book.navigation.forEach((nav) => {
-        if (nav.href.includes(spineItem.href)) {
-          navItem = nav;
-        }
-      })
-    }
-    chapterTitle = navItem == null ? "" : navItem.label.trim()
-  }
-  return [chapterTitle, language];
-}
-
-function setTitlesAndLanguage(rendition, location) {
-  var sendMessage = function(obj) {
-    // window.postMessage(JSON.stringify(obj), targetOrigin);
-    if (!window.ReactNativeWebView.postMessage) {
-      setTimeout(() => {
-        sendMessage(obj);
-      }, 1);
+  const findTitlesAndLanguage = (rendition, location) => {
+    let book = rendition.book
+    let spineItem = book.spine.get(location);
+    let bookTitle = book.package.metadata.title
+    let language = book.package.metadata.language.toLowerCase();
+    let chapterTitle = ""
+    if (bookTitle == "Italian Riveduta 1927 (RIV)") {
+      let chapterNumber = spineItem.href.slice(-7)[0]
+      let titleHref = spineItem.href.slice(0, -7) + "0.xhtml"
+      let secondDigit = spineItem.href.slice(-8)[0]
+      if (secondDigit != ".") {
+        titleHref = spineItem.href.slice(0, -8) + "0.xhtml"
+        chapterNumber = secondDigit + chapterNumber;
+      }
+      let navItem = book.navigation.get(titleHref);
+      chapterTitle = navItem.label.trim() + ` ${chapterNumber}`
     } else {
-      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+      let navItem = book.navigation.get(spineItem.href);
+      if (navItem == null) {
+        book.navigation.forEach((nav) => {
+          if (nav.href.includes(spineItem.href)) {
+            navItem = nav;
+          }
+        })
+      }
+      chapterTitle = navItem == null ? "" : navItem.label.trim()
     }
-  };
-  const [chapterTitle, language] = findTitlesAndLanguage(rendition, location);
-  sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
-  sendMessage({method:"set", key: "language", value: language});
-  return language;
-}
+    return [chapterTitle, language];
+  }
 
-function setWordInformation(highlightedContent, epubcfi, morphology, fromTop) {
-  var sendMessage = function(obj) {
-    // window.postMessage(JSON.stringify(obj), targetOrigin);
-    if (!window.ReactNativeWebView.postMessage) {
-      setTimeout(() => {
-        sendMessage(obj);
-      }, 1);
+  function setTitlesAndLanguage(rendition, location) {
+    
+    const [chapterTitle, language] = findTitlesAndLanguage(rendition, location);
+    sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
+    sendMessage({method:"set", key: "language", value: language});
+    return language;
+  }
+
+  function setWordInformation(highlightedContent, epubcfi, morphology, fromTop) {
+    if (highlightedContent && fromTop) {
+      sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
     } else {
-      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+      sendMessage({method:"set", key: "highlightedContent", value: null});
     }
-  };
-
-  console.log = function() {
-    sendMessage({method:"log", value: Array.from(arguments)});
-  }
-  console.error = function() {
-    sendMessage({method:"error", value: Array.from(arguments)});
-  }
-  console.log("***SET");
-  console.log("***INFO", highlightedContent, epubcfi, morphology);
-
-  if (highlightedContent && fromTop) {
-    sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
-  } else {
-    sendMessage({method:"set", key: "highlightedContent", value: null});
-  }
-  sendMessage({method:"set", key: "epubcfi", value: epubcfi});
-  sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
-}
-
-function renditionHandler(rendition, location) {
-  var sendMessage = function(obj) {
-    // window.postMessage(JSON.stringify(obj), targetOrigin);
-    if (!window.ReactNativeWebView.postMessage) {
-      setTimeout(() => {
-        sendMessage(obj);
-      }, 1);
-    } else {
-      window.ReactNativeWebView.postMessage(JSON.stringify(obj));
-    }
-  };
-
-  console.log = function() {
-    sendMessage({method:"log", value: Array.from(arguments)});
-  }
-  console.error = function() {
-    sendMessage({method:"error", value: Array.from(arguments)});
+    sendMessage({method:"set", key: "epubcfi", value: epubcfi});
+    sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
   }
 
-  setTitlesAndLanguage(rendition, location);
+  function renditionHandler(rendition, location) {
+    setTitlesAndLanguage(rendition, location);
   }
   function _ready() {
     var contents;
     var targetOrigin = "*";
-    var sendMessage = function(obj) {
-      // window.postMessage(JSON.stringify(obj), targetOrigin);
-      if (!window.ReactNativeWebView.postMessage) {
-        setTimeout(() => {
-          sendMessage(obj);
-        }, 1);
-      } else {
-        window.ReactNativeWebView.postMessage(JSON.stringify(obj));
-      }
-    };
 
     var q = [];
     var _isReady = false;
@@ -210,15 +158,6 @@ function renditionHandler(rendition, location) {
 
     var isChrome = /Chrome/.test(navigator.userAgent);
     var isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
-
-    // debug
-    console.log = function() {
-      sendMessage({method:"log", value: Array.from(arguments)});
-    }
-
-    console.error = function() {
-      sendMessage({method:"error", value: Array.from(arguments)});
-    }
 
     function onMessage(e) {
       var message = e.data;
@@ -299,7 +238,6 @@ function renditionHandler(rendition, location) {
           break;
         }
         case "setLocations": {
-          console.log("***SET");
           var locations = decoded.args[0];
           if (book) {
             book.locations.load(locations);
@@ -313,7 +251,6 @@ function renditionHandler(rendition, location) {
           break;
         }
         case "reportLocation": {
-          console.log("***REPORT");
           if (rendition) {
             rendition.reportLocation();
           } else {
@@ -414,7 +351,6 @@ function renditionHandler(rendition, location) {
           break;
         }
         case "next": {
-          console.log("NEXT");
           if (rendition) {
             rendition.next();
           } else {
@@ -442,22 +378,18 @@ function renditionHandler(rendition, location) {
         snap: isChrome
       }, options);
 
-      console.log("OPEN", url);
       window.book = book = ePub(url);
 
-      console.log("AFTER EPUB");
       window.rendition = rendition = book.renderTo(document.body, settings);
       
       rendition.hooks.content.register(function(contents, rendition) {
         contents.triggerSelectedEvent = function(cfi, range){
-          console.log("***SELECTED");
           if(cfi) {
             this.previouslySelected = true;
             // cfirange = this.section.cfiFromRange(range);
             this.emit("selected", {cfi: cfi, range: range});
             //this.emit("selectedRange", range);
           } else if (this.previouslySelected) {
-            console.log("***DESELECT");
             this.previouslySelected = false;
             this.emit("deselected");
           }
@@ -505,7 +437,7 @@ function renditionHandler(rendition, location) {
 
                 cfi = contents.cfiFromNode(target).toString();
 
-                sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
+                sendMessageWithoutCache({method:"longpress", position: currentPosition, cfi: cfi});
                 isLongPress = false;
                 preventTap = true;
               }
@@ -522,7 +454,7 @@ function renditionHandler(rendition, location) {
 
             cfi = contents.cfiFromNode(target).toString();
 
-            sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
+            sendMessageWithoutCache({method:"longpress", position: currentPosition, cfi: cfi});
             preventTap = true;
           }, touchduration);
         }
@@ -539,9 +471,7 @@ function renditionHandler(rendition, location) {
 
         function touchEndHandler(e) {
           var txt = document.getSelection().toString();
-            console.log("***SELECTED", txt);
           if (txt || previous && !(txt && previous)) {
-            console.log("***SEND EVENT");
             window.ReactNativeSelectDetection.postMessage(txt);
             previous = txt;
           }
@@ -555,7 +485,7 @@ function renditionHandler(rendition, location) {
           }
 
           if(Math.abs(startPosition.x - currentPosition.x) < 2 &&
-             Math.abs(startPosition.y - currentPosition.y) < 2) {
+              Math.abs(startPosition.y - currentPosition.y) < 2) {
 
             var target = e.changedTouches[0].target;
 
@@ -588,6 +518,8 @@ function renditionHandler(rendition, location) {
                   range.setEndAfter(lastRange.endContainer, 0);
                 }
               }
+            } else if (multiwordSet) {
+              multiwordSet = false;
             }
             if (range) {
               cfi = contents.cfiFromRange(range);
@@ -599,7 +531,7 @@ function renditionHandler(rendition, location) {
               cfi = contents.cfiFromNode(target).toString();
 
               if(isLongPress) {
-                sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
+                sendMessageWithoutCache({method:"longpress", position: currentPosition, cfi: cfi});
                 isLongPress = false;
               } else {
                 setTimeout(function() {
@@ -608,7 +540,7 @@ function renditionHandler(rendition, location) {
                     isLongPress = false;
                     return;
                   }
-                  sendMessage({method:"press", position: currentPosition, cfi: cfi});
+                  sendMessageWithoutCache({method:"press", position: currentPosition, cfi: cfi});
                 }, 10);
               }
             }
@@ -628,7 +560,7 @@ function renditionHandler(rendition, location) {
 
             cfi = contents.cfiFromNode(target).toString();
 
-            sendMessage({method:"longpress", position: currentPosition, cfi: cfi});
+            sendMessageWithoutCache({method:"longpress", position: currentPosition, cfi: cfi});
             isLongPress = false;
             preventTap = true;
           }
@@ -645,7 +577,6 @@ function renditionHandler(rendition, location) {
 
       }.bind(this));
 
-      //console.log("***RENDITION", rendition.);
 
       rendition.on("relocated", function(location){
         console.log("RELOCATED", location);
@@ -666,10 +597,8 @@ function renditionHandler(rendition, location) {
         svg.style.top = range.getBoundingClientRect().y;
         svg.style.visibility = "visible";
         if (span && span.tagName.toLowerCase() == 'span' ) {
-          console.log("HIGHLIGHTED", text);
           setWordInformation(text, cfiRange, span.dataset, range.getBoundingClientRect().top);
         } else {
-          console.log("HIGHLIGHTED MULTI", text);
           setWordInformation(text, cfiRange, null, range.getBoundingClientRect().top);
         }
       });
@@ -679,7 +608,6 @@ function renditionHandler(rendition, location) {
       });
 
       rendition.on("rendered", function (section) {
-        console.log("RENDERED");
         renditionHandler(rendition, options.location);
         sendMessage({method:"rendered", sectionIndex: section.index});
       });
@@ -762,31 +690,3 @@ if (typeof Object.assign !== 'function') {
     configurable: true
   });
 }
-/*
-(function () {
-  if ( document.readyState === 'complete' ) {
-    console.log("***READY");
-    _ready();
-  } else {
-    window.addEventListener("load", _ready, false);
-  }
-}());
-
-function _ready() {
-    var contents;
-    var targetOrigin = "*";
-    var sendMessage = function(obj) {
-      // window.postMessage(JSON.stringify(obj), targetOrigin);
-      if (!window.ReactNativeWebView.postMessage) {
-        setTimeout(() => {
-          sendMessage(obj);
-        }, 1);
-      } else {
-        window.ReactNativeWebView.postMessage(JSON.stringify(obj));
-      }
-    };
-
-  sendMessage({method:"loaded", value: true});
-  sendMessage({method:"rendered"});
-}
-*/

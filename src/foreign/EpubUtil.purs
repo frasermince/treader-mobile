@@ -32,7 +32,7 @@ mkStateChangeFn fn = mkEffectFn1 $ paramFn fn
   where paramFn fn x = mkFn1 fn x
 
 mkMaybeStateChangeTuple :: forall a . (Tuple (Maybe a) ((Maybe a -> Maybe a) -> Effect Unit)) -> MaybeStateChangeTuple a
-mkMaybeStateChangeTuple (value /\ fn) = t2 (toNullable $ spy "***V" value) (mkEffectFn1 $ effectFn fn)
+mkMaybeStateChangeTuple (value /\ fn) = t2 (toNullable value) (mkEffectFn1 $ effectFn fn)
   where effectFn :: ((Maybe a -> Maybe a) -> Effect Unit) -> (Fn1 (Nullable a) ( Nullable a)) -> Effect Unit
         effectFn fn stateChange = fn $ paramFn stateChange
         paramFn :: (Fn1 (Nullable a) (Nullable a)) -> Maybe a -> Maybe a

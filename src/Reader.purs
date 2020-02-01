@@ -5,7 +5,6 @@ import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
 import React.Basic.Native as RN
 import ApolloHooks (gql)
-import Debug.Trace (spy)
 import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
@@ -341,9 +340,10 @@ buildJsx props = React.do
                 , themes: {highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme}
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
+                , fontSize: "18px"
                 , origin: origin
                 , onError: error
                 }
           M.childElement BottomContent.reactComponent
-            {translation: spy "TRANSLATION" (fst stateChangeListeners.translation), morphology: spy "MORPH" (fst stateChangeListeners.morphology), wordPlacement: spy "***HC" $ _.fromTop <$> (fst stateChangeListeners.highlightedContent)}
+            {translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)}
 
