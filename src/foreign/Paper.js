@@ -9,6 +9,7 @@ exports._title = paper.Title
 exports._menu = paper.Menu
 exports._menuItem = paper.Menu.Item
 exports.listIcon = paper.List.Icon
+exports._iconButton = paper.IconButton
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;

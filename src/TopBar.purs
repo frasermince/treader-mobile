@@ -18,7 +18,7 @@ import Data.Symbol (SProxy(..))
 import Icon (icon)
 import Effect.Uncurried (EffectFn1)
 import React.Basic.Native.Events (NativeSyntheticEvent)
-import Paper (menu, menuItem)
+import Paper (menu, menuItem, iconButton)
 import ApolloHooks (useApolloClient, Client)
 import Data.Maybe (Maybe(..))
 
@@ -95,8 +95,7 @@ buildJsx props = React.do
   client <- useApolloClient
   menuVisible /\ setMenuVisible <- useState false
   let
-    menuButton = M.getJsx $ M.touchableOpacity { onPress: capture_ $ setMenuVisible $ \_ -> props.shown} do
-       M.childElement icon {name: "gear", size: 34}
+    menuButton = M.getJsx $ iconButton { onPress: capture_ $ setMenuVisible $ \_ -> props.shown, size: 28, icon: "settings"}
 
   useEffect props.shown do
      launchAff_ $ runAnimation props.shown fade

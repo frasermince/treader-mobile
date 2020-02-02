@@ -17,6 +17,7 @@ foreign import _listItem :: forall props. ReactComponent props
 foreign import listIcon :: forall props. ReactComponent props
 
 foreign import _title :: forall props. ReactComponent props
+foreign import _iconButton :: forall props. ReactComponent props
 
 foreign import _menu :: forall props. ReactComponent props
 foreign import _menuItem :: forall props. ReactComponent props
@@ -34,6 +35,8 @@ button = parentElement _button
 listSection = parentElement _listSection
 
 listItem = childElement _listItem
+
+iconButton = childElement _iconButton
 
 title = parentElement _title
 
