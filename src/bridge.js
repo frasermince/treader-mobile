@@ -509,9 +509,9 @@ window.onerror = function (message, file, line, col, error) {
               var lastY = lastRange.getBoundingClientRect().y;
               var currentY = range.getBoundingClientRect().y;
               var comparison = range.compareBoundaryPoints(Range.END_TO_START, lastRange);
-              multiwordSet = true;
 
               if(Math.abs(currentY - lastY) < 50) {
+                multiwordSet = true;
                 if (comparison == 1) {
                   range.setStart(lastRange.startContainer, 0);
                 } else if (comparison == -1) {

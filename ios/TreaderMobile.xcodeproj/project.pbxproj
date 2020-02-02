@@ -726,7 +726,7 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-TreaderMobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = TreaderMobile/Info.plist;
@@ -748,7 +748,7 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-TreaderMobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = TreaderMobile/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
