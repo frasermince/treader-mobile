@@ -8,7 +8,8 @@ import {
   TouchableHighlight,
   Modal,
   TouchableOpacity,
-  Platform
+  Platform,
+  SafeAreaView
 } from 'react-native';
 
 
@@ -18,17 +19,12 @@ import Icon from 'react-native-vector-icons/EvilIcons'
 const Nav = (props) => {
   let [error, setError] = useState('')
   let [dataSource, setDataSource] = useState(props.toc)
-  let [modalVisible, setModalVisible] = useState(props.shown)
   let show = function() {
-    setModalVisible(true);
+    props.setShowNav(true);
   }
 
   let hide = function() {
-    setModalVisible(false);
-  }
-
-  let _closeModal = function() {
-    props.onClose();
+    props.setShowNav(false);
   }
 
   let _onPress = function(item) {
@@ -66,26 +62,28 @@ const Nav = (props) => {
     <View style={styles.container}>
       <Modal
         animationType={"slide"}
-        visible={modalVisible}
-        onRequestClose={() => console.log("close requested")}
+        visible={props.shown}
+        onRequestClose={() => hide()}
         >
-        <View
-          style={styles.header}>
-          <Text style={styles.headerTitle}>Table of Contents</Text>
-          <TouchableOpacity style={styles.backButton}
-            onPress={() => hide()}>
-            <Icon name="close" size={34} />
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          style={styles.container}
-          data={dataSource}
-          renderItem={(row) => {
-            return renderRow(row.item);
-          }}
-          keyExtractor={item => item.id}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
+        <SafeAreaView style={{flex: 1}}>
+          <View
+            style={styles.header}>
+            <Text style={styles.headerTitle}>Table of Contents</Text>
+            <TouchableOpacity style={styles.backButton}
+              onPress={() => hide()}>
+              <Icon name="close" size={34} />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            style={styles.container}
+            data={dataSource}
+            renderItem={(row) => {
+              return renderRow(row.item);
+            }}
+            keyExtractor={item => item.id}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          />
+        </SafeAreaView>
       </Modal>
     </View>
   );
