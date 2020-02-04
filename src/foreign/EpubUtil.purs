@@ -14,6 +14,7 @@ import Data.Tuple.Native (T2, t2)
 import Debug.Trace (spy)
 
 foreign import bridgeFile :: String
+foreign import epubjs :: String
 --foreign import webview :: forall props . ReactComponent props
 
 type HighlightedContent = {text :: String, fromTop :: Number}

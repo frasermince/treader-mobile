@@ -23,7 +23,7 @@ import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
 import ApolloHooks (useMutation)
-import EpubUtil (mkStateChangeListeners, bridgeFile, HighlightedContent)
+import EpubUtil (mkStateChangeListeners, bridgeFile, HighlightedContent, epubjs)
 import Data.Symbol (SProxy(..))
 import Record (merge)
 import Record.Builder (build, insert, modify, Builder)
@@ -335,6 +335,7 @@ buildJsx props = React.do
                 , width: props.width
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
                 , bridge: bridgeFile
+                , epubjs: epubjs
                 , src: src
                 , flow: flow
                 , location: props.location

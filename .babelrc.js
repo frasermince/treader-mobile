@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 process.env.CUSTOM_BRIDGE = fs.readFileSync(path.resolve(__dirname, "src/bridge.js"), "utf8");
+process.env.EPUBJS = fs.readFileSync(path.resolve(__dirname, "node_modules/epubjs/dist/epub.js"), "utf8");
 console.log("env", process.env);
 
 module.exports = {

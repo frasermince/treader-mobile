@@ -1,7 +1,3 @@
-window.onerror = function (message, file, line, col, error) {
-  var msg = JSON.stringify({method:"error", value: message});
-  window.postMessage(msg, "*");
-};
 (function () {
   var messages = {};
   function sendMessageWithoutCache(obj) {
@@ -20,6 +16,10 @@ window.onerror = function (message, file, line, col, error) {
   console.error = function() {
     sendMessageWithoutCache({method:"error", value: Array.from(arguments)});
   }
+
+  window.onerror = function (message, file, line, col, error) {
+    console.error(message);
+  };
 
   function sendMessage(obj) {
     // window.postMessage(JSON.stringify(obj), targetOrigin);
@@ -576,7 +576,6 @@ window.onerror = function (message, file, line, col, error) {
 
 
       }.bind(this));
-
 
       rendition.on("relocated", function(location){
         console.log("RELOCATED", location);

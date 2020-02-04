@@ -1,0 +1,39 @@
+diff --git a/node_modules/epubjs/dist/epub.js b/node_modules/epubjs/dist/epub.js
+index ef15602..13840a4 100644
+--- a/node_modules/epubjs/dist/epub.js
++++ b/node_modules/epubjs/dist/epub.js
+@@ -5767,6 +5767,7 @@ var DefaultViewManager = function () {
+ 
+ 			var displaying = new _core.defer();
+ 			var displayed = displaying.promise;
++      debugger
+ 
+ 			// Check if moving to target is needed
+ 			if (target === section.href || (0, _core.isNumber)(target)) {
+@@ -8192,8 +8193,10 @@ var Rendition = function () {
+ 				return displayed;
+ 			}
+ 
++      debugger
+ 			this.manager.display(section, target).then(function () {
+ 				displaying.resolve(section);
++        //debugger
+ 				_this.displaying = undefined;
+ 
+ 				/**
+@@ -8211,6 +8214,7 @@ var Rendition = function () {
+      * @param {Section} section
+      * @memberof Rendition
+      */
++        //debugger
+ 				_this.emit(_constants.EVENTS.RENDITION.DISPLAY_ERROR, err);
+ 			});
+ 
+@@ -10757,6 +10761,7 @@ var ContinuousViewManager = function (_DefaultViewManager) {
+ 	_createClass(ContinuousViewManager, [{
+ 		key: "display",
+ 		value: function display(section, target) {
++      debugger
+ 			return _default2.default.prototype.display.call(this, section, target).then(function () {
+ 				return this.fill();
+ 			}.bind(this));
