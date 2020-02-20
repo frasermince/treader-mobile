@@ -7,12 +7,13 @@ import React.Basic.Hooks (useContext, useEffect, Hook, UseEffect, UseContext, JS
 import Data.Newtype (class Newtype)
 import Data.Either (Either(..))
 import ApolloHooks (useQuery, gql, QueryState(..), DocumentNode)
-import Context (renderContext, Context)
+import Context (dataStateContext, Context)
 import Data.Maybe (Maybe(..))
 import Type.Row (RProxy)
 import Prim.RowList (class RowToList)
 import Type.Proxy (Proxy(..))
 import Data.Eq (class EqRecord)
+import Effect.Uncurried (runEffectFn1)
 import Debug.Trace (spy)
 
 type Book
@@ -52,17 +53,16 @@ class Queryable (recordType :: # Type) where
 instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a) where
   useData _ query options = coerceHook $ React.do
     result <- useQuery query options
-    context <- renderContext
-    {setLoading, setError} <- useContext context
+    {setLoading, setError} <- useContext dataStateContext
     useEffect result $ do
-      dataEffect setLoading setError result
+      dataEffect (runEffectFn1 setLoading) (runEffectFn1 setError) result
       pure $ mempty
     pure $ fetchData result
 
-dataEffect :: forall d . ((Boolean -> Boolean) -> Effect Unit) -> ((String -> String) -> Effect Unit) ->  QueryState (Record d) -> Effect Unit
+dataEffect :: forall d . ((Boolean -> Boolean) -> Effect Unit) -> (String -> Effect Unit) ->  QueryState (Record d) -> Effect Unit
 dataEffect setLoading setError (Data _) = pure unit
 dataEffect setLoading setError Loading = setLoading \_ -> true
-dataEffect setLoading setError (Error e) = setError \_ -> spy "message" e.message
+dataEffect setLoading setError (Error e) = setError $ spy "message" e.message
 fetchData :: forall a . QueryState a -> Maybe a
 fetchData (Data d) = Just d
 fetchData Loading = Nothing

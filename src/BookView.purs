@@ -2,7 +2,6 @@ module BookView where
 
 import Effect (Effect)
 import Prelude
-import Debug.Trace (spy)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
@@ -80,7 +79,7 @@ buildJsx jsProps = React.do
      pure mempty
 
   let
-    toggleBars = setShowBars $ \_ -> not showBars
+    toggleBars = setShowBars $ \_ -> not $ showBars
   pure $ M.getJsx
     $ M.view
         { style: M.css containerStyles

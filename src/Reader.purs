@@ -31,7 +31,6 @@ import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
-import Debug.Trace (spy)
 
 type VisibleLocation = {start :: {percentage :: Int, cfi :: String}}
 

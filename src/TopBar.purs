@@ -21,6 +21,7 @@ import React.Basic.Native.Events (NativeSyntheticEvent)
 import Paper (menu, menuItem, iconButton)
 import ApolloHooks (useApolloClient, Client)
 import Data.Maybe (Maybe(..))
+import Effect.Uncurried (runEffectFn1)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce

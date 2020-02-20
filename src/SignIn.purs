@@ -3,7 +3,7 @@ module SignIn where
 import Prelude
 import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\))
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useContext)
 import React.Basic.Hooks as React
 import Markup as M
 import Paper (textInput, surface, button)
@@ -13,10 +13,15 @@ import Unsafe.Coerce (unsafeCoerce)
 import ApolloHooks (useMutation, gql, QueryState(..), DocumentNode, useApolloClient)
 import Debug.Trace
 import AsyncStorage (setItem)
+import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
-import Effect.Aff (Aff, launchAff_)
+import Effect.Aff (Aff, launchAff_, try)
+import Data.Either(Either(..))
 import Effect.Uncurried (runEffectFn1, EffectFn1)
 import Data.Traversable (traverse_)
+import Effect.Exception (message)
+import Data.String (stripPrefix, Pattern(..))
+import Data.Maybe (fromMaybe)
 
 type Props
   = {navigation :: {navigate :: EffectFn1 String Unit}}
@@ -45,17 +50,22 @@ changeField setField = RNE.handler text \t ->
 
 buildJsx props = React.do
   client <- useApolloClient
-  mutate /\ d <- useMutation mutation {}
+  {setLoading, setError} <- useContext dataStateContext
+  mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   email /\ setEmail <- useState ""
   password /\ setPassword <- useState ""
   pure $ M.getJsx do
      surface {} do
         textInput {label: "Email", onChangeText: changeField setEmail, value: email}
         textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true}
-        button {onPress: RNE.capture_ (press mutate email password client)} (M.jsx $ RN.string "submit")
-  where press mutate email password client = launchAff_ do
-          result <- mutate $ {variables: {input: {email, password}}}
-          let session = "Bearer " <> result.login.session.token
-          liftEffect $ traverse_ _.resetStore client
-          setItem "treader-session" session
-          liftEffect $ runEffectFn1 props.navigation.navigate "App"
+        button {onPress: RNE.capture_ (press mutate email password client setError)} (M.jsx $ RN.string "submit")
+  where stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
+        press mutate email password client setError = launchAff_ do
+          result <- try $ mutate $ {variables: {input: {email, password}}}
+          case result of
+               Left error -> liftEffect $ runEffectFn1 setError $  stripGraphqlError $ message error
+               Right resp -> do
+                  let session = "Bearer " <> resp.login.session.token
+                  liftEffect $ traverse_ _.resetStore client
+                  setItem "treader-session" session
+                  liftEffect $ runEffectFn1 props.navigation.navigate "App"

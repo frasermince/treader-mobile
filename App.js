@@ -60,16 +60,19 @@ export default App = () => {
   const [loading, setLoading] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
   const [client, setClient] = useState(null);
-  useEffect(async function() {
-    const c = await apolloClient();
-    setClient(c);
-  }, [])
+  useEffect(() => {
+    async function awaitClient() {
+      const c = await apolloClient();
+      setClient(c);
+    }
+    awaitClient();
+  }, []);
   const setSnackbar = (error) => {
     if (error === "") {
-      setVisible(false)
+      setErrorVisible(false)
     } else {
       setError(error);
-      setVisible(true);
+      setErrorVisible(true);
     }
   }
   const contextValue = { setLoading: setLoading, setError: setSnackbar}
