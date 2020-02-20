@@ -23,7 +23,7 @@
     "apollo-link-context": "^1.0.19",
     "apollo-link-error": "^1.1.12",
     "apollo-link-http": "^1.5.16",
-    "epubjs": "^0.3.85",
+    "epubjs": "frasermince/epub.js#fm/page-jumping",
     "epubjs-rn": "frasermince/epubjs-rn",
     "events": "^3.0.0",
     "graphql": "^14.5.8",

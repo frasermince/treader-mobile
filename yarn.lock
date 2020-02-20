@@ -877,9 +877,9 @@
     cuid "^2.1.6"
 
 "@react-native-community/async-storage@^1.5.0":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/async-storage/-/async-storage-1.7.1.tgz#ef2104d865de61ad91bba66613e57e689ff4e6a1"
-  integrity sha512-/oX/x+EU4xNaqIaC/epVKzO8XghzImPA7l8cLz3USEFmtFiXFjBbTeeIFjjEm/u4/cv38Wi1xMEa10PHIWygRg==
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/async-storage/-/async-storage-1.8.0.tgz#5f23ad486daa284398c71f2cc94d15fb7be40bb8"
+  integrity sha512-R8hYm9h7MqoTa/opzBID6hhL5rseNoMJK1wG/B/Diob+JzEv7b1GMpHjsAZX2pU2o82LU73XbPJOPzfvkGFaUA==
 
 "@react-native-community/async-storage@^1.6.2":
   version "1.6.2"
@@ -1106,9 +1106,9 @@
     "@types/node" "*"
 
 "@types/node@*":
-  version "13.7.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.7.0.tgz#b417deda18cf8400f278733499ad5547ed1abec4"
-  integrity sha512-GnZbirvmqZUzMgkFn70c74OQpTTUcCzlhQliTzYjQMqg+hVKcDnxdL19Ne3UdYzdMA/+W3eb646FWn/ZaT1NfQ==
+  version "13.7.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.7.4.tgz#76c3cb3a12909510f52e5dc04a6298cdf9504ffd"
+  integrity sha512-oVeL12C6gQS/GAExndigSaLxTrKpQPxewx9bOcwfvJiJge4rr7wNaph4J+ns5hrmIV2as5qxqN8YKthn9qh0jw==
 
 "@types/node@>=6":
   version "12.12.7"
@@ -2554,14 +2554,14 @@ envinfo@^7.1.0:
 
 epubjs-rn@frasermince/epubjs-rn:
   version "0.1.5"
-  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/6b2683e14d6907cb46eef17b09c4706ce6adb23c"
+  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/37f6dc9c994a1f5d2d03725588a65dda6ba466dc"
   dependencies:
     "@babel/polyfill" "^7.4.4"
     "@lightbase/react-native-orientation" "^3.2.6"
     "@react-native-community/async-storage" "^1.5.0"
     base-64 "^0.1.0"
     buffer "^5.2.1"
-    epubjs "^0.3.84"
+    epubjs "^0.3.85"
     events "^3.0.0"
     i "^0.3.6"
     jszip "^3.2.1"
@@ -2578,10 +2578,9 @@ epubjs-rn@frasermince/epubjs-rn:
     stream-browserify "^2.0.2"
     util "^0.12.0"
 
-epubjs@^0.3.84, epubjs@^0.3.85:
+epubjs@^0.3.85, epubjs@frasermince/epub.js#fm/page-jumping:
   version "0.3.85"
-  resolved "https://registry.yarnpkg.com/epubjs/-/epubjs-0.3.85.tgz#603bfe1cfe925d9a638c51cd564b40a45e7f82b1"
-  integrity sha512-kRq+yR+M3RyD7NoJovrxUXiXfLXqfDMnrfKGL5HS8vdzPlhajhuDxSrnhFOCYlgxEBpvBkYOxigD1cCu+BziOg==
+  resolved "https://codeload.github.com/frasermince/epub.js/tar.gz/1db7813ee3ac59bb3ab0c576b3bf3d50bdf407b2"
   dependencies:
     "@types/jszip" "^3.1.4"
     "@types/localforage" "0.0.34"
@@ -6155,9 +6154,9 @@ react-native-webview@^8.0.1:
     invariant "2.2.4"
 
 react-native-webview@^8.0.2:
-  version "8.0.6"
-  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-8.0.6.tgz#247e6e16926e06105144bb33ec9d0429e01c8900"
-  integrity sha512-lvapBzV0Ymv39EpubaitF8RzkhYDb7uT9n230f5V+SpDU3BN03WnED7v3HHQDXoPwjDBNRWzDgoImnFn9WlSzw==
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-8.1.1.tgz#7f06546972fd4b2113ad3039837f461bab81cd15"
+  integrity sha512-Bt1vwdz/JMPh39SW2H64p9NrlfVHXrsFFmMGa1O6I9UBP0Y201EofnT3xK3uY4/7KMWeM372MHrmLpyp1AJ4dg==
   dependencies:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
