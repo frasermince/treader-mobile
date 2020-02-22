@@ -10,7 +10,8 @@ exports._timing = function(animation) {
         if (result.finished) {
           onSuccess(result);
         } else {
-          onError("Animation was halted");
+          console.log(result);
+          //onError("Animation was halted");
         }
       });
       return function (cancelError, cancelerError, cancelerSuccess) {
