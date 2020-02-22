@@ -22,6 +22,7 @@ import Data.Traversable (traverse_)
 import Effect.Exception (message)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
+import Keyboard (dismiss)
 
 type Props
   = {navigation :: {navigate :: EffectFn1 String Unit}}
@@ -69,3 +70,4 @@ buildJsx props = React.do
                   liftEffect $ traverse_ _.resetStore client
                   setItem "treader-session" session
                   liftEffect $ runEffectFn1 props.navigation.navigate "App"
+          liftEffect $ dismiss

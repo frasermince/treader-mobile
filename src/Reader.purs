@@ -30,6 +30,7 @@ import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
+import Debug.Trace (spy)
 import Foreign.Object (Object)
 
 type VisibleLocation = {start :: {percentage :: Int, cfi :: String}}
