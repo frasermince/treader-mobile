@@ -57,8 +57,8 @@ buildJsx props = React.do
   password /\ setPassword <- useState ""
   pure $ M.getJsx do
      surface {} do
-        textInput {label: "Email", onChangeText: changeField setEmail, value: email}
-        textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true}
+        textInput {label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none"}
+        textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none"}
         button {onPress: RNE.capture_ (press mutate email password client setError)} (M.jsx $ RN.string "submit")
   where stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
         press mutate email password client setError = launchAff_ do
