@@ -29,8 +29,8 @@ import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
-import Debug.Trace (spy)
 import Foreign.Object (Object)
+import Debug.Trace (spy)
 
 type VisibleLocation = {start :: {percentage :: Int, cfi :: String}}
 
@@ -185,13 +185,8 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
-  useEffect visibleLocation $ do
-     spy "HERE" (setHighlightedContent \_ -> Nothing)
-     spy "HERE" (setTranslation \_ -> Nothing)
-     spy "HERE" (setMorphology \_ -> Nothing)
-     pure mempty
   useEffect highlightedContent $ do
-     launchAff_ $ mutateAndChangeState mutationFn (spy "***H" highlightedContent) (spy "***L" language) setShowBars setTranslation
+     launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation
      pure mempty
 
 
@@ -207,12 +202,12 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     where
           mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
             let payload = { variables: { input: {snippet: highlightedContent.text, language: language} } }
-            result <- try $ spy "MUTATE RESULT" $ mutationFn $ payload
+            result <- try $ mutationFn payload
             case result of
                  Left err -> pure unit
                  Right r -> do
-                    liftEffect $ setShowBars \_ -> spy "***NOT HERE" false
-                    liftEffect $ setTranslation \_ -> Just $ (spy "result" r).translate.translation
+                    liftEffect $ setShowBars \_ -> false
+                    liftEffect $ setTranslation \_ -> Just r.translate.translation
 
           mutateAndChangeState _ _ _ _ setTranslation = do
              liftEffect $ setTranslation \_ -> Nothing
