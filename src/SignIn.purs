@@ -16,7 +16,7 @@ import AsyncStorage (setItem)
 import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, launchAff_, try)
-import Data.Either(Either(..))
+import Data.Either (Either(..))
 import Effect.Uncurried (runEffectFn1, EffectFn1)
 import Data.Traversable (traverse_)
 import Effect.Exception (message)
@@ -25,11 +25,12 @@ import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
 
 type Props
-  = {navigation :: {navigate :: EffectFn1 String Unit}}
+  = { navigation :: { navigate :: EffectFn1 String Unit } }
 
 mutation :: DocumentNode
-mutation = gql
-  """
+mutation =
+  gql
+    """
 mutation loginMutation($input: LoginInput!) {
   login(input: $input) {
     session {token}
@@ -46,28 +47,34 @@ reactComponent =
     $ do
         (component "SignIn") buildJsx
 
-changeField setField = RNE.handler text \t ->
-  setField \_ -> t
+changeField setField =
+  RNE.handler text \t ->
+    setField \_ -> t
 
 buildJsx props = React.do
   client <- useApolloClient
-  {setLoading, setError} <- useContext dataStateContext
+  { setLoading, setError } <- useContext dataStateContext
   mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   email /\ setEmail <- useState ""
   password /\ setPassword <- useState ""
-  pure $ M.getJsx do
-     surface {} do
-        textInput {label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none"}
-        textInput {label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none"}
-        button {onPress: RNE.capture_ (press mutate email password client setError)} (M.jsx $ RN.string "submit")
-  where stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
-        press mutate email password client setError = launchAff_ do
-          result <- try $ mutate $ {variables: {input: {email, password}}}
-          case result of
-               Left error -> liftEffect $ runEffectFn1 setError $  stripGraphqlError $ message error
-               Right resp -> do
-                  let session = "Bearer " <> resp.login.session.token
-                  liftEffect $ traverse_ _.resetStore client
-                  setItem "treader-session" session
-                  liftEffect $ runEffectFn1 props.navigation.navigate "App"
-          liftEffect $ dismiss
+  pure
+    $ M.getJsx do
+        surface {} do
+          textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
+          textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
+          button { onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
+  where
+  stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
+
+  press mutate email password client setError =
+    launchAff_ do
+      result <- try $ mutate $ { variables: { input: { email, password } } }
+      case result of
+        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+        Right resp -> do
+          let
+            session = "Bearer " <> resp.login.session.token
+          liftEffect $ traverse_ _.resetStore client
+          setItem "treader-session" session
+          liftEffect $ runEffectFn1 props.navigation.navigate "App"
+      liftEffect $ dismiss

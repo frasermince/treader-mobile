@@ -1,4 +1,5 @@
 module TopBar where
+
 import Prelude
 import Platform as Platform
 import Effect.Aff (Aff, launchAff_)
@@ -25,66 +26,73 @@ import Effect.Uncurried (runEffectFn1)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
-type Props = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String}
-headerStyles fade = {
-  backgroundColor: "white",
-  paddingTop: Platform.select {ios: 40, android: 24},
-  top: 0,
-  height: Platform.select {
-    ios: 84,
-    android: 74
-  },
-  right: 0,
-  left: 0,
-  position: "absolute",
-  display: "flex",
-  alignItems:"center",
-  justifyContent:"center",
-  flexDirection: "row",
-  flex: 14,
-  opacity: fade,
-  zIndex: zIndex,
-  shadowOpacity: 0.75,
-  shadowRadius: 3,
-  shadowOffset: {height: 5, width: 10}
-}
-  where
-    zIndex :: Int
-    zIndex = fade.interpolate {
-      inputRange: [ 0, 1],
-      outputRange: [-1, 9]
-    }
 
-styles = {
-  title: {
-    textAlign: "center",
-    fontSize: 22,
-    fontWeight: "400",
-    flex: 8,
-    color: "#000",
-    fontFamily: Platform.select {
-      ios: "Baskerville",
-      android: "serif"
-    }
-  },
-  backButton: {
-    width: 34,
-    height: 34,
-    margin: 20,
-    flex: 1,
-    display: "flex",
-    alignItems:"center",
-    justifyContent:"center",
-    flexDirection: "row"
-  },
-  backButtonImage: {
-    width: 30,
-    height: 30
+type Props
+  = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String }
+
+headerStyles fade =
+  { backgroundColor: "white"
+  , paddingTop: Platform.select { ios: 40, android: 24 }
+  , top: 0
+  , height:
+      Platform.select
+        { ios: 84
+        , android: 74
+        }
+  , right: 0
+  , left: 0
+  , position: "absolute"
+  , display: "flex"
+  , alignItems: "center"
+  , justifyContent: "center"
+  , flexDirection: "row"
+  , flex: 14
+  , opacity: fade
+  , zIndex: zIndex
+  , shadowOpacity: 0.75
+  , shadowRadius: 3
+  , shadowOffset: { height: 5, width: 10 }
   }
-}
+  where
+  zIndex :: Int
+  zIndex =
+    fade.interpolate
+      { inputRange: [ 0, 1 ]
+      , outputRange: [ -1, 9 ]
+      }
 
-runAnimation true fade = timing fade {toValue: 1, duration: 20}
-runAnimation false fade = timing fade {toValue: 0, duration: 20}
+styles =
+  { title:
+      { textAlign: "center"
+      , fontSize: 22
+      , fontWeight: "400"
+      , flex: 8
+      , color: "#000"
+      , fontFamily:
+          Platform.select
+            { ios: "Baskerville"
+            , android: "serif"
+            }
+      }
+  , backButton:
+      { width: 34
+      , height: 34
+      , margin: 20
+      , flex: 1
+      , display: "flex"
+      , alignItems: "center"
+      , justifyContent: "center"
+      , flexDirection: "row"
+      }
+  , backButtonImage:
+      { width: 30
+      , height: 30
+      }
+  }
+
+runAnimation true fade = timing fade { toValue: 1, duration: 20 }
+
+runAnimation false fade = timing fade { toValue: 0, duration: 20 }
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -97,15 +105,15 @@ buildJsx props = React.do
   client <- useApolloClient
   menuVisible /\ setMenuVisible <- useState false
   let
-    menuButton = M.getJsx $ iconButton { onPress: capture_ $ setMenuVisible $ \_ -> props.shown, size: 28, icon: "settings"}
-
+    menuButton = M.getJsx $ iconButton { onPress: capture_ $ setMenuVisible $ \_ -> props.shown, size: 28, icon: "settings" }
   useEffect props.shown do
-     launchAff_ $ runAnimation props.shown fade
-     pure mempty
-  pure $ M.getJsx $ view {style: headerStyles fade} do
-    M.touchableOpacity {style: M.css styles.backButton, onPress: props.onLeftButtonPressed} do
-      M.childElement icon {name: "navicon", size: 34}
-    M.text {style: M.css styles.title} do
-      M.string props.title
-    menu {visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton} do
-      menuItem {onPress: props.onRightButtonPressed client, title: "Sign out"}
+    launchAff_ $ runAnimation props.shown fade
+    pure mempty
+  pure $ M.getJsx
+    $ view { style: headerStyles fade } do
+        M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
+          M.childElement icon { name: "navicon", size: 34 }
+        M.text { style: M.css styles.title } do
+          M.string props.title
+        menu { visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton } do
+          menuItem { onPress: props.onRightButtonPressed client, title: "Sign out" }

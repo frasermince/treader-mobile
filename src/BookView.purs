@@ -32,7 +32,8 @@ containerStyles =
   { flex: 1
   , backgroundColor: "white"
   }
-barStyles showBars = 
+
+barStyles showBars =
   { position: "absolute"
   , left: 0
   , right: 0
@@ -41,28 +42,35 @@ barStyles showBars =
   }
 
 type JSProps
-  = {navigation :: {navigate :: EffectFn1 String Unit, state :: {params :: {slug :: Nullable String}}}}
+  = { navigation :: { navigate :: EffectFn1 String Unit, state :: { params :: { slug :: Nullable String } } } }
 
-type Props = {navigation :: {navigate :: String -> Effect Unit, state :: {params :: {slug :: String}}}}
+type Props
+  = { navigation :: { navigate :: String -> Effect Unit, state :: { params :: { slug :: String } } } }
 
-convertProps props = {
-  navigation: {
-    navigate: runEffectFn1 props.navigation.navigate,
-    state: {params: {slug: fromMaybe "" $ toMaybe props.navigation.state.params.slug}}
+convertProps props =
+  { navigation:
+      { navigate: runEffectFn1 props.navigation.navigate
+      , state: { params: { slug: fromMaybe "" $ toMaybe props.navigation.state.params.slug } }
+      }
   }
-}
-reactComponent = navigationOptions c {headerShown: false}
-  where c :: ReactComponent JSProps
-        c = unsafePerformEffect $ do
-           (component "BookView") buildJsx
+
+reactComponent = navigationOptions c { headerShown: false }
+  where
+  c :: ReactComponent JSProps
+  c =
+    unsafePerformEffect
+      $ do
+          (component "BookView") buildJsx
 
 callShow ref = do
   r <- readRefMaybe ref
   traverse_ _.show r
 
 buildJsx jsProps = React.do
-  let props = convertProps jsProps
-  let navigation = props.navigation
+  let
+    props = convertProps jsProps
+  let
+    navigation = props.navigation
   location /\ setLocation <- useState "6"
   toc /\ setToc <- useState []
   height /\ setHeight <- useState 0.0
@@ -70,14 +78,13 @@ buildJsx jsProps = React.do
   title /\ setTitle <- useState ""
   sliderDisabled /\ setSliderDisabled <- useState true
   showBars /\ setShowBars <- useState true
-  visibleLocation /\ setVisibleLocation <- useState {start: {percentage: 0, cfi: "0"}}
+  visibleLocation /\ setVisibleLocation <- useState { start: { percentage: 0, cfi: "0" } }
   showNav /\ setShowNav <- useState false
   useEffect title do
-     launchAff_ do
-       l <- getItem title
-       liftEffect $ traverse_ (\l -> setLocation \_ -> l) l
-     pure mempty
-
+    launchAff_ do
+      l <- getItem title
+      liftEffect $ traverse_ (\l -> setLocation \_ -> l) l
+    pure mempty
   let
     toggleBars = setShowBars $ \_ -> not $ showBars
   pure $ M.getJsx
@@ -89,23 +96,23 @@ buildJsx jsProps = React.do
           , translucent: true
           , animated: false
           }
-        M.childElement Reader.reactComponent {
-          height,
-          width,
-          location,
-          toggleBars,
-          setToc,
-          navigation,
-          setTitle,
-          title,
-          setSliderDisabled,
-          setVisibleLocation,
-          visibleLocation,
-          setHeight,
-          setWidth,
-          showBars,
-          setShowBars
-        }
+        M.childElement Reader.reactComponent
+          { height
+          , width
+          , location
+          , toggleBars
+          , setToc
+          , navigation
+          , setTitle
+          , title
+          , setSliderDisabled
+          , setVisibleLocation
+          , visibleLocation
+          , setHeight
+          , setWidth
+          , showBars
+          , setShowBars
+          }
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { top: 0 }
           } do
@@ -113,10 +120,13 @@ buildJsx jsProps = React.do
             { title: title
             , shown: showBars
             , onLeftButtonPressed: capture_ $ setShowNav \_ -> true
-            , onRightButtonPressed: \client -> capture_ $ launchAff_ do
-               clear
-               liftEffect $ traverse_ _.resetStore client
-               liftEffect $ props.navigation.navigate "Auth"
+            , onRightButtonPressed:
+                \client ->
+                  capture_
+                    $ launchAff_ do
+                        clear
+                        liftEffect $ traverse_ _.resetStore client
+                        liftEffect $ props.navigation.navigate "Auth"
             } --, onLeftButtonPressed: liftEffect}
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { bottom: 0 }

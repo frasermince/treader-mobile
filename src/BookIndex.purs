@@ -19,8 +19,9 @@ import FS (readDirectory, File, bookDir, exists)
 import React.Basic.Native.Events as RNE
 import Effect.Class (liftEffect)
 import Data.Foldable (find)
+
 type Props
-  = {navigation :: {navigate :: EffectFn2 String {slug :: String} Unit}}
+  = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit } }
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -31,38 +32,44 @@ reactComponent =
 buildJsx props = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))
   useEffect unit do
-     launchAff_ $ do
-        doesExist <- exists bookDir
-        files <- if doesExist then readDirectory bookDir else pure []
-        liftEffect $ setFiles \_ -> Just files
-     pure mempty
+    launchAff_
+      $ do
+          doesExist <- exists bookDir
+          files <- if doesExist then readDirectory bookDir else pure []
+          liftEffect $ setFiles \_ -> Just files
+    pure mempty
   queryResult <- useUserBooks {}
   case queryResult of
-       Nothing -> pure mempty
-       Just d -> dom d files
-
+    Nothing -> pure mempty
+    Just d -> dom d files
   where
-    redirect slug = runEffectFn2 props.navigation.navigate "Read" {slug: slug}
-    bookIcon :: forall p . Record p -> JSX
-    bookIcon p = element listIcon $ unsafeUnion p {color: "#000", icon: "book"}
-    cloudState book Nothing p = mempty
-    cloudState book (Just files) p = element listIcon $ unsafeUnion p {color: "#000", icon: icon}
-      where icon
-              | isJust $ find (\f -> f.name == book.filename || f.name == book.slug) files = "check-bold"
-              | otherwise = "cloud-outline"
-    item :: Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit
-    item files accum book =
-      accum <> (listItem
-               {
-               title: RN.string book.name,
-               left: bookIcon,
-               right: cloudState book files,
-               onPress: RNE.capture_ $ redirect book.slug
-               })
+  redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
 
-    dom d files = React.do
-       pure $ M.getJsx $ M.safeAreaView {style: M.css {flex: 1, backgroundColor: "#ffffff"}} do
-        surface {style: M.css {flex: 1}} do
-          listSection {} do
-            foldl (item files) mempty d.currentUser.books
+  bookIcon :: forall p. Record p -> JSX
+  bookIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "book" }
 
+  cloudState book Nothing p = mempty
+
+  cloudState book (Just files) p = element listIcon $ unsafeUnion p { color: "#000", icon: icon }
+    where
+    icon
+      | isJust $ find (\f -> f.name == book.filename || f.name == book.slug) files = "check-bold"
+      | otherwise = "cloud-outline"
+
+  item :: Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit
+  item files accum book =
+    accum
+      <> ( listItem
+            { title: RN.string book.name
+            , left: bookIcon
+            , right: cloudState book files
+            , onPress: RNE.capture_ $ redirect book.slug
+            }
+        )
+
+  dom d files = React.do
+    pure $ M.getJsx
+      $ M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
+          surface { style: M.css { flex: 1 } } do
+            listSection {} do
+              foldl (item files) mempty d.currentUser.books

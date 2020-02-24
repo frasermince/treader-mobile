@@ -1,4 +1,5 @@
 module AuthLoading where
+
 import Prelude
 import Debug.Trace
 import Effect (Effect)
@@ -15,7 +16,7 @@ import Data.Traversable (traverse_)
 import QueryHooks (useUserBooks, Book, User)
 
 type Props
-  = {navigation :: {navigate :: EffectFn1 String Unit}}
+  = { navigation :: { navigate :: EffectFn1 String Unit } }
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -23,14 +24,12 @@ reactComponent =
     $ do
         (component "AuthLoading") buildJsx
 
-
 buildJsx props = React.do
   queryResult <- useUserBooks {}
   useEffect queryResult do
-     traverse_ (effectForState props) queryResult
-     pure mempty
+    traverse_ (effectForState props) queryResult
+    pure mempty
   pure $ mempty
-
 
 effectForState :: Props -> User -> Effect Unit
 effectForState props d

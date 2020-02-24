@@ -1,6 +1,5 @@
 module AsyncStorage where
 
-
 import Prelude
 import Control.Promise as Promise
 import Control.Promise (Promise)
@@ -12,7 +11,9 @@ import Data.Nullable (toMaybe, Nullable)
 import Data.Maybe (Maybe(..))
 
 foreign import _setItem :: String -> String -> Effect (Promise Unit)
+
 foreign import _getItem :: String -> Effect (Promise (Nullable String))
+
 foreign import _clear :: Effect (Promise Unit)
 
 setItem :: String -> String -> Aff Unit

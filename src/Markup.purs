@@ -1,4 +1,5 @@
 module Markup where
+
 import Prelude
 import React.Basic.DOM.Internal (CSS)
 import React.Basic.Native as RN
@@ -10,25 +11,32 @@ import Record as Record
 import Data.Symbol (SProxy(..))
 import React.Basic.Hooks as H
 
-newtype Markup a = Markup (Tuple JSX a)
+newtype Markup a
+  = Markup (Tuple JSX a)
 
 instance semigroupMarkup :: Semigroup a => Semigroup (Markup a) where
   append a b = Markup (Tuple jsx value)
-    where jsx = (getJsx a) <> (getJsx b)
-          value = (runMarkup a) <> (runMarkup b)
+    where
+    jsx = (getJsx a) <> (getJsx b)
+
+    value = (runMarkup a) <> (runMarkup b)
+
 instance monoidMarkup :: Monoid a => Monoid (Markup a) where
   mempty = Markup (Tuple mempty mempty)
-instance functorMarkup :: Functor (Markup)  where
+
+instance functorMarkup :: Functor (Markup) where
   map f (Markup (Tuple jsx a)) = Markup (Tuple jsx (f a))
+
 instance applyMarkup :: Apply (Markup) where
-  apply (Markup (Tuple firstJsx fn)) (Markup (Tuple secondJsx a))
-    = Markup (Tuple (firstJsx <> secondJsx) (fn a))
+  apply (Markup (Tuple firstJsx fn)) (Markup (Tuple secondJsx a)) = Markup (Tuple (firstJsx <> secondJsx) (fn a))
+
 instance applicativeMarkup :: Applicative Markup where
   pure x = Markup (Tuple mempty x)
 
 instance bindMarkup :: Bind (Markup) where
   bind (Markup (Tuple jsx a)) f = (Markup (Tuple (jsx <> newJsx) newA))
-    where (Markup (Tuple newJsx newA)) = f a
+    where
+    (Markup (Tuple newJsx newA)) = f a
 
 instance monadMarkup :: Monad Markup
 
@@ -42,9 +50,9 @@ jsx :: JSX -> Markup Unit
 jsx j = Markup (Tuple (j) unit)
 
 childrenProxy = SProxy :: SProxy "children"
-parent :: forall p. Lacks "children" p => ({children :: Array JSX | p} -> JSX) -> Record p -> Markup Unit -> Markup Unit
-parent el props kids =
-  jsx $ el $ Record.insert childrenProxy [getJsx kids] props
+
+parent :: forall p. Lacks "children" p => ({ children :: Array JSX | p } -> JSX) -> Record p -> Markup Unit -> Markup Unit
+parent el props kids = jsx $ el $ Record.insert childrenProxy [ getJsx kids ] props
 
 child :: forall p. (Record p -> JSX) -> Record p -> Markup Unit
 child el props = jsx $ el props
@@ -68,6 +76,7 @@ statusBar = child RN.statusBar
 string s = jsx $ RN.string s
 
 parentElement component = parent (H.element component)
+
 childElement component = child (H.element component)
 
 css :: forall css. { | css } -> CSS
