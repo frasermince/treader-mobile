@@ -151,7 +151,9 @@ import tokenizer from 'sbd';
     } else {
       sendMessage({method:"set", key: "highlightedContent", value: null});
     }
-    sendMessage({method:"set", key: "sentence", value: sentence});
+    if (sentence) {
+      sendMessage({method:"set", key: "sentence", value: sentence});
+    }
     sendMessage({method:"set", key: "epubcfi", value: epubcfi});
     sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
   }

@@ -4,7 +4,6 @@ import Effect (Effect)
 import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
 import React.Basic.Native as RN
-import ApolloHooks (gql)
 import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
@@ -22,7 +21,7 @@ import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Traversable (traverse_)
-import ApolloHooks (useMutation)
+import ApolloHooks (useMutation, gql)
 import EpubUtil (mkStateChangeListeners, bridgeFile, HighlightedContent, epubjs)
 import Data.Symbol (SProxy(..))
 import Record (merge)
@@ -352,5 +351,5 @@ buildJsx props = React.do
                 , onError: error
                 }
           M.childElement BottomContent.reactComponent
-            {translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent), sentence: (fst stateChangeListeners.sentence)}
+            {translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent), sentence: (fst stateChangeListeners.sentence), language: (fst stateChangeListeners.language)}
 

@@ -4,6 +4,7 @@ import Prelude
 import Effect.Aff (Aff, launchAff_)
 import React.Basic.DOM.Internal (CSS)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
+import Effect.Class (liftEffect)
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
 import Animated (scrollView, timing, value)
@@ -24,10 +25,23 @@ import Morphology (valueNames)
 import EpubUtil (HighlightedContent)
 import Dimensions (window)
 import Data.Int (floor)
+import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
+import Control.Alt ((<|>))
+import Data.Either (Either(..))
+import ApolloHooks (useMutation, gql)
+import React.Basic.Native.Events (capture_)
 
 mapValue ::  String -> String -> String
 mapValue "infinitive" value = value
 mapValue key value = fromMaybe value $ lookup value $ valueNames
+
+mutation = gql """
+  mutation translateMutation($input: TranslateInput!) {
+    translate(input: $input) {
+      translation
+    }
+  }
+"""
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -36,7 +50,7 @@ reactComponent =
         (component "BottomContent") buildJsx
 
 
-type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number, sentence :: Maybe String }
+type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number, sentence :: Maybe String, language :: Maybe String}
 
 --styles :: CSS -> Number -> Maybe Number -> CSS
 placement height Nothing = {top: height - 200}
@@ -75,8 +89,38 @@ titleStyles = M.css {
 runAnimation true fade = timing fade {toValue: 1, duration: 20}
 runAnimation false fade = timing fade {toValue: 0, duration: 20}
 --buildJsx :: Props -> JSX
+
+sentenceSection sentenceTranslation setSentenceTranslation sentence mutationFn language showTranslation setShowTranslation =
+  M.touchableOpacity {style: M.css {marginTop: 10}, onPress: capture_ $ press sentence language sentenceTranslation} do
+    fromMaybe mempty $ if showTranslation then (translationElement <|> sentenceElement) else sentenceElement
+    where translationElement = (append sentenceTranslationMarker) <$> sentenceTranslationText
+          sentenceElement = (append sentenceMarker) <$> sentenceText
+          sentenceTranslationMarker = M.text {style: titleStyles} $ M.string "Sentence Translation"
+          sentenceMarker = M.text {style: titleStyles} $ M.string "Sentence"
+          sentenceText = (M.text {} <$> M.string <$> sentence)
+          sentenceTranslationText = (M.text {} <$> M.string <$> sentenceTranslation)
+          press (Just sentence) (Just language) Nothing = launchAff_ $ do
+            let payload = { variables: { input: {snippet: sentence, language: language} } }
+            response <- try $ mutationFn payload
+            case response of
+                  Left err -> pure unit
+                  Right result -> do
+                      liftEffect $ setSentenceTranslation \_ -> Just result.translate.translation
+          press _ _ (Just translation) = do
+             setShowTranslation \t -> not t
+          press _ _ _ = do
+            pure unit
+
+
 buildJsx props = React.do
+  mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
+  sentenceTranslation /\ setSentenceTranslation <- useState $ (Nothing :: Maybe String)
+  showSentenceTranslation /\ setShowSentenceTranslation <- useState true
+  useEffect props.sentence do
+     setSentenceTranslation \_ -> Nothing
+     setShowSentenceTranslation \_ -> true
+     pure mempty
   useEffect visible do
      launchAff_ $ runAnimation visible fade
      pure mempty
@@ -84,15 +128,11 @@ buildJsx props = React.do
   pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
         fromMaybe mempty $ (append translationMarker) <$> translationText
-        M.view {style: M.css {marginTop: 10}} do
-           fromMaybe mempty $ (append sentenceMarker) <$> sentenceText
+        sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation
         maybeDataMap props.morphology
    where visible = isJust props.translation || isJust props.morphology
          translationMarker = M.text {style: titleStyles} $ M.string "Translation"
          translationText = (M.text {} <$> M.string <$> props.translation)
-         sentenceMarker = M.text {style: titleStyles} $ M.string "Sentence"
-         sentenceText = (M.text {} <$> M.string <$> props.sentence)
-
 
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
