@@ -49,14 +49,16 @@ styles fade = {
   height: 200,
   right: 0,
   left: 0,
-  borderTopWidth: 1,
-  borderTopColor:"#000",
   position: "absolute",
-  alignItems:"center",
-  justifyContent:"center",
+  alignItems: "center",
+  justifyContent: "center",
   flexDirection: "row",
   opacity: fade,
-  zIndex: zIndex
+  zIndex: zIndex,
+  shadowOpacity: 0.75,
+  shadowRadius: 3,
+  shadowOffset: {height: 5, width: 10}
+
 }
   where
     zIndex :: Int
@@ -82,7 +84,8 @@ buildJsx props = React.do
   pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
         fromMaybe mempty $ (append translationMarker) <$> translationText
-        fromMaybe mempty $ (append sentenceMarker) <$> sentenceText
+        M.view {style: M.css {marginTop: 10}} do
+           fromMaybe mempty $ (append sentenceMarker) <$> sentenceText
         maybeDataMap props.morphology
    where visible = isJust props.translation || isJust props.morphology
          translationMarker = M.text {style: titleStyles} $ M.string "Translation"

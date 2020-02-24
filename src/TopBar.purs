@@ -36,8 +36,6 @@ headerStyles fade = {
   },
   right: 0,
   left: 0,
-  borderBottomWidth: 1,
-  borderBottomColor:"#000",
   position: "absolute",
   display: "flex",
   alignItems:"center",
@@ -45,7 +43,10 @@ headerStyles fade = {
   flexDirection: "row",
   flex: 14,
   opacity: fade,
-  zIndex: zIndex
+  zIndex: zIndex,
+  shadowOpacity: 0.75,
+  shadowRadius: 3,
+  shadowOffset: {height: 5, width: 10}
 }
   where
     zIndex :: Int

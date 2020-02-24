@@ -31,14 +31,16 @@ footerStyles fade =
     height: Platform.select {ios: 64, android: 54},
     right: 0,
     left: 0,
-    borderTopWidth: 1,
-    borderTopColor:"#000",
     position: "absolute",
     alignItems:"center",
     justifyContent:"center",
     flexDirection: "row",
     opacity: fade,
-    zIndex: zIndex
+    zIndex: zIndex,
+    shadowOpacity: 0.75,
+    shadowRadius: 3,
+    shadowOffset: {height: 5, width: 10}
+
   }
   where
     zIndex :: Int
