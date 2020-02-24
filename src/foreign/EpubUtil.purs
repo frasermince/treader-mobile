@@ -58,5 +58,6 @@ mkStateChangeListeners rd = rd
   , morphology = mkMaybeStateChangeTuple rd.morphology
   , language = mkMaybeStateChangeTuple rd.language
   , chapterTitle = mkMaybeStateChangeTuple rd.chapterTitle
+  , sentence = mkMaybeStateChangeTuple rd.sentence
   }
 

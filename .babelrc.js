@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const Bundler = require('parcel-bundler');
 
-process.env.CUSTOM_BRIDGE = fs.readFileSync(path.resolve(__dirname, "src/bridge.js"), "utf8");
-process.env.EPUBJS = fs.readFileSync(path.resolve(__dirname, "node_modules/epubjs/dist/epub.js"), "utf8");
-console.log("env", process.env);
+const html = fs.readFileSync(path.resolve(__dirname, "dist/index.html"), "utf8");
+process.env.CUSTOM_BRIDGE = html
 
 module.exports = {
   "presets": ["module:metro-react-native-babel-preset"],

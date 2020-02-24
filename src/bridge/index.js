@@ -1,3 +1,5 @@
+import ePub from 'epubjs'
+import tokenizer from 'sbd';
 (function () {
   var messages = {};
   function sendMessageWithoutCache(obj) {
@@ -30,6 +32,19 @@
       sendMessageWithoutCache(obj);
     }
   };
+
+  function getSentence(range) {
+    let paragraphRange = new Range();
+    paragraphRange.setStart(range.startContainer.parentElement, 0);
+    paragraphRange.setEnd(range.startContainer, 0);
+    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent, {"sanitize": true})
+    let sentenceCharacters = paragraphRange.toString().length
+    let characterIteration = 0;
+    return sentences.find((sentence) => {
+      characterIteration += sentence.length;
+      return characterIteration > sentenceCharacters;
+    });
+  }
 
   function getWordRange(e) {
     // FF gives us a shortcut
@@ -130,12 +145,13 @@
     return language;
   }
 
-  function setWordInformation(highlightedContent, epubcfi, morphology, fromTop) {
+  function setWordInformation(highlightedContent, sentence, epubcfi, morphology, fromTop) {
     if (highlightedContent && fromTop) {
       sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
     } else {
       sendMessage({method:"set", key: "highlightedContent", value: null});
     }
+    sendMessage({method:"set", key: "sentence", value: sentence});
     sendMessage({method:"set", key: "epubcfi", value: epubcfi});
     sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
   }
@@ -383,11 +399,11 @@
       window.rendition = rendition = book.renderTo(document.body, settings);
       
       rendition.hooks.content.register(function(contents, rendition) {
-        contents.triggerSelectedEvent = function(cfi, range){
+        contents.triggerSelectedEvent = function(cfi, range, sentence){
           if(cfi) {
             this.previouslySelected = true;
             // cfirange = this.section.cfiFromRange(range);
-            this.emit("selected", {cfi: cfi, range: range});
+            this.emit("selected", {cfi: cfi, range: range, sentence: sentence});
             //this.emit("selectedRange", range);
           } else if (this.previouslySelected) {
             this.previouslySelected = false;
@@ -396,7 +412,7 @@
         }
 
         contents.on("deselected", function() {
-          setWordInformation(null, null, null, null);
+          setWordInformation(null, null, null, null, null);
           sendMessage({method:"set", key: "translation", value: null});
           let svg = document.getElementById("select-box");
           svg.style.visibility = "hidden";
@@ -412,7 +428,6 @@
         var $body = doc.getElementsByTagName('body')[0];
         var previous = "";
         var range = document.createRange();
-        var multiwordSet = false;
 
         function touchStartHandler(e) {
           var f, target;
@@ -461,7 +476,7 @@
 
         function touchMoveHandler(e) {
           let svg = document.getElementById("select-box");
-          setWordInformation(null, null, null, null);
+          setWordInformation(null, null, null, null, null);
           range = document.createRange();
           svg.style.visibility = "hidden";
           currentPosition.x = e.targetTouches[0].pageX;
@@ -503,8 +518,9 @@
             //selRange.moveEnd('character', end);
             //selRange.select();
 
-            var lastRange = range;
             range = getWordRange(e);
+
+                        /*
             if (range && !lastRange.collapsed && !multiwordSet) {
               var lastY = lastRange.getBoundingClientRect().y;
               var currentY = range.getBoundingClientRect().y;
@@ -521,13 +537,14 @@
             } else if (multiwordSet) {
               multiwordSet = false;
             }
+            */
             if (range) {
+              sentence = getSentence(range);
               cfi = contents.cfiFromRange(range);
-              contents.triggerSelectedEvent(cfi, range);
+              contents.triggerSelectedEvent(cfi, range, sentence);
             } else {
-              multiwordSet = false;
               range = document.createRange();
-              contents.triggerSelectedEvent(null, null);
+              contents.triggerSelectedEvent(null, null, null);
               cfi = contents.cfiFromNode(target).toString();
 
               if(isLongPress) {
@@ -540,6 +557,7 @@
                     isLongPress = false;
                     return;
                   }
+                  console.log("TAP");
                   sendMessageWithoutCache({method:"press", position: currentPosition, cfi: cfi});
                 }, 10);
               }
@@ -585,7 +603,7 @@
         sendMessage({method:"relocated", location: location});
       });
 
-      rendition.on("selected", function({cfi: cfiRange, range: range}, contents, t) {
+      rendition.on("selected", function({cfi: cfiRange, range: range, sentence: sentence}, contents, t) {
         let span = range.startContainer;
         let text = range.toString();
         let svg = document.getElementById("select-box");
@@ -596,9 +614,9 @@
         svg.style.top = range.getBoundingClientRect().y;
         svg.style.visibility = "visible";
         if (span && span.tagName.toLowerCase() == 'span' ) {
-          setWordInformation(text, cfiRange, span.dataset, range.getBoundingClientRect().top);
+          setWordInformation(text, sentence, cfiRange, span.dataset, range.getBoundingClientRect().top);
         } else {
-          setWordInformation(text, cfiRange, null, range.getBoundingClientRect().top);
+          setWordInformation(text, sentence, cfiRange, null, range.getBoundingClientRect().top);
         }
       });
 

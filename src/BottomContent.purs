@@ -36,7 +36,7 @@ reactComponent =
         (component "BottomContent") buildJsx
 
 
-type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number }
+type Props = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number, sentence :: Maybe String }
 
 --styles :: CSS -> Number -> Maybe Number -> CSS
 placement height Nothing = {top: height - 200}
@@ -82,10 +82,14 @@ buildJsx props = React.do
   pure $ M.getJsx $ surface {style: M.css $ merge (styles fade) (placement window.height props.wordPlacement)} do
      scrollView {style: M.css {height: 200, padding: 20}} do
         fromMaybe mempty $ (append translationMarker) <$> translationText
+        fromMaybe mempty $ (append sentenceMarker) <$> sentenceText
         maybeDataMap props.morphology
    where visible = isJust props.translation || isJust props.morphology
          translationMarker = M.text {style: titleStyles} $ M.string "Translation"
          translationText = (M.text {} <$> M.string <$> props.translation)
+         sentenceMarker = M.text {style: titleStyles} $ M.string "Sentence"
+         sentenceText = (M.text {} <$> M.string <$> props.sentence)
+
 
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)

@@ -181,6 +181,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
+  sentence <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
@@ -201,6 +202,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     , epubcfi
     , morphology: morphology /\ setMorphology
     , language: language /\ setLanguage
+    , sentence
     , chapterTitle
     }
     where
@@ -334,7 +336,7 @@ buildJsx props = React.do
                 , height: props.height
                 , width: props.width
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
-                , bridge: bridgeFile
+                , customHtml: bridgeFile
                 , epubjs: epubjs
                 , src: src
                 , flow: flow
@@ -350,5 +352,5 @@ buildJsx props = React.do
                 , onError: error
                 }
           M.childElement BottomContent.reactComponent
-            {translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)}
+            {translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent), sentence: (fst stateChangeListeners.sentence)}
 
