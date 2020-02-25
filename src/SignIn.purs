@@ -25,7 +25,7 @@ import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
 
 type Props
-  = { navigation :: { navigate :: EffectFn1 String Unit } }
+  = {}
 
 mutation :: DocumentNode
 mutation =
@@ -59,22 +59,23 @@ buildJsx props = React.do
   password /\ setPassword <- useState ""
   pure
     $ M.getJsx do
-        surface {} do
-          textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
-          textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
-          button { onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
-  where
-  stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
+       M.safeAreaView {} do
+          surface {} do
+            textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
+            textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
+            button { onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
+    where
+    stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
-  press mutate email password client setError =
-    launchAff_ do
-      result <- try $ mutate $ { variables: { input: { email, password } } }
-      case result of
-        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-        Right resp -> do
-          let
-            session = "Bearer " <> resp.login.session.token
-          liftEffect $ traverse_ _.resetStore client
-          setItem "treader-session" session
-          liftEffect $ runEffectFn1 props.navigation.navigate "App"
-      liftEffect $ dismiss
+    press mutate email password client setError =
+      launchAff_ do
+        result <- try $ mutate $ { variables: { input: { email, password } } }
+        case result of
+          Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+          Right resp -> do
+            let
+              session = "Bearer " <> resp.login.session.token
+            liftEffect $ traverse_ _.resetStore client
+            setItem "treader-session" session
+        --    liftEffect $ runEffectFn1 props.navigation.navigate "App"
+        liftEffect $ dismiss

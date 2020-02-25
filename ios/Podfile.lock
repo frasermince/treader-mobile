@@ -191,6 +191,8 @@ PODS:
   - React-jsinspector (0.61.2)
   - react-native-orientation (3.2.6):
     - React
+  - react-native-safe-area-context (0.7.3):
+    - React
   - react-native-slider (2.0.2):
     - React
   - react-native-static-server (0.4.2):
@@ -236,9 +238,15 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.6.2):
     - React
+  - RNCMaskedView (0.1.6):
+    - React
   - RNFS (2.16.2):
     - React
-  - RNGestureHandler (1.5.0):
+  - RNGestureHandler (1.6.0):
+    - React
+  - RNReanimated (1.7.0):
+    - React
+  - RNScreens (2.0.0-beta.13):
     - React
   - RNVectorIcons (6.6.0):
     - React
@@ -271,6 +279,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - "react-native-orientation (from `../node_modules/@lightbase/react-native-orientation`)"
+  - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-static-server (from `../node_modules/react-native-static-server`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -287,8 +296,11 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
+  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
+  - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNZipArchive (from `../node_modules/react-native-zip-archive`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -331,6 +343,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-orientation:
     :path: "../node_modules/@lightbase/react-native-orientation"
+  react-native-safe-area-context:
+    :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-static-server:
@@ -361,10 +375,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rn-fetch-blob"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
+  RNCMaskedView:
+    :path: "../node_modules/@react-native-community/masked-view"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
+  RNScreens:
+    :path: "../node_modules/react-native-screens"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   RNZipArchive:
@@ -390,6 +410,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 8909917ff7d8f21a57e443a866fd8d4560e50c65
   React-jsinspector: 111d7d342b07a904c400592e02a2b958f1098b60
   react-native-orientation: 6ea9b5a795dd8a726bc0408ae653e6aa155fa09a
+  react-native-safe-area-context: e200d4433aba6b7e60b52da5f37af11f7a0b0392
   react-native-slider: 5d61590f26a51cf0a858bfd1543f6d6ec8b78a6e
   react-native-static-server: 4ddb9afa1cda0f65194df42b8debd81b6e314531
   react-native-webview: 52af6e38e861f449ce486db98ee54d39c682655e
@@ -405,8 +426,11 @@ SPEC CHECKSUMS:
   ReactCommon: 5848032ed2f274fcb40f6b9ec24067787c42d479
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNCAsyncStorage: 60a80e72d95bf02a01cace55d3697d9724f0d77f
+  RNCMaskedView: a88953beefbd347a29072d9eba90e42945fe291e
   RNFS: 0d4191b1052bef9ce70deff00a5b4169c62bbd9b
-  RNGestureHandler: a4ddde1ffc6e590c8127b8b7eabfdade45475c74
+  RNGestureHandler: dde546180bf24af0b5f737c8ad04b6f3fa51609a
+  RNReanimated: 031fe8d9ea93c2bd689a40f05320ef9d96f74d7f
+  RNScreens: ba539a5086136eb356e43699cb588a80369763ca
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   RNZipArchive: be636657a6630e9771d4a3223dc8fd0bd0137b55
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23

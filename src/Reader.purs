@@ -53,10 +53,7 @@ type Props
     , setShowBars :: (Boolean -> Boolean) -> Effect Unit
     , setHeight :: (Number -> Number) -> Effect Unit
     , setWidth :: (Number -> Number) -> Effect Unit
-    , navigation ::
-        { navigate :: String -> Effect Unit
-        , state :: { params :: { slug :: String } }
-        }
+    , route :: { params :: { slug :: String } }
     }
 
 styles =
@@ -343,7 +340,7 @@ buildJsx props = React.do
           liftEffect $ setHighlightNouns \_ -> noun
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
-  streamResult <- useStreamer props.toggleBars props.navigation.state.params.slug
+  streamResult <- useStreamer props.toggleBars props.route.params.slug
   stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do

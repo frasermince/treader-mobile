@@ -42,16 +42,14 @@ barStyles showBars =
   }
 
 type JSProps
-  = { navigation :: { navigate :: EffectFn1 String Unit, state :: { params :: { slug :: Nullable String } } } }
+  = { route :: { params :: { slug :: Nullable String } } }
 
 type Props
-  = { navigation :: { navigate :: String -> Effect Unit, state :: { params :: { slug :: String } } } }
+  = {  route :: { params :: { slug :: String } } }
 
 convertProps props =
-  { navigation:
-      { navigate: runEffectFn1 props.navigation.navigate
-      , state: { params: { slug: fromMaybe "" $ toMaybe props.navigation.state.params.slug } }
-      }
+  { route:
+      { params: { slug: fromMaybe "" $ toMaybe props.route.params.slug } }
   }
 
 reactComponent = navigationOptions c { headerShown: false }
@@ -70,7 +68,7 @@ buildJsx jsProps = React.do
   let
     props = convertProps jsProps
   let
-    navigation = props.navigation
+    route = props.route
   location /\ setLocation <- useState "6"
   toc /\ setToc <- useState []
   height /\ setHeight <- useState 0.0
@@ -102,7 +100,7 @@ buildJsx jsProps = React.do
           , location
           , toggleBars
           , setToc
-          , navigation
+          , route
           , setTitle
           , title
           , setSliderDisabled
@@ -126,7 +124,6 @@ buildJsx jsProps = React.do
                     $ launchAff_ do
                         clear
                         liftEffect $ traverse_ _.resetStore client
-                        liftEffect $ props.navigation.navigate "Auth"
             } --, onLeftButtonPressed: liftEffect}
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { bottom: 0 }

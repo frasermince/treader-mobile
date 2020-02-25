@@ -19,6 +19,7 @@ import FS (readDirectory, File, bookDir, exists)
 import React.Basic.Native.Events as RNE
 import Effect.Class (liftEffect)
 import Data.Foldable (find)
+import Navigation (useFocusEffect)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit } }
@@ -31,7 +32,7 @@ reactComponent =
 
 buildJsx props = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))
-  useEffect unit do
+  useFocusEffect unit do
     launchAff_
       $ do
           doesExist <- exists bookDir
