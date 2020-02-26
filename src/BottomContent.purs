@@ -18,7 +18,7 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Paper (surface, switch)
+import Paper (surface, switch, title, toggleButton)
 import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
@@ -33,7 +33,7 @@ import ApolloHooks (useMutation, gql)
 import React.Basic.Native.Events (capture_)
 import Foreign.Object (Object)
 import TranslatableOnPress as TranslatableOnPress
-import Data.String (length)
+import Data.String (length, stripSuffix, stripPrefix, Pattern(..))
 import Blur (blurView)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Navigation (useNavigation)
@@ -43,6 +43,11 @@ import ComponentTypes
 import TabView (sceneMap, tabView, tabBar)
 import Record.Unsafe.Union (unsafeUnion)
 import Debug.Trace (spy)
+import Wiktionary (getDefinition, WiktionaryResult)
+import Effect.Console (log)
+import HTMLView (htmlView)
+import Data.Foldable (foldl)
+import Data.Interpolate (i)
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -78,7 +83,33 @@ wordColors = unsafePerformEffect
     $ do
         (component "WordColors") colorToggles
 
-definitionJsx props = mempty
+definitionJsx props = React.do
+  term /\ setTerm <- useState (Nothing :: Maybe String)
+  wiktionaryEntry /\ setWiktionaryEntry <- useState $ (Nothing :: Maybe String)
+  useEffect props.word do
+     setTerm \_ -> Nothing
+     pure mempty
+  useEffect (term /\ props.language /\ props.word) do
+    launchAff_ do
+      result <- wiktionary (term <|> props.word) props.language $ Just "en"
+      liftEffect $ setWiktionaryEntry \_ -> Just $ dictHtml $ result
+    pure mempty
+  pure $ M.getJsx $ case wiktionaryEntry of
+       Just d ->
+         M.scrollView { style: M.css {marginLeft: 20, marginRight: 20, paddingTop: 20 } } do
+          title {style: M.css {textAlign: "center"}} $ M.string $ fromMaybe "" $ term <|> props.word
+          htmlView {value: d, onLinkPress: mkEffectFn1 \url -> (setTerm \_ -> wordFromUrl url), stylesheet: {h4: {textAlign: "center"}}}
+       Nothing -> pure mempty
+
+  where wiktionary (Just text) (Just language) (Just locale) = spy "HERE" getDefinition text locale language
+        wiktionary _ _ _ = pure []
+        wordFromUrl url = do
+           prefixless <- stripPrefix (Pattern "/wiki/") $ spy "URL" url
+           stripSuffix (Pattern "#French") prefixless
+        dictHtml :: WiktionaryResult -> String
+        dictHtml d = foldl foldDefinitions "" d
+        foldDefinitions accum d = i accum "<h4>" d.partOfSpeech "</h4>" "<ol>" (foldl foldDefinition "" d.definitions) "</ol>"
+        foldDefinition accum d = i accum "<li>" d.definition "</li>"
 
 definition :: ReactComponent Props
 definition = unsafePerformEffect
@@ -112,7 +143,7 @@ buildTabs props = React.do
             activeColor: "black",
             inactiveColor: "black"
           }
-  let routes = [{key: "wordInformation", title: "Main"}, {key: "definition", title: "Definition"}, {key: "wordColors", title: "Color Key"}]
+  let routes = [{key: "wordInformation", title: "Main"}, {key: "definition", title: "Wiktionary"}, {key: "wordColors", title: "Color Key"}]
   let renderScene = sceneMap {wordInformation: reactComponent}
   let renderScene = \{route} ->
                     case route.key of
@@ -148,7 +179,8 @@ type Props
     setHighlightAdjectives :: (Boolean -> Boolean) -> Effect Unit,
     highlightVerbs :: Boolean,
     highlightNouns :: Boolean,
-    highlightAdjectives :: Boolean
+    highlightAdjectives :: Boolean,
+    word :: Maybe String
     }
 
 blurTextStyle = {

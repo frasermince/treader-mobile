@@ -40,6 +40,7 @@ foreign import _dialogContent :: forall props. ReactComponent props
 foreign import _dialogActions :: forall props. ReactComponent props
 foreign import _searchbar :: forall props. ReactComponent props
 foreign import _switch :: forall props. ReactComponent props
+foreign import _toggleButton :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
@@ -84,6 +85,8 @@ badge = parentElement _badge
 fab = childElement _fab
 
 searchbar = childElement _searchbar
+
+toggleButton = childElement _toggleButton
 
 dialog = parentElement _dialog
 dialogContent = parentElement _dialogContent

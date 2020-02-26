@@ -502,4 +502,5 @@ buildJsx props = React.do
               , setHighlightVerbs
               , setHighlightNouns
               , setHighlightAdjectives
+              , word: _.text <$> (fst stateChangeListeners.highlightedContent)
               }
