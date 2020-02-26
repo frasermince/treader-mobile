@@ -2,6 +2,7 @@ module BookView where
 
 import Effect (Effect)
 import Prelude
+import Effect.Console (log)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
@@ -22,10 +23,11 @@ import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Nullable (Nullable, toMaybe)
 import AsyncStorage (clear, getItem)
-import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, EffectFn2, runEffectFn2)
 import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
 import Data.Either (either)
+import Navigation (useFocusEffect)
 import Reader as Reader
 
 containerStyles =
@@ -42,14 +44,42 @@ barStyles showBars =
   }
 
 type JSProps
-  = { route :: { params :: { slug :: Nullable String } } }
+  = { route ::
+        { params ::
+            { slug :: Nullable String
+            }
+        }
+    , navigation ::
+        { addListener ::
+            EffectFn2 String
+              ( EffectFn1
+                  { preventDefault :: Effect Unit
+                  }
+                  Unit
+              )
+              (Effect Unit)
+        }
+    }
 
 type Props
-  = {  route :: { params :: { slug :: String } } }
+  = { route ::
+        { params ::
+            { slug :: String }
+        }
+    , navigation ::
+        { addListener ::
+            String ->
+              ( { preventDefault :: Effect Unit } ->
+              Effect Unit
+            ) ->
+            Effect (Effect Unit)
+        }
+    }
 
 convertProps props =
   { route:
       { params: { slug: fromMaybe "" $ toMaybe props.route.params.slug } }
+  , navigation: { addListener: \s f -> runEffectFn2 props.navigation.addListener s (mkEffectFn1 f)}
   }
 
 reactComponent = navigationOptions c { headerShown: false }
@@ -67,6 +97,11 @@ callShow ref = do
 buildJsx jsProps = React.do
   let
     props = convertProps jsProps
+  useEffect unit do
+    unsubscribe <- props.navigation.addListener "tabPress" \e -> do
+       log "HI"
+       e.preventDefault
+    pure unsubscribe
   let
     route = props.route
   location /\ setLocation <- useState "6"
