@@ -5,7 +5,8 @@ import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks as React
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\))
-import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, EffectFn2, runEffectFn2)
+import Effect (Effect)
 import Effect.Aff (launchAff_)
 import QueryHooks (useUserBooks, Book, User, useData)
 import Paper (textInput, surface, button, listSection, listItem, listIcon)
@@ -20,19 +21,56 @@ import React.Basic.Native.Events as RNE
 import Effect.Class (liftEffect)
 import Data.Foldable (find)
 import Navigation (useFocusEffect)
+import Effect.Console (log)
+import Debug.Trace (spy)
+
+type JSProps
+  = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit, addListener ::
+            EffectFn2 String
+              ( EffectFn1
+                  { preventDefault :: Effect Unit
+                  }
+                  Unit
+              )
+              Unit
+}}
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit } }
+  = { navigation ::
+        { addListener ::
+            String ->
+              ( { preventDefault :: Effect Unit } ->
+              Effect Unit
+            ) ->
+            Effect Unit,
+            navigate :: String -> { slug :: String } -> Effect Unit
+        }
+    }
 
-reactComponent :: ReactComponent Props
+
+convertProps :: JSProps -> Props
+convertProps props =
+  {
+   navigation: {
+      addListener: \s f -> runEffectFn2 (spy "ADD LISTENER" props.navigation.addListener) s (mkEffectFn1 f),
+      navigate: runEffectFn2 props.navigation.navigate
+    }
+  }
+reactComponent :: ReactComponent JSProps
 reactComponent =
   unsafePerformEffect
     $ do
         (component "SignIn") buildJsx
 
-buildJsx props = React.do
+buildJsx jsProps = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))
+
   useFocusEffect unit do
+    log "FOCUS"
+    props.navigation.addListener "tabPress" \e -> do
+       log "HI"
+       e.preventDefault
+
     launchAff_
       $ do
           doesExist <- exists bookDir
@@ -44,7 +82,9 @@ buildJsx props = React.do
     Nothing -> pure mempty
     Just d -> dom d files
   where
-  redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
+
+  props = convertProps jsProps
+  redirect slug = props.navigation.navigate "Read" { slug: slug }
 
   bookIcon :: forall p. Record p -> JSX
   bookIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "book" }
