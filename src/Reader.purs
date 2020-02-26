@@ -32,6 +32,7 @@ import Data.Tuple (fst)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
 import Debug.Trace (spy)
+import Wiktionary (getDefinition)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -198,6 +199,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
+  wiktionaryEntry /\ setWiktionaryEntry <- useState $ (Nothing :: Maybe String)
   sentence <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
@@ -211,6 +213,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     $ { translation: translation /\ setTranslation
       , highlightedContent: highlightedContent /\ setHighlightedContent
       , epubcfi
+      , wiktionaryEntry: wiktionaryEntry /\ setWiktionaryEntry
       , morphology: morphology /\ setMorphology
       , language: language /\ setLanguage
       , sentence
@@ -220,6 +223,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
     let
       payload = { variables: { input: { snippet: highlightedContent.text, language: language } } }
+    _ <- spy "WIKTIONARY" $ getDefinition highlightedContent.text language
     result <- try $ mutationFn payload
     case result of
       Left err -> pure unit
