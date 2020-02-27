@@ -42,15 +42,19 @@ barStyles showBars =
   }
 
 type JSProps
-  = { route :: { params :: { slug :: Nullable String } } }
+  = { route :: Nullable { params :: Nullable { slug :: Nullable String } } }
 
 type Props
-  = {  route :: { params :: { slug :: String } } }
+  = {  route :: { params :: { slug :: Maybe String } } }
 
 convertProps props =
   { route:
-      { params: { slug: fromMaybe "" $ toMaybe props.route.params.slug } }
+      { params: { slug: slug} }
   }
+  where slug = do
+          r <- toMaybe props.route
+          p <- toMaybe r.params
+          toMaybe p.slug
 
 reactComponent = navigationOptions c { headerShown: false }
   where
@@ -85,8 +89,8 @@ buildJsx jsProps = React.do
     pure mempty
   let
     toggleBars = setShowBars $ \_ -> not $ showBars
-  pure $ M.getJsx
-    $ M.view
+  pure $ M.getJsx $ fromMaybe mempty $ route.params.slug <#> \slug ->
+    M.view
         { style: M.css containerStyles
         } do
         M.statusBar
@@ -100,7 +104,7 @@ buildJsx jsProps = React.do
           , location
           , toggleBars
           , setToc
-          , route
+          , slug
           , setTitle
           , title
           , setSliderDisabled

@@ -31,7 +31,6 @@ import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
-import Debug.Trace (spy)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -53,7 +52,7 @@ type Props
     , setShowBars :: (Boolean -> Boolean) -> Effect Unit
     , setHeight :: (Number -> Number) -> Effect Unit
     , setWidth :: (Number -> Number) -> Effect Unit
-    , route :: { params :: { slug :: String } }
+    , slug :: String
     }
 
 styles =
@@ -235,7 +234,7 @@ layoutEvent setHeight setWidth = mkEffectFn1 e
   e :: RN.LayoutChangeEvent -> Effect Unit
   e event = do
     let
-      { x, y, width, height } = (spy "event" event).nativeEvent.layout
+      { x, y, width, height } = event.nativeEvent.layout
     _ <- setHeight \_ -> height
     _ <- setWidth \_ -> width
     pure unit
@@ -340,7 +339,7 @@ buildJsx props = React.do
           liftEffect $ setHighlightNouns \_ -> noun
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
-  streamResult <- useStreamer props.toggleBars props.route.params.slug
+  streamResult <- useStreamer props.toggleBars $ spy "READER SLUG" props.slug
   stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do
