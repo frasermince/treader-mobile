@@ -31,6 +31,8 @@ import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
+import Debug.Trace (spy)
+import AppState (useAppState)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -197,22 +199,34 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
-  sentence <- useState $ (Nothing :: Maybe String)
+  sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
+  ref <- useRef null
+
+  useAppState $
+     { onForeground: do
+        result <- readRefMaybe ref
+        traverse_ (\s -> (spy "REF" s).clearSelected) result
+        setTranslation \_ -> Nothing
+        setHighlightedContent \_ -> Nothing
+        setShowBars \_ -> false
+        setSentence \_ -> Nothing
+        setMorphology \_ -> Nothing
+      }
   useEffect highlightedContent
     $ do
         launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation
         pure mempty
   pure
-    $ { translation: translation /\ setTranslation
+    $ ref /\ { translation: translation /\ setTranslation
       , highlightedContent: highlightedContent /\ setHighlightedContent
       , epubcfi
       , morphology: morphology /\ setMorphology
       , language: language /\ setLanguage
-      , sentence
+      , sentence: sentence /\ setSentence
       , chapterTitle
       }
   where
@@ -234,7 +248,7 @@ layoutEvent setHeight setWidth = mkEffectFn1 e
   e :: RN.LayoutChangeEvent -> Effect Unit
   e event = do
     let
-      { x, y, width, height } = event.nativeEvent.layout
+      { x, y, width, height } = (spy "event" event).nativeEvent.layout
     _ <- setHeight \_ -> height
     _ <- setWidth \_ -> width
     pure unit
@@ -331,6 +345,7 @@ buildJsx props = React.do
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
   highlightAdjectives /\ setHighlightAdjectives <- useState $ true
+
   useEffect unit
     $ do
         launchAff_ do
@@ -339,8 +354,8 @@ buildJsx props = React.do
           liftEffect $ setHighlightNouns \_ -> noun
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
-  streamResult <- useStreamer props.toggleBars $ spy "READER SLUG" props.slug
-  stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
+  streamResult <- useStreamer props.toggleBars $ props.slug
+  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do
         log $ "listeners: " <> (fromMaybe "Nothing" ((_.text) <$> fst stateChangeListeners.highlightedContent))
@@ -355,7 +370,8 @@ buildJsx props = React.do
               , onLayout: layoutEvent props.setHeight props.setWidth
               } do
               M.childElement epub
-                { style: M.css styles.reader
+                { ref: ref
+                , style: M.css styles.reader
                 , height: props.height
                 , width: props.width
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
@@ -370,7 +386,7 @@ buildJsx props = React.do
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
-                , fontSize: "18px"
+                , fontSize: "20px"
                 , origin: origin
                 , onError: error
                 }

@@ -384,6 +384,11 @@ import tokenizer from 'sbd';
           }
           break;
         }
+       case "deselect": {
+         if (window.contents) {
+           window.contents.emit("deselected");
+         }
+       }
       }
     }
 
@@ -401,6 +406,7 @@ import tokenizer from 'sbd';
       window.rendition = rendition = book.renderTo(document.body, settings);
       
       rendition.hooks.content.register(function(contents, rendition) {
+        window.contents = contents;
         contents.triggerSelectedEvent = function(cfi, range, sentence){
           if(cfi) {
             this.previouslySelected = true;
