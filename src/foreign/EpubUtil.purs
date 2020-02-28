@@ -71,4 +71,5 @@ mkStateChangeListeners rd =
     , language = mkMaybeStateChangeTuple rd.language
     , chapterTitle = mkMaybeStateChangeTuple rd.chapterTitle
     , sentence = mkMaybeStateChangeTuple rd.sentence
+    , phrase = mkMaybeStateChangeTuple rd.phrase
     }

@@ -40,10 +40,16 @@ import tokenizer from 'sbd';
     let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent, {"sanitize": true})
     let sentenceCharacters = paragraphRange.toString().length
     let characterIteration = 0;
-    return sentences.find((sentence) => {
+    let sentence = sentences.find((sentence) => {
       characterIteration += sentence.length;
       return characterIteration > sentenceCharacters;
     });
+    let phrases = sentence.split(",");
+    let phrase = phrases.find((phrase) => {
+      characterIteration += phrase.length;
+      return characterIteration > sentenceCharacters;
+    });
+    return {sentence, phrase};
   }
 
   function getWordRange(e) {
@@ -145,7 +151,7 @@ import tokenizer from 'sbd';
     return language;
   }
 
-  function setWordInformation(highlightedContent, sentence, epubcfi, morphology, fromTop) {
+  function setWordInformation(highlightedContent, sentence, phrase, epubcfi, morphology, fromTop) {
     if (highlightedContent && fromTop) {
       sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
     } else {
@@ -153,6 +159,9 @@ import tokenizer from 'sbd';
     }
     if (sentence) {
       sendMessage({method:"set", key: "sentence", value: sentence});
+    }
+    if (phrase) {
+      sendMessage({method:"set", key: "phrase", value: phrase});
     }
     sendMessage({method:"set", key: "epubcfi", value: epubcfi});
     sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
@@ -407,11 +416,11 @@ import tokenizer from 'sbd';
       
       rendition.hooks.content.register(function(contents, rendition) {
         window.contents = contents;
-        contents.triggerSelectedEvent = function(cfi, range, sentence){
+        contents.triggerSelectedEvent = function(cfi, range, sentence, phrase){
           if(cfi) {
             this.previouslySelected = true;
             // cfirange = this.section.cfiFromRange(range);
-            this.emit("selected", {cfi: cfi, range: range, sentence: sentence});
+            this.emit("selected", {cfi, range, sentence, phrase});
             //this.emit("selectedRange", range);
           } else if (this.previouslySelected) {
             this.previouslySelected = false;
@@ -420,7 +429,7 @@ import tokenizer from 'sbd';
         }
 
         contents.on("deselected", function() {
-          setWordInformation(null, null, null, null, null);
+          setWordInformation(null, null, null, null, null, null);
           sendMessage({method:"set", key: "translation", value: null});
           let svg = document.getElementById("select-box");
           svg.style.visibility = "hidden";
@@ -484,7 +493,7 @@ import tokenizer from 'sbd';
 
         function touchMoveHandler(e) {
           let svg = document.getElementById("select-box");
-          setWordInformation(null, null, null, null, null);
+          setWordInformation(null, null, null, null, null, null);
           range = document.createRange();
           svg.style.visibility = "hidden";
           currentPosition.x = e.targetTouches[0].pageX;
@@ -547,12 +556,12 @@ import tokenizer from 'sbd';
             }
             */
             if (range) {
-              sentence = getSentence(range);
+              let {sentence, phrase} = getSentence(range);
               cfi = contents.cfiFromRange(range);
-              contents.triggerSelectedEvent(cfi, range, sentence);
+              contents.triggerSelectedEvent(cfi, range, sentence, phrase);
             } else {
               range = document.createRange();
-              contents.triggerSelectedEvent(null, null, null);
+              contents.triggerSelectedEvent(null, null, null, null);
               cfi = contents.cfiFromNode(target).toString();
 
               if(isLongPress) {
@@ -611,7 +620,7 @@ import tokenizer from 'sbd';
         sendMessage({method:"relocated", location: location});
       });
 
-      rendition.on("selected", function({cfi: cfiRange, range: range, sentence: sentence}, contents, t) {
+      rendition.on("selected", function({cfi, range, sentence, phrase}, contents, t) {
         let span = range.startContainer;
         let text = range.toString();
         let svg = document.getElementById("select-box");
@@ -622,9 +631,9 @@ import tokenizer from 'sbd';
         svg.style.top = range.getBoundingClientRect().y;
         svg.style.visibility = "visible";
         if (span && span.tagName.toLowerCase() == 'span' ) {
-          setWordInformation(text, sentence, cfiRange, span.dataset, range.getBoundingClientRect().top);
+          setWordInformation(text, sentence, phrase, range, span.dataset, range.getBoundingClientRect().top);
         } else {
-          setWordInformation(text, sentence, cfiRange, null, range.getBoundingClientRect().top);
+          setWordInformation(text, sentence, phrase, range, null, range.getBoundingClientRect().top);
         }
       });
 

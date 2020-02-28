@@ -59,16 +59,16 @@ type Props
 
 styles =
   { reader:
-      { flex: 1
-      , alignSelf: "stretch"
-      , backgroundColor: "#3F3F3C"
-      }
+    { flex: 1
+    , alignSelf: "stretch"
+    , backgroundColor: "#3F3F3C"
+    }
   , wrapper:
-      { flex: 1
-      , marginTop: 40
-      , marginBottom: 40
-      , zIndex: 1
-      }
+    { flex: 1
+    , marginTop: 40
+    , marginBottom: 40
+    , zIndex: 1
+    }
   }
 
 type Query
@@ -125,7 +125,7 @@ ready setTitle setToc = mkEffectFn1 e
   where
   e ::
     { package ::
-        { metadata :: { title :: String } }
+      { metadata :: { title :: String } }
     , navigation :: { toc :: Array String }
     } ->
     Effect Unit
@@ -200,33 +200,37 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
+  phrase /\ setPhrase <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
   ref <- useRef null
-
-  useAppState $
-     { onForeground: do
-        result <- readRefMaybe ref
-        traverse_ (\s -> (spy "REF" s).clearSelected) result
-        setTranslation \_ -> Nothing
-        setHighlightedContent \_ -> Nothing
-        setShowBars \_ -> false
-        setSentence \_ -> Nothing
-        setMorphology \_ -> Nothing
+  useAppState
+    $ { onForeground:
+        do
+          result <- readRefMaybe ref
+          traverse_ (\s -> (spy "REF" s).clearSelected) result
+          setTranslation \_ -> Nothing
+          setHighlightedContent \_ -> Nothing
+          setShowBars \_ -> false
+          setSentence \_ -> Nothing
+          setPhrase \_ -> Nothing
+          setMorphology \_ -> Nothing
       }
   useEffect highlightedContent
     $ do
         launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation
         pure mempty
   pure
-    $ ref /\ { translation: translation /\ setTranslation
+    $ ref
+    /\ { translation: translation /\ setTranslation
       , highlightedContent: highlightedContent /\ setHighlightedContent
       , epubcfi
       , morphology: morphology /\ setMorphology
       , language: language /\ setLanguage
       , sentence: sentence /\ setSentence
+      , phrase: phrase /\ setPhrase
       , chapterTitle
       }
   where
@@ -284,17 +288,17 @@ type Theme
 
 defaultTheme =
   { p:
-      { "line-height": 1.5
-      }
+    { "line-height": 1.5
+    }
   , body:
-      { "font-family": "'Libre Baskerville', serif"
-      , "-webkit-touch-callout": "none"
-      , "-webkit-user-select": "none"
-      , "-khtml-user-select": "none"
-      , "-moz-user-select": "none"
-      , "-ms-user-select": "none"
-      , "user-select": "none"
-      }
+    { "font-family": "'Libre Baskerville', serif"
+    , "-webkit-touch-callout": "none"
+    , "-webkit-user-select": "none"
+    , "-khtml-user-select": "none"
+    , "-moz-user-select": "none"
+    , "-ms-user-select": "none"
+    , "user-select": "none"
+    }
   }
 
 setTheme :: Boolean -> Boolean -> Boolean -> Theme
@@ -345,7 +349,6 @@ buildJsx props = React.do
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
   highlightAdjectives /\ setHighlightAdjectives <- useState $ true
-
   useEffect unit
     $ do
         launchAff_ do
@@ -391,4 +394,10 @@ buildJsx props = React.do
                 , onError: error
                 }
             M.childElement BottomContent.reactComponent
-              { translation: (fst stateChangeListeners.translation), morphology: (fst stateChangeListeners.morphology), wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent), sentence: (fst stateChangeListeners.sentence), language: (fst stateChangeListeners.language) }
+              { translation: (fst stateChangeListeners.translation)
+              , morphology: (fst stateChangeListeners.morphology)
+              , wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)
+              , sentence: (fst stateChangeListeners.sentence)
+              , phrase: (fst stateChangeListeners.phrase)
+              , language: (fst stateChangeListeners.language)
+              }
