@@ -41,13 +41,19 @@ import tokenizer from 'sbd';
     let sentenceCharacters = paragraphRange.toString().length
     let characterIteration = 0;
     let sentence = sentences.find((sentence) => {
-      characterIteration += sentence.length;
-      return characterIteration > sentenceCharacters;
+      if (characterIteration + sentence.length > sentenceCharacters) {
+        return true;
+      } else {
+        characterIteration += sentence.length;
+      }
     });
     let phrases = sentence.split(",");
     let phrase = phrases.find((phrase) => {
-      characterIteration += phrase.length;
-      return characterIteration > sentenceCharacters;
+      if (characterIteration + phrase.length > sentenceCharacters) {
+        return true;
+      } else {
+        characterIteration += phrase.length;
+      }
     });
     return {sentence, phrase};
   }
