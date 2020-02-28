@@ -59,7 +59,7 @@ type Props
 placement height Nothing = { top: height - 200 }
 
 placement height (Just wordPlacement)
-  | height - (floor wordPlacement) < 350 = { top: 25 }
+  | height - (floor wordPlacement) < 400 = { top: 25 }
   | otherwise = { top: height - 290 }
 
 styles fade =
