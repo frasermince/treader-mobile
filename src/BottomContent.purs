@@ -55,13 +55,6 @@ reactComponent =
 type Props
   = { translation :: Maybe String, morphology :: Maybe (Object String), wordPlacement :: Maybe Number, sentence :: Maybe String, language :: Maybe String }
 
---styles :: CSS -> Number -> Maybe Number -> CSS
-placement height Nothing = { top: height - 200 }
-
-placement height (Just wordPlacement)
-  | height - (floor wordPlacement) < 400 = { top: 25 }
-  | otherwise = { top: height - 290 }
-
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
@@ -73,6 +66,7 @@ styles fade =
   , justifyContent: "center"
   , flexDirection: "row"
   , opacity: fade
+  , marginTop: 0
   , zIndex: zIndex
   , shadowOpacity: 0.75
   , shadowRadius: 3
@@ -131,6 +125,12 @@ sentenceSection sentenceTranslation setSentenceTranslation sentence mutationFn l
   press _ _ _ = do
     pure unit
 
+container fade height (Just wordPlacement) children
+  | height - (floor wordPlacement) < 400 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
+  | otherwise = surface {style: M.css $ merge (styles fade) { top: height - 290 }} children
+
+container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
+
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
@@ -144,7 +144,7 @@ buildJsx props = React.do
     launchAff_ $ runAnimation visible fade
     pure mempty
   pure $ M.getJsx
-    $ surface { style: M.css $ merge (styles fade) (placement window.height props.wordPlacement) } do
+    $ container fade window.height props.wordPlacement do
         scrollView { style: M.css { height: 200, padding: 20 } } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
           sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation
