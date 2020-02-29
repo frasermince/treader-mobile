@@ -65,7 +65,7 @@ type Props
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
-  height: 200
+  height: 250
   , right: 0
   , left: 0
   , position: "absolute"
@@ -156,7 +156,7 @@ buildJsx props = React.do
     pure mempty
   pure $ M.getJsx
     $ container fade window.height props.wordPlacement do
-        scrollView { style: M.css { height: 200, padding: 20 } } do
+        scrollView { style: M.css { height: 250, padding: 20 } } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
           if props.sentence == props.phrase then mempty else sentenceSection phraseTranslation setPhraseTranslation props.phrase mutationFn props.language showPhraseTranslation setShowPhraseTranslation "Phrase"
           sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation "Sentence"
