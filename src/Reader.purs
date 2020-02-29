@@ -214,8 +214,6 @@ useRenditionData showBars setShowBars visibleLocation = React.do
           setTranslation \_ -> Nothing
           setHighlightedContent \_ -> Nothing
           setShowBars \_ -> false
-          setSentence \_ -> Nothing
-          setPhrase \_ -> Nothing
           setMorphology \_ -> Nothing
       }
   useEffect highlightedContent

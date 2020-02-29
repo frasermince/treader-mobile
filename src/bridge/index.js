@@ -160,8 +160,6 @@ import tokenizer from 'sbd';
   function setWordInformation(highlightedContent, sentence, phrase, epubcfi, morphology, fromTop) {
     if (highlightedContent && fromTop) {
       sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
-    } else {
-      sendMessage({method:"set", key: "highlightedContent", value: null});
     }
     if (sentence) {
       sendMessage({method:"set", key: "sentence", value: sentence});
