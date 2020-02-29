@@ -28,7 +28,7 @@ import Data.Symbol (SProxy(..))
 import Record (merge)
 import Record.Builder (build, insert, modify, Builder)
 import AsyncStorage (getItem, setItem)
-import Data.Tuple (fst)
+import Data.Tuple (fst, snd)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
 import Debug.Trace (spy)
@@ -116,9 +116,6 @@ press toggleBars { highlightedContent: _ /\ setHighlightedContent, morphology: _
   where
   e :: {} -> Effect Unit
   e book = do
-    setHighlightedContent \_ -> Nothing
-    setMorphology \_ -> Nothing
-    setTranslation \_ -> Nothing
     toggleBars
 
 ready setTitle setToc = mkEffectFn1 e
@@ -211,10 +208,8 @@ useRenditionData showBars setShowBars visibleLocation = React.do
         do
           result <- readRefMaybe ref
           traverse_ (\s -> (spy "REF" s).clearSelected) result
-          setTranslation \_ -> Nothing
           setHighlightedContent \_ -> Nothing
           setShowBars \_ -> false
-          setMorphology \_ -> Nothing
       }
   useEffect highlightedContent
     $ do
@@ -398,4 +393,6 @@ buildJsx props = React.do
               , sentence: (fst stateChangeListeners.sentence)
               , phrase: (fst stateChangeListeners.phrase)
               , language: (fst stateChangeListeners.language)
+              , setMorphology: (snd stateChangeListeners.morphology)
+              , setTranslation: (snd stateChangeListeners.translation)
               }

@@ -30,6 +30,7 @@ import Control.Alt ((<|>))
 import Data.Either (Either(..))
 import ApolloHooks (useMutation, gql)
 import React.Basic.Native.Events (capture_)
+import Foreign.Object (Object)
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -59,7 +60,9 @@ type Props
     wordPlacement :: Maybe Number,
     sentence :: Maybe String,
     phrase :: Maybe String,
-    language :: Maybe String
+    language :: Maybe String,
+    setMorphology :: (Maybe (Object String) -> Maybe (Object String)) -> Effect Unit,
+    setTranslation :: (Maybe String -> Maybe String) -> Effect Unit
     }
 
 styles fade =
@@ -141,6 +144,7 @@ container fade height wordPlacement children = surface {style: M.css $ merge (st
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
+  placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
   sentenceTranslation /\ setSentenceTranslation <- useState $ (Nothing :: Maybe String)
   showSentenceTranslation /\ setShowSentenceTranslation <- useState true
   phraseTranslation /\ setPhraseTranslation <- useState $ (Nothing :: Maybe String)
@@ -148,21 +152,28 @@ buildJsx props = React.do
   useEffect props.sentence do
     setSentenceTranslation \_ -> Nothing
     setShowSentenceTranslation \_ -> true
+    pure mempty
+  useEffect props.phrase do
     setPhraseTranslation \_ -> Nothing
     setShowPhraseTranslation \_ -> true
     pure mempty
-  useEffect visible do
-    launchAff_ $ runAnimation visible fade
-    pure mempty
+  useEffect props.wordPlacement do
+     launchAff_ $ do
+        runAnimation visible fade
+        liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
+        if visible then pure unit else do
+          liftEffect $ props.setTranslation \_ -> Nothing
+          liftEffect $ props.setMorphology \_ -> Nothing
+     pure mempty
   pure $ M.getJsx
-    $ container fade window.height props.wordPlacement do
+    $ container fade window.height placementForAnimation do
         scrollView { style: M.css { height: 250, padding: 20 } } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
           if props.sentence == props.phrase then mempty else sentenceSection phraseTranslation setPhraseTranslation props.phrase mutationFn props.language showPhraseTranslation setShowPhraseTranslation "Phrase"
           sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation "Sentence"
           maybeDataMap props.morphology
   where
-  visible = isJust props.translation || isJust props.morphology
+  visible = isJust props.wordPlacement
 
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
 
