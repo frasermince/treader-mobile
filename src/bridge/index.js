@@ -41,13 +41,15 @@ import tokenizer from 'sbd';
     let sentenceCharacters = paragraphRange.toString().length
     let characterIteration = 0;
     let sentence = sentences.find((sentence) => {
-      if (characterIteration + sentence.length > sentenceCharacters) {
+      // + 1 for the space that has been removed
+      let total = characterIteration + sentence.length + 1
+      if (total > sentenceCharacters) {
         return true;
       } else {
-        characterIteration += sentence.length;
+        characterIteration = total;
       }
     });
-    let phrases = sentence.split(",");
+    let phrases = sentence.split(/(,|;)/g);
     let phrase = phrases.find((phrase) => {
       if (characterIteration + phrase.length > sentenceCharacters) {
         return true;
