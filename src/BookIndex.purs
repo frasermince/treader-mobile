@@ -39,7 +39,7 @@ buildJsx props = React.do
           files <- if doesExist then readDirectory bookDir else pure []
           liftEffect $ setFiles \_ -> Just files
     pure mempty
-  queryResult <- useUserBooks {}
+  queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
   case queryResult of
     Nothing -> pure mempty
     Just d -> dom d files
