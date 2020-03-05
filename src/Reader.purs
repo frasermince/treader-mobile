@@ -33,6 +33,7 @@ import BottomContent as BottomContent
 import Foreign.Object (Object)
 import Debug.Trace (spy)
 import AppState (useAppState)
+import Navigation (useFocusEffect)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -141,8 +142,8 @@ newtype UseStreamer h
 
 derive instance ntUseStreamer :: Newtype (UseStreamer h) _
 
-useStreamer :: (Effect Unit) -> String -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String })
-useStreamer toggleBars book =
+useStreamer :: ((Boolean -> Boolean) -> Effect Unit) -> (Effect Unit) -> String -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String })
+useStreamer setLoaded toggleBars book =
   coerceHook
     $ React.do
         result <- useData (Proxy :: Proxy Query) query { variables: { book: book }, errorPolicy: "all" }
@@ -176,6 +177,8 @@ useStreamer toggleBars book =
       delayAndToggle = do
         delay $ Milliseconds 1000.0
         liftEffect $ toggleBars
+
+    liftEffect $ setLoaded \_ -> false
     origin <- (startStream streamer)
     fiber <- forkAff $ delayAndToggle
     liftEffect $ setOrigin $ \_ -> origin
@@ -338,6 +341,7 @@ setTheme highlightVerbs highlightNouns highlightAdjectives = build (adjectives $
       >>> modify adjKey (\_ -> colors.none)
 
 buildJsx props = React.do
+  loaded /\ setLoaded <- useState false
   flow /\ setFlow <- useState "paginated"
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
@@ -350,7 +354,7 @@ buildJsx props = React.do
           liftEffect $ setHighlightNouns \_ -> noun
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
-  streamResult <- useStreamer props.toggleBars $ props.slug
+  streamResult <- useStreamer setLoaded props.toggleBars $ props.slug
   ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do
@@ -373,7 +377,7 @@ buildJsx props = React.do
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
                 , customHtml: bridgeFile
                 , epubjs: epubjs
-                , src: src
+                , src: spy "***SRC" src
                 , flow: flow
                 , location: props.location
                 , onLocationChange: locationChange props.title props.setVisibleLocation
@@ -382,6 +386,8 @@ buildJsx props = React.do
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
+                , loaded: loaded
+                , setLoaded: mkEffectFn1 $ \x -> setLoaded \_ -> spy "LOADED" x
                 , fontSize: "20px"
                 , origin: origin
                 , onError: error
