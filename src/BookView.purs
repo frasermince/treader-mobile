@@ -73,20 +73,15 @@ buildJsx jsProps = React.do
     props = convertProps jsProps
   let
     route = props.route
-  location /\ setLocation <- useState "6"
+  location /\ setLocation <- useState "0"
   toc /\ setToc <- useState []
   height /\ setHeight <- useState 0.0
   width /\ setWidth <- useState 0.0
-  title /\ setTitle <- useState ""
+  title /\ setTitle <- useState Nothing
   sliderDisabled /\ setSliderDisabled <- useState true
   showBars /\ setShowBars <- useState true
   visibleLocation /\ setVisibleLocation <- useState { start: { percentage: 0, cfi: "0" } }
   showNav /\ setShowNav <- useState false
-  useEffect title do
-    launchAff_ do
-      l <- getItem title
-      liftEffect $ traverse_ (\l -> setLocation \_ -> l) l
-    pure mempty
   let
     toggleBars = setShowBars $ \_ -> not $ showBars
   pure $ M.getJsx $ fromMaybe mempty $ route.params.slug <#> \slug ->
@@ -114,6 +109,7 @@ buildJsx jsProps = React.do
           , setWidth
           , showBars
           , setShowBars
+          , setLocation
           }
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { top: 0 }

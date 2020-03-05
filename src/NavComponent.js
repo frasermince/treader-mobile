@@ -56,7 +56,7 @@ const Nav = (props) => {
 
   useEffect(function() {
     setDataSource(props.toc);
-  }, [props.toc.length]);
+  }, [props.toc[0]]);
 
   return (
     <View style={styles.container}>

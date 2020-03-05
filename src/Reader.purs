@@ -46,9 +46,10 @@ type Props
     , width :: Number
     , toggleBars :: Effect Unit
     , setToc :: (Array String -> Array String) -> Effect Unit
-    , setTitle :: (String -> String) -> Effect Unit
-    , title :: String
+    , setTitle :: (Maybe String -> Maybe String) -> Effect Unit
+    , title :: Maybe String
     , setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit
+    , setLocation :: (String -> String) -> Effect Unit
     , setVisibleLocation :: (VisibleLocation -> VisibleLocation) -> Effect Unit
     , visibleLocation :: VisibleLocation
     , showBars :: Boolean
@@ -100,7 +101,7 @@ locationChange title setVisibleLocation = mkEffectFn1 e
   e :: VisibleLocation -> Effect Unit
   e event =
     launchAff_ do
-      setItem title event.start.cfi
+      traverse_ (\t -> setItem t event.start.cfi) title
       liftEffect $ setVisibleLocation \_ -> event
 
 locationsReady setSliderDisabled = mkEffectFn1 e
@@ -119,7 +120,7 @@ press toggleBars { highlightedContent: _ /\ setHighlightedContent, morphology: _
   e book = do
     toggleBars
 
-ready setTitle setToc = mkEffectFn1 e
+ready setTitle setToc setLocation = mkEffectFn1 e
   where
   e ::
     { package ::
@@ -128,8 +129,12 @@ ready setTitle setToc = mkEffectFn1 e
     } ->
     Effect Unit
   e book = do
-    setTitle \_ -> book.package.metadata.title
+    setTitle \_ -> Just book.package.metadata.title
     setToc \_ -> book.navigation.toc
+    launchAff_ do
+      l <- getItem book.package.metadata.title
+      liftEffect $ setLocation \_ -> fromMaybe "0" l
+
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -178,7 +183,6 @@ useStreamer setLoaded toggleBars book =
         delay $ Milliseconds 1000.0
         liftEffect $ toggleBars
 
-    liftEffect $ setLoaded \_ -> false
     origin <- (startStream streamer)
     fiber <- forkAff $ delayAndToggle
     liftEffect $ setOrigin $ \_ -> origin
@@ -210,7 +214,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
     $ { onForeground:
         do
           result <- readRefMaybe ref
-          traverse_ (\s -> (spy "REF" s).clearSelected) result
+          traverse_ (\s -> s.clearSelected) result
           setHighlightedContent \_ -> Nothing
           setShowBars \_ -> false
       }
@@ -342,6 +346,11 @@ setTheme highlightVerbs highlightNouns highlightAdjectives = build (adjectives $
 
 buildJsx props = React.do
   loaded /\ setLoaded <- useState false
+  useEffect props.slug do
+     setLoaded \_ -> false
+     props.setVisibleLocation \_ -> { start: { percentage: 0, cfi: "0" } }
+     props.setTitle \_ -> Nothing
+     pure mempty
   flow /\ setFlow <- useState "paginated"
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
@@ -377,17 +386,17 @@ buildJsx props = React.do
                 , stateChangeListeners: mkStateChangeListeners stateChangeListeners
                 , customHtml: bridgeFile
                 , epubjs: epubjs
-                , src: spy "***SRC" src
+                , src: src
                 , flow: flow
                 , location: props.location
                 , onLocationChange: locationChange props.title props.setVisibleLocation
                 , onLocationsReady: locationsReady props.setSliderDisabled
-                , onReady: ready props.setTitle props.setToc
+                , onReady: ready props.setTitle props.setToc props.setLocation
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
                 , loaded: loaded
-                , setLoaded: mkEffectFn1 $ \x -> setLoaded \_ -> spy "LOADED" x
+                , setLoaded: mkEffectFn1 $ \x -> setLoaded \_ -> x
                 , fontSize: "20px"
                 , origin: origin
                 , onError: error

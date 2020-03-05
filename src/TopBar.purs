@@ -21,14 +21,14 @@ import Effect.Uncurried (EffectFn1)
 import React.Basic.Native.Events (NativeSyntheticEvent)
 import Paper (menu, menuItem, iconButton)
 import ApolloHooks (useApolloClient, Client)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Uncurried (runEffectFn1)
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce
 
 type Props
-  = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: String }
+  = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: Maybe String }
 
 headerStyles fade =
   { backgroundColor: "white"
@@ -114,6 +114,6 @@ buildJsx props = React.do
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
           M.childElement icon { name: "navicon", size: 34 }
         M.text { style: M.css styles.title } do
-          M.string props.title
+          M.string $ fromMaybe "Loading" props.title
         menu { visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton } do
           menuItem { onPress: props.onRightButtonPressed client, title: "Sign out" }
