@@ -33,6 +33,7 @@ import BottomContent as BottomContent
 import Foreign.Object (Object)
 import Debug.Trace (spy)
 import AppState (useAppState)
+import Navigation (useFocusEffect)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -176,6 +177,8 @@ useStreamer toggleBars book =
       delayAndToggle = do
         delay $ Milliseconds 1000.0
         liftEffect $ toggleBars
+
+    liftEffect $ setSrc \_ -> ""
     origin <- (startStream streamer)
     fiber <- forkAff $ delayAndToggle
     liftEffect $ setOrigin $ \_ -> origin

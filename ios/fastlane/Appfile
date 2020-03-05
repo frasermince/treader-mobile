@@ -1,0 +1,8 @@
+app_identifier("com.fluentgenius.app") # The bundle identifier of your app
+apple_id("frasermince@gmail.com") # Your Apple email address
+
+itc_team_id("120814703") # App Store Connect Team ID
+team_id("G95K8LU6GG") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile
