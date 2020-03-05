@@ -68,7 +68,7 @@ type Props
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
-  height: 250
+    height: 250
   , right: 0
   , left: 0
   , position: "absolute"
@@ -136,8 +136,8 @@ sentenceSection translation setTranslation sentence mutationFn language showTran
     pure unit
 
 container fade height (Just wordPlacement) children
-  | height - (floor wordPlacement) < 400 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
-  | otherwise = surface {style: M.css $ merge (styles fade) { top: height - 290 }} children
+  | height - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
+  | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
 container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
@@ -167,7 +167,7 @@ buildJsx props = React.do
      pure mempty
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
-        scrollView { style: M.css { height: 250, padding: 20 } } do
+       scrollView { style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
           if props.sentence == props.phrase then mempty else sentenceSection phraseTranslation setPhraseTranslation props.phrase mutationFn props.language showPhraseTranslation setShowPhraseTranslation "Phrase"
           sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation "Sentence"
