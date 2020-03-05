@@ -188,7 +188,18 @@ maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
       fold foldFn (mempty :: M.Markup Unit) d
 
   foldFn :: forall a. M.Markup Unit -> String -> String -> M.Markup Unit
-  foldFn accum key value =
+  foldFn accum "lemma" value = foldView accum "infinitive" value
+  foldFn accum "pos" value = foldView accum "Part Of Speech" value
+  foldFn accum "gender" value = foldView accum "Gender" value
+  foldFn accum "tense" value = foldView accum "Verb Tense" value
+  foldFn accum "verbform" value = foldView accum "Verb Form" value
+  foldFn accum "number" value = foldView accum "Number" value
+  foldFn accum "person" value = foldView accum "Person" value
+  foldFn accum "mood" value = foldView accum "Mood" value
+  foldFn accum key value = accum <> pure unit
+
+  foldView :: forall a. M.Markup Unit -> String -> String -> M.Markup Unit
+  foldView accum key value =
     accum
       <> M.view { style: M.css { flex: 1, alignSelf: "stretch", flexDirection: "row" } } do
           M.view { style: M.css { flex: 1, alignSelf: "stretch" } } $ M.text {} $ M.string key

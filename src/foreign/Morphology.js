@@ -18,5 +18,8 @@ exports.valueNames = {
   "Ger": "gerund",
   "Imp": "imperfect",
   "SCONJ": "subordinating conjunctions",
-  "PRON": "pronoun"
+  "PRON": "pronoun",
+  "Ind": "indicative",
+  "Imp": "imperative",
+  "Sub": "subjunctive"
 }
