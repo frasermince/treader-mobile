@@ -625,7 +625,7 @@ import tokenizer from 'sbd';
         //renditionHandler(rendition, options.location);
         const [chapterTitle, language] = findTitlesAndLanguage(rendition, options.location);
         sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
-        sendMessage({method:"relocated", location: location});
+        sendMessageWithoutCache({method:"relocated", location: location});
       });
 
       rendition.on("selected", function({cfi, range, sentence, phrase}, contents, t) {
