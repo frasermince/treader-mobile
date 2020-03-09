@@ -23,6 +23,7 @@ import Effect.Exception (message)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
+import Linking (openUrl)
 
 type Props
   = {}
@@ -64,6 +65,7 @@ buildJsx props = React.do
             textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
             button { onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
+            M.text {onPress: RNE.capture_ $ openUrl "https://app.treader.io/signup"} $ M.string "Sign Up"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
