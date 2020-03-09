@@ -16,8 +16,8 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* TreaderMobileTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TreaderMobileTests.m */; };
-		5264E8BB24158DC0006A8C88 /* TreaderMobileTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TreaderMobileTests.m */; };
-		5264E8BD24158DC0006A8C88 /* libPods-TreaderMobileTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-TreaderMobileTests.a */; };
+		525E1905241608A3003EA527 /* TreaderMobileTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TreaderMobileTests.m */; };
+		525E1907241608A3003EA527 /* libPods-TreaderMobileTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-TreaderMobileTests.a */; };
 		A396CD8F75732BC1490B0115 /* libPods-TreaderMobile-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5EA7B76E1DBA34E36C3BC72 /* libPods-TreaderMobile-tvOSTests.a */; };
 		E0CCCAD3ED1C7BDF83E74C6F /* libPods-TreaderMobile-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF6315DC7DAAEC3E7533B58 /* libPods-TreaderMobile-tvOS.a */; };
 /* End PBXBuildFile section */
@@ -30,7 +30,7 @@
 			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
 			remoteInfo = "TreaderMobile-tvOS";
 		};
-		5264E8B824158DC0006A8C88 /* PBXContainerItemProxy */ = {
+		525E1902241608A3003EA527 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
@@ -46,7 +46,7 @@
 		0FE0F665A6BE72D58087CF5A /* libPods-TreaderMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TreaderMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		10A10035E1AA07DA31F96DD2 /* Pods-TreaderMobile-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreaderMobile-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-TreaderMobile-tvOSTests/Pods-TreaderMobile-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		1336266CCDE3F89A239D6887 /* Pods-TreaderMobile-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreaderMobile-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-TreaderMobile-tvOS/Pods-TreaderMobile-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* FluentGenius.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluentGenius.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07F961A680F5B00A75B9A /* Unchart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Unchart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = TreaderMobile/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = TreaderMobile/AppDelegate.m; sourceTree = "<group>"; };
 		13B07FB21A68108700A75B9A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -54,8 +54,8 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = TreaderMobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = TreaderMobile/main.m; sourceTree = "<group>"; };
 		24186A8997925397B6D891EA /* Pods-TreaderMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreaderMobile.debug.xcconfig"; path = "Target Support Files/Pods-TreaderMobile/Pods-TreaderMobile.debug.xcconfig"; sourceTree = "<group>"; };
-		2D02E47B1E0B4A5D006451C7 /* TreaderMobile-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TreaderMobile-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D02E4901E0B4A5D006451C7 /* TreaderMobile-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TreaderMobile-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unchart-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unchart-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		37B15E4A03E978DE0A91E73A /* libPods-TreaderMobileTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TreaderMobileTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5236238223665C35009EA758 /* react-native-vector-icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "react-native-vector-icons"; path = "../node_modules/react-native-vector-icons"; sourceTree = "<group>"; };
 		5236238523665D7C009EA758 /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
@@ -74,7 +74,8 @@
 		5236239223665D7C009EA758 /* EvilIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EvilIcons.ttf; sourceTree = "<group>"; };
 		5236239323665D7C009EA758 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
 		5236239423665D7C009EA758 /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
-		5264E8C224158DC0006A8C88 /* TreaderMobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TreaderMobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		525E190C241608A3003EA527 /* UnchartTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnchartTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		525E190D241608A3003EA527 /* TreaderMobileTests copy2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "TreaderMobileTests copy2-Info.plist"; path = "/Users/frasermince/Programming/TreaderMobile/ios/TreaderMobileTests copy2-Info.plist"; sourceTree = "<absolute>"; };
 		5264E8C324158DC1006A8C88 /* TreaderMobileTests copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "TreaderMobileTests copy-Info.plist"; path = "/Users/frasermince/Programming/TreaderMobile/ios/TreaderMobileTests copy-Info.plist"; sourceTree = "<absolute>"; };
 		5CF6315DC7DAAEC3E7533B58 /* libPods-TreaderMobile-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TreaderMobile-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D7CB7EA4E733760664BFD6A /* Pods-TreaderMobile-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreaderMobile-tvOS.release.xcconfig"; path = "Target Support Files/Pods-TreaderMobile-tvOS/Pods-TreaderMobile-tvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -112,11 +113,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5264E8BC24158DC0006A8C88 /* Frameworks */ = {
+		525E1906241608A3003EA527 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5264E8BD24158DC0006A8C88 /* libPods-TreaderMobileTests.a in Frameworks */,
+				525E1907241608A3003EA527 /* libPods-TreaderMobileTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +211,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				C5EAF0C645D48901DC166FE9 /* Pods */,
 				5264E8C324158DC1006A8C88 /* TreaderMobileTests copy-Info.plist */,
+				525E190D241608A3003EA527 /* TreaderMobileTests copy2-Info.plist */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -219,10 +221,10 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* FluentGenius.app */,
-				2D02E47B1E0B4A5D006451C7 /* TreaderMobile-tvOS.app */,
-				2D02E4901E0B4A5D006451C7 /* TreaderMobile-tvOSTests.xctest */,
-				5264E8C224158DC0006A8C88 /* TreaderMobileTests.xctest */,
+				13B07F961A680F5B00A75B9A /* Unchart.app */,
+				2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */,
+				2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */,
+				525E190C241608A3003EA527 /* UnchartTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -245,9 +247,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* TreaderMobile */ = {
+		13B07F861A680F5B00A75B9A /* Unchart */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TreaderMobile" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Unchart" */;
 			buildPhases = (
 				68CFC3E012FE26886F7587C9 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -261,14 +263,14 @@
 			);
 			dependencies = (
 			);
-			name = TreaderMobile;
+			name = Unchart;
 			productName = TreaderMobile;
-			productReference = 13B07F961A680F5B00A75B9A /* FluentGenius.app */;
+			productReference = 13B07F961A680F5B00A75B9A /* Unchart.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E47A1E0B4A5D006451C7 /* TreaderMobile-tvOS */ = {
+		2D02E47A1E0B4A5D006451C7 /* Unchart-tvOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "TreaderMobile-tvOS" */;
+			buildConfigurationList = 2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Unchart-tvOS" */;
 			buildPhases = (
 				429F545DF6127C71790D94F6 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F122414F3F0027D42C /* Start Packager */,
@@ -281,14 +283,14 @@
 			);
 			dependencies = (
 			);
-			name = "TreaderMobile-tvOS";
+			name = "Unchart-tvOS";
 			productName = "TreaderMobile-tvOS";
-			productReference = 2D02E47B1E0B4A5D006451C7 /* TreaderMobile-tvOS.app */;
+			productReference = 2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2D02E48F1E0B4A5D006451C7 /* TreaderMobile-tvOSTests */ = {
+		2D02E48F1E0B4A5D006451C7 /* Unchart-tvOSTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "TreaderMobile-tvOSTests" */;
+			buildConfigurationList = 2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Unchart-tvOSTests" */;
 			buildPhases = (
 				6A0E001F9BB0F71CF06EE0BB /* [CP] Check Pods Manifest.lock */,
 				2D02E48C1E0B4A5D006451C7 /* Sources */,
@@ -300,28 +302,28 @@
 			dependencies = (
 				2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */,
 			);
-			name = "TreaderMobile-tvOSTests";
+			name = "Unchart-tvOSTests";
 			productName = "TreaderMobile-tvOSTests";
-			productReference = 2D02E4901E0B4A5D006451C7 /* TreaderMobile-tvOSTests.xctest */;
+			productReference = 2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		5264E8B624158DC0006A8C88 /* TreaderMobileTests */ = {
+		525E1900241608A3003EA527 /* UnchartTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5264E8BF24158DC0006A8C88 /* Build configuration list for PBXNativeTarget "TreaderMobileTests" */;
+			buildConfigurationList = 525E1909241608A3003EA527 /* Build configuration list for PBXNativeTarget "UnchartTests" */;
 			buildPhases = (
-				5264E8B924158DC0006A8C88 /* [CP] Check Pods Manifest.lock */,
-				5264E8BA24158DC0006A8C88 /* Sources */,
-				5264E8BC24158DC0006A8C88 /* Frameworks */,
-				5264E8BE24158DC0006A8C88 /* Resources */,
+				525E1903241608A3003EA527 /* [CP] Check Pods Manifest.lock */,
+				525E1904241608A3003EA527 /* Sources */,
+				525E1906241608A3003EA527 /* Frameworks */,
+				525E1908241608A3003EA527 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5264E8B724158DC0006A8C88 /* PBXTargetDependency */,
+				525E1901241608A3003EA527 /* PBXTargetDependency */,
 			);
-			name = TreaderMobileTests;
+			name = UnchartTests;
 			productName = TreaderMobileTests;
-			productReference = 5264E8C224158DC0006A8C88 /* TreaderMobileTests.xctest */;
+			productReference = 525E190C241608A3003EA527 /* UnchartTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -347,7 +349,7 @@
 						ProvisioningStyle = Automatic;
 						TestTargetID = 2D02E47A1E0B4A5D006451C7;
 					};
-					5264E8B624158DC0006A8C88 = {
+					525E1900241608A3003EA527 = {
 						DevelopmentTeam = G95K8LU6GG;
 					};
 				};
@@ -366,10 +368,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* TreaderMobile */,
-				2D02E47A1E0B4A5D006451C7 /* TreaderMobile-tvOS */,
-				2D02E48F1E0B4A5D006451C7 /* TreaderMobile-tvOSTests */,
-				5264E8B624158DC0006A8C88 /* TreaderMobileTests */,
+				13B07F861A680F5B00A75B9A /* Unchart */,
+				2D02E47A1E0B4A5D006451C7 /* Unchart-tvOS */,
+				2D02E48F1E0B4A5D006451C7 /* Unchart-tvOSTests */,
+				525E1900241608A3003EA527 /* UnchartTests */,
 			);
 		};
 /* End PBXProject section */
@@ -399,7 +401,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5264E8BE24158DC0006A8C88 /* Resources */ = {
+		525E1908241608A3003EA527 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -459,7 +461,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		5264E8B924158DC0006A8C88 /* [CP] Check Pods Manifest.lock */ = {
+		525E1903241608A3003EA527 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -640,11 +642,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5264E8BA24158DC0006A8C88 /* Sources */ = {
+		525E1904241608A3003EA527 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5264E8BB24158DC0006A8C88 /* TreaderMobileTests.m in Sources */,
+				525E1905241608A3003EA527 /* TreaderMobileTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -653,13 +655,13 @@
 /* Begin PBXTargetDependency section */
 		2D02E4921E0B4A5D006451C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2D02E47A1E0B4A5D006451C7 /* TreaderMobile-tvOS */;
+			target = 2D02E47A1E0B4A5D006451C7 /* Unchart-tvOS */;
 			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
 		};
-		5264E8B724158DC0006A8C88 /* PBXTargetDependency */ = {
+		525E1901241608A3003EA527 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* TreaderMobile */;
-			targetProxy = 5264E8B824158DC0006A8C88 /* PBXContainerItemProxy */;
+			target = 13B07F861A680F5B00A75B9A /* Unchart */;
+			targetProxy = 525E1902241608A3003EA527 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -681,7 +683,7 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-TreaderMobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 30;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = TreaderMobile/Info.plist;
@@ -693,7 +695,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluentgenius.app;
-				PRODUCT_NAME = FluentGenius;
+				PRODUCT_NAME = Unchart;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -703,7 +705,7 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-TreaderMobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 29;
+				CURRENT_PROJECT_VERSION = 30;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = TreaderMobile/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -714,7 +716,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.fluentgenius.app;
-				PRODUCT_NAME = FluentGenius;
+				PRODUCT_NAME = Unchart;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -833,7 +835,7 @@
 			};
 			name = Release;
 		};
-		5264E8C024158DC0006A8C88 /* Debug */ = {
+		525E190A241608A3003EA527 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E0EAE12D6AABCD349E380DD5 /* Pods-TreaderMobileTests.debug.xcconfig */;
 			buildSettings = {
@@ -846,7 +848,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = "TreaderMobileTests copy-Info.plist";
+				INFOPLIST_FILE = "TreaderMobileTests copy2-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -859,13 +861,13 @@
 			};
 			name = Debug;
 		};
-		5264E8C124158DC0006A8C88 /* Release */ = {
+		525E190B241608A3003EA527 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = ABCCB3740193F3EF1BC4F192 /* Pods-TreaderMobileTests.release.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
-				INFOPLIST_FILE = "TreaderMobileTests copy-Info.plist";
+				INFOPLIST_FILE = "TreaderMobileTests copy2-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -980,7 +982,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TreaderMobile" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Unchart" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -989,7 +991,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "TreaderMobile-tvOS" */ = {
+		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Unchart-tvOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4971E0B4A5E006451C7 /* Debug */,
@@ -998,7 +1000,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "TreaderMobile-tvOSTests" */ = {
+		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "Unchart-tvOSTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2D02E4991E0B4A5E006451C7 /* Debug */,
@@ -1007,11 +1009,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5264E8BF24158DC0006A8C88 /* Build configuration list for PBXNativeTarget "TreaderMobileTests" */ = {
+		525E1909241608A3003EA527 /* Build configuration list for PBXNativeTarget "UnchartTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5264E8C024158DC0006A8C88 /* Debug */,
-				5264E8C124158DC0006A8C88 /* Release */,
+				525E190A241608A3003EA527 /* Debug */,
+				525E190B241608A3003EA527 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
