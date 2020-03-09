@@ -16,8 +16,7 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* UnchartTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* UnchartTests.m */; };
-		525E1905241608A3003EA527 /* UnchartTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* UnchartTests.m */; };
-		525E1907241608A3003EA527 /* libPods-UnchartTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */; };
+		52E52DB324161D7B0039D82B /* UnchartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E52DB224161D7B0039D82B /* UnchartTests.swift */; };
 		A396CD8F75732BC1490B0115 /* libPods-Unchart-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5EA7B76E1DBA34E36C3BC72 /* libPods-Unchart-tvOSTests.a */; };
 		E0CCCAD3ED1C7BDF83E74C6F /* libPods-Unchart-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */; };
 /* End PBXBuildFile section */
@@ -30,7 +29,7 @@
 			remoteGlobalIDString = 2D02E47A1E0B4A5D006451C7;
 			remoteInfo = "Unchart-tvOS";
 		};
-		525E1902241608A3003EA527 /* PBXContainerItemProxy */ = {
+		52E52DB524161D7B0039D82B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
@@ -74,9 +73,11 @@
 		5236239223665D7C009EA758 /* EvilIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EvilIcons.ttf; sourceTree = "<group>"; };
 		5236239323665D7C009EA758 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
 		5236239423665D7C009EA758 /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
-		525E190C241608A3003EA527 /* UnchartTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnchartTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		525E190D241608A3003EA527 /* UnchartTests copy2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "UnchartTests copy2-Info.plist"; path = "/Users/frasermince/Programming/Unchart/ios/UnchartTests copy2-Info.plist"; sourceTree = "<absolute>"; };
 		5264E8C324158DC1006A8C88 /* UnchartTests copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "UnchartTests copy-Info.plist"; path = "/Users/frasermince/Programming/Unchart/ios/UnchartTests copy-Info.plist"; sourceTree = "<absolute>"; };
+		52E52DB024161D7B0039D82B /* UnchartTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnchartTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		52E52DB224161D7B0039D82B /* UnchartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnchartTests.swift; sourceTree = "<group>"; };
+		52E52DB424161D7B0039D82B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unchart-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D7CB7EA4E733760664BFD6A /* Pods-Unchart-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Unchart-tvOS/Pods-Unchart-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		ABCCB3740193F3EF1BC4F192 /* Pods-UnchartTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnchartTests.release.xcconfig"; path = "Target Support Files/Pods-UnchartTests/Pods-UnchartTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -113,11 +114,10 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		525E1906241608A3003EA527 /* Frameworks */ = {
+		52E52DAD24161D7B0039D82B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				525E1907241608A3003EA527 /* libPods-UnchartTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +193,15 @@
 			path = "../node_modules/react-native-vector-icons/Fonts";
 			sourceTree = "<group>";
 		};
+		52E52DB124161D7B0039D82B /* UnchartTests */ = {
+			isa = PBXGroup;
+			children = (
+				52E52DB224161D7B0039D82B /* UnchartTests.swift */,
+				52E52DB424161D7B0039D82B /* Info.plist */,
+			);
+			path = UnchartTests;
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -207,6 +216,7 @@
 				13B07FAE1A68108700A75B9A /* Unchart */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* UnchartTests */,
+				52E52DB124161D7B0039D82B /* UnchartTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				C5EAF0C645D48901DC166FE9 /* Pods */,
@@ -224,7 +234,7 @@
 				13B07F961A680F5B00A75B9A /* Unchart.app */,
 				2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */,
 				2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */,
-				525E190C241608A3003EA527 /* UnchartTests.xctest */,
+				52E52DB024161D7B0039D82B /* UnchartTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -307,23 +317,22 @@
 			productReference = 2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		525E1900241608A3003EA527 /* UnchartTests */ = {
+		52E52DAF24161D7B0039D82B /* UnchartTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 525E1909241608A3003EA527 /* Build configuration list for PBXNativeTarget "UnchartTests" */;
+			buildConfigurationList = 52E52DB724161D7B0039D82B /* Build configuration list for PBXNativeTarget "UnchartTests" */;
 			buildPhases = (
-				525E1903241608A3003EA527 /* [CP] Check Pods Manifest.lock */,
-				525E1904241608A3003EA527 /* Sources */,
-				525E1906241608A3003EA527 /* Frameworks */,
-				525E1908241608A3003EA527 /* Resources */,
+				52E52DAC24161D7B0039D82B /* Sources */,
+				52E52DAD24161D7B0039D82B /* Frameworks */,
+				52E52DAE24161D7B0039D82B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				525E1901241608A3003EA527 /* PBXTargetDependency */,
+				52E52DB624161D7B0039D82B /* PBXTargetDependency */,
 			);
 			name = UnchartTests;
 			productName = UnchartTests;
-			productReference = 525E190C241608A3003EA527 /* UnchartTests.xctest */;
+			productReference = 52E52DB024161D7B0039D82B /* UnchartTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -332,6 +341,7 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1130;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
@@ -349,8 +359,11 @@
 						ProvisioningStyle = Automatic;
 						TestTargetID = 2D02E47A1E0B4A5D006451C7;
 					};
-					525E1900241608A3003EA527 = {
+					52E52DAF24161D7B0039D82B = {
+						CreatedOnToolsVersion = 11.3;
 						DevelopmentTeam = G95K8LU6GG;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 				};
 			};
@@ -371,7 +384,7 @@
 				13B07F861A680F5B00A75B9A /* Unchart */,
 				2D02E47A1E0B4A5D006451C7 /* Unchart-tvOS */,
 				2D02E48F1E0B4A5D006451C7 /* Unchart-tvOSTests */,
-				525E1900241608A3003EA527 /* UnchartTests */,
+				52E52DAF24161D7B0039D82B /* UnchartTests */,
 			);
 		};
 /* End PBXProject section */
@@ -401,7 +414,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		525E1908241608A3003EA527 /* Resources */ = {
+		52E52DAE24161D7B0039D82B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -455,28 +468,6 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-Unchart-tvOS-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		525E1903241608A3003EA527 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-UnchartTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -642,11 +633,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		525E1904241608A3003EA527 /* Sources */ = {
+		52E52DAC24161D7B0039D82B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				525E1905241608A3003EA527 /* UnchartTests.m in Sources */,
+				52E52DB324161D7B0039D82B /* UnchartTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -658,10 +649,10 @@
 			target = 2D02E47A1E0B4A5D006451C7 /* Unchart-tvOS */;
 			targetProxy = 2D02E4911E0B4A5D006451C7 /* PBXContainerItemProxy */;
 		};
-		525E1901241608A3003EA527 /* PBXTargetDependency */ = {
+		52E52DB624161D7B0039D82B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* Unchart */;
-			targetProxy = 525E1902241608A3003EA527 /* PBXContainerItemProxy */;
+			targetProxy = 52E52DB524161D7B0039D82B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -683,7 +674,7 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-Unchart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
@@ -705,7 +696,7 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-Unchart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 30;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -835,48 +826,60 @@
 			};
 			name = Release;
 		};
-		525E190A241608A3003EA527 /* Debug */ = {
+		52E52DB824161D7B0039D82B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E0EAE12D6AABCD349E380DD5 /* Pods-UnchartTests.debug.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = "UnchartTests copy2-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = UnchartTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = treader.UnchartTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Unchart.app/Unchart";
 			};
 			name = Debug;
 		};
-		525E190B241608A3003EA527 /* Release */ = {
+		52E52DB924161D7B0039D82B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ABCCB3740193F3EF1BC4F192 /* Pods-UnchartTests.release.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = G95K8LU6GG;
-				INFOPLIST_FILE = "UnchartTests copy2-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = UnchartTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = treader.UnchartTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Unchart.app/Unchart";
 			};
 			name = Release;
 		};
@@ -926,7 +929,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -972,7 +975,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -1009,11 +1012,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		525E1909241608A3003EA527 /* Build configuration list for PBXNativeTarget "UnchartTests" */ = {
+		52E52DB724161D7B0039D82B /* Build configuration list for PBXNativeTarget "UnchartTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				525E190A241608A3003EA527 /* Debug */,
-				525E190B241608A3003EA527 /* Release */,
+				52E52DB824161D7B0039D82B /* Debug */,
+				52E52DB924161D7B0039D82B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
