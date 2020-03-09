@@ -6,7 +6,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useContext)
 import React.Basic.Hooks as React
 import Markup as M
-import Paper (textInput, surface, button)
+import Paper (textInput, surface, button, title)
 import React.Basic.Events (EventFn, unsafeEventFn)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import Unsafe.Coerce (unsafeCoerce)
@@ -60,12 +60,13 @@ buildJsx props = React.do
   password /\ setPassword <- useState ""
   pure
     $ M.getJsx do
-       M.safeAreaView {} do
-          surface {} do
+        surface {style: M.css {flex: 1, paddingLeft: 10, paddingRight: 10}} do
+          title {style: M.css {marginTop: 40, textAlign: "center"}} $ M.string "Login"
+          M.view {style: M.css {marginTop: 10, marginBottom: 10}} do
             textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
-            button { onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
-            M.text {onPress: RNE.capture_ $ openUrl "https://app.treader.io/signup"} $ M.string "Sign Up"
+            button { mode: "contained", onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
+          M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ openUrl "https://app.treader.io/signup"} $ M.string "Sign Up"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 

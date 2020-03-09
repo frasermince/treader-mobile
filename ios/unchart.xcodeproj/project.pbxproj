@@ -17,6 +17,7 @@
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* UnchartTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* UnchartTests.m */; };
 		52E52DB324161D7B0039D82B /* UnchartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E52DB224161D7B0039D82B /* UnchartTests.swift */; };
+		5D02D28980D09CE6E702BC67 /* libPods-UnchartTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */; };
 		A396CD8F75732BC1490B0115 /* libPods-Unchart-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5EA7B76E1DBA34E36C3BC72 /* libPods-Unchart-tvOSTests.a */; };
 		E0CCCAD3ED1C7BDF83E74C6F /* libPods-Unchart-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */; };
 /* End PBXBuildFile section */
@@ -118,6 +119,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D02D28980D09CE6E702BC67 /* libPods-UnchartTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +323,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 52E52DB724161D7B0039D82B /* Build configuration list for PBXNativeTarget "UnchartTests" */;
 			buildPhases = (
+				548CA73D05A234AC9D7F29E1 /* [CP] Check Pods Manifest.lock */,
 				52E52DAC24161D7B0039D82B /* Sources */,
 				52E52DAD24161D7B0039D82B /* Frameworks */,
 				52E52DAE24161D7B0039D82B /* Resources */,
@@ -367,7 +370,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Unchart" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "unchart" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -468,6 +471,28 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-Unchart-tvOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		548CA73D05A234AC9D7F29E1 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-UnchartTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -828,6 +853,7 @@
 		};
 		52E52DB824161D7B0039D82B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E0EAE12D6AABCD349E380DD5 /* Pods-UnchartTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -857,6 +883,7 @@
 		};
 		52E52DB924161D7B0039D82B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = ABCCB3740193F3EF1BC4F192 /* Pods-UnchartTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1021,7 +1048,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Unchart" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "unchart" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
