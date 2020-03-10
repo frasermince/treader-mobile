@@ -20,14 +20,14 @@ platform :ios do
 
   lane :beta do
     # match(type: "appstore") # more information: https://codesigning.guide   
-    increment_build_number(xcodeproj: "Unchart.xcodeproj")
-    gym(scheme: "Unchart") # Build your app - more options available
+    increment_build_number(xcodeproj: "unchart.xcodeproj")
+    gym(scheme: "unchart") # Build your app - more options available
     pilot
   end
 
   lane :release do
-    increment_build_number(xcodeproj: "Unchart.xcodeproj")
-    build_app(workspace: "Unchart.xcworkspace", scheme: "Unchart")
+    increment_build_number(xcodeproj: "unchart.xcodeproj")
+    build_app(workspace: "unchart.xcworkspace", scheme: "unchart")
     upload_to_app_store
   end
 end
