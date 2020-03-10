@@ -205,6 +205,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
   phrase /\ setPhrase <- useState $ (Nothing :: Maybe String)
+  surrounding /\ setSurrounding <- useState $ (Nothing :: Maybe String)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
@@ -231,6 +232,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       , language: language /\ setLanguage
       , sentence: sentence /\ setSentence
       , phrase: phrase /\ setPhrase
+      , surrounding: surrounding /\ setSurrounding
       , chapterTitle
       }
   where
@@ -407,6 +409,7 @@ buildJsx props = React.do
               , wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)
               , sentence: (fst stateChangeListeners.sentence)
               , phrase: (fst stateChangeListeners.phrase)
+              , surrounding: (fst stateChangeListeners.surrounding)
               , language: (fst stateChangeListeners.language)
               , setMorphology: (snd stateChangeListeners.morphology)
               , setTranslation: (snd stateChangeListeners.translation)
