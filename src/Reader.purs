@@ -16,7 +16,7 @@ import Data.Either (Either(..))
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Markup as M
 import Control.Alt ((<|>))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Newtype (class Newtype)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Effect.Console (log)
@@ -114,11 +114,11 @@ error = mkEffectFn1 e
   e :: String -> Effect Unit
   e message = log $ "EPUBJS-Webview " <> message
 
-press toggleBars { highlightedContent: _ /\ setHighlightedContent, morphology: _ /\ setMorphology, translation: _ /\ setTranslation } = mkEffectFn1 e
+press toggleBars { highlightedContent: highlightedContent /\ setHighlightedContent, selected: selected /\ setSelected} = mkEffectFn1 e
   where
   e :: {} -> Effect Unit
   e book = do
-    toggleBars
+    if isNothing highlightedContent && not selected then toggleBars else setSelected \_ -> false
 
 ready setTitle setToc setLocation = mkEffectFn1 e
   where
@@ -203,6 +203,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
+  selected /\ setSelected <- useState false
   sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
   phrase /\ setPhrase <- useState $ (Nothing :: Maybe String)
   surrounding /\ setSurrounding <- useState $ (Nothing :: Maybe String)
@@ -221,7 +222,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       }
   useEffect highlightedContent
     $ do
-        launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation
+        launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation setSelected
         pure mempty
   pure
     $ ref
@@ -233,12 +234,14 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       , sentence: sentence /\ setSentence
       , phrase: phrase /\ setPhrase
       , surrounding: surrounding /\ setSurrounding
+      , selected: selected /\ setSelected
       , chapterTitle
       }
   where
-  mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation = do
+  mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation setSelected = do
     let
       payload = { variables: { input: { snippet: highlightedContent.text, language: language } } }
+    liftEffect $ setSelected \_ -> true
     result <- try $ mutationFn payload
     case result of
       Left err -> pure unit
@@ -246,7 +249,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
         liftEffect $ setShowBars \_ -> false
         liftEffect $ setTranslation \_ -> Just r.translate.translation
 
-  mutateAndChangeState _ _ _ _ setTranslation = do
+  mutateAndChangeState _ _ _ _ setTranslation _ = do
     liftEffect $ setTranslation \_ -> Nothing
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
