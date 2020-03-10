@@ -65,7 +65,7 @@ buildJsx props = React.do
           M.view {style: M.css {marginTop: 10, marginBottom: 10}} do
             textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
-            button { mode: "contained", onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "submit")
+            button { mode: "contained", onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "Login")
           M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ openUrl "https://app.treader.io/signup"} $ M.string "Sign Up"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
