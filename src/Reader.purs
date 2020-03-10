@@ -351,11 +351,6 @@ setTheme highlightVerbs highlightNouns highlightAdjectives = build (adjectives $
 
 buildJsx props = React.do
   loaded /\ setLoaded <- useState false
-  useEffect props.slug do
-     setLoaded \_ -> false
-     props.setVisibleLocation \_ -> { start: { percentage: 0, cfi: "0" } }
-     props.setTitle \_ -> Nothing
-     pure mempty
   flow /\ setFlow <- useState "paginated"
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
@@ -370,6 +365,13 @@ buildJsx props = React.do
         pure mempty
   streamResult <- useStreamer setLoaded props.toggleBars $ props.slug
   ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
+  useEffect props.slug do
+     setLoaded \_ -> false
+     snd stateChangeListeners.highlightedContent $ \_ -> Nothing
+     props.setVisibleLocation \_ -> { start: { percentage: 0, cfi: "0" } }
+     props.setTitle \_ -> Nothing
+     pure mempty
+
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do
         log $ "listeners: " <> (fromMaybe "Nothing" ((_.text) <$> fst stateChangeListeners.highlightedContent))
