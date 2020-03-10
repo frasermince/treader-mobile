@@ -31,6 +31,9 @@ import Data.Either (Either(..))
 import ApolloHooks (useMutation, gql)
 import React.Basic.Native.Events (capture_)
 import Foreign.Object (Object)
+import TranslatableOnPress as TranslatableOnPress
+import Data.String (length)
+import Debug.Trace (spy)
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -58,6 +61,7 @@ type Props
     translation :: Maybe String,
     morphology :: Maybe (Object String),
     wordPlacement :: Maybe Number,
+    surrounding :: Maybe String,
     sentence :: Maybe String,
     phrase :: Maybe String,
     language :: Maybe String,
@@ -101,40 +105,6 @@ runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 
 runAnimation false fade = timing fade { toValue: 0, duration: 20 }
 
---buildJsx :: Props -> JSX
-sentenceSection translation setTranslation sentence mutationFn language showTranslation setShowTranslation titleName =
-  M.touchableOpacity { style: M.css { marginTop: 10 }, onPress: capture_ $ press sentence language translation } do
-    fromMaybe mempty $ if showTranslation then (translationElement <|> textElement) else textElement
-  where
-  translationElement = (append translationMarker) <$> translationText
-
-  textElement = (append marker) <$> sentenceText
-
-  translationMarker = M.text { style: titleStyles } $ M.string $ titleName <> " Translation"
-
-  marker = M.text { style: titleStyles } $ M.string $ titleName <> " (click to translate)"
-
-  sentenceText = (M.text {} <$> M.string <$> sentence)
-
-  translationText = (M.text {} <$> M.string <$> translation)
-
-  press (Just sentence) (Just language) Nothing =
-    launchAff_
-      $ do
-          let
-            payload = { variables: { input: { snippet: sentence, language: language } } }
-          response <- try $ mutationFn payload
-          case response of
-            Left err -> pure unit
-            Right result -> do
-              liftEffect $ setTranslation \_ -> Just result.translate.translation
-
-  press _ _ (Just translation) = do
-    setShowTranslation \t -> not t
-
-  press _ _ _ = do
-    pure unit
-
 container fade height (Just wordPlacement) children
   | height - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
   | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
@@ -145,18 +115,7 @@ buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
-  sentenceTranslation /\ setSentenceTranslation <- useState $ (Nothing :: Maybe String)
-  showSentenceTranslation /\ setShowSentenceTranslation <- useState true
-  phraseTranslation /\ setPhraseTranslation <- useState $ (Nothing :: Maybe String)
-  showPhraseTranslation /\ setShowPhraseTranslation <- useState true
-  useEffect props.sentence do
-    setSentenceTranslation \_ -> Nothing
-    setShowSentenceTranslation \_ -> true
-    pure mempty
-  useEffect props.phrase do
-    setPhraseTranslation \_ -> Nothing
-    setShowPhraseTranslation \_ -> true
-    pure mempty
+
   useEffect props.wordPlacement do
      launchAff_ $ do
         runAnimation visible fade
@@ -169,10 +128,34 @@ buildJsx props = React.do
     $ container fade window.height placementForAnimation do
        scrollView { style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
-          if props.sentence == props.phrase then mempty else sentenceSection phraseTranslation setPhraseTranslation props.phrase mutationFn props.language showPhraseTranslation setShowPhraseTranslation "Phrase"
-          sentenceSection sentenceTranslation setSentenceTranslation props.sentence mutationFn props.language showSentenceTranslation setShowSentenceTranslation "Sentence"
+          tappableTranslations mutationFn
           maybeDataMap props.morphology
   where
+  displaySentence = fromMaybe false do
+     s <- props.sentence
+     pure $ (length s) < 400
+  displayPhrase = fromMaybe false do
+     p <- props.phrase
+     surrounding <- props.surrounding
+     sentence <- props.sentence
+     pure $ ((spy "SENTENCE" $ length sentence) - (spy "PHRASE" $ length p) > 25) && length p < 400
+
+  displaySurrounding = fromMaybe false do
+     p <- props.phrase
+     s <- props.surrounding
+     let delta = (length p) - (length s)
+     pure $ (spy "Delta" delta) > 20 || delta < -20
+  tappableTranslations mutationFn = do
+     if props.sentence == props.phrase || displaySurrounding
+       then M.childElement TranslatableOnPress.reactComponent {snippet: props.surrounding, labelText: "Adjacent", mutationFn: mutationFn, language: props.language}
+       else mempty
+     if props.sentence /= props.phrase && displayPhrase
+       then M.childElement TranslatableOnPress.reactComponent {snippet: props.phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
+       else mempty
+     if displaySentence && not (displayPhrase && displaySurrounding)
+       then M.childElement TranslatableOnPress.reactComponent {snippet: props.sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
+       else mempty
+
   visible = isJust props.wordPlacement
 
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
