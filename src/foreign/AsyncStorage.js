@@ -14,3 +14,9 @@ exports._getItem = function(key) {
     return rn.AsyncStorage.getItem(key);
   }
 }
+
+exports._removeItem = function(key) {
+  return function () {
+    return rn.AsyncStorage.removeItem(key);
+  }
+}

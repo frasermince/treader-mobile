@@ -13,6 +13,7 @@ import Data.Maybe (Maybe(..))
 foreign import _setItem :: String -> String -> Effect (Promise Unit)
 
 foreign import _getItem :: String -> Effect (Promise (Nullable String))
+foreign import _removeItem :: String -> Effect (Promise (Nullable String))
 
 foreign import _clear :: Effect (Promise Unit)
 
@@ -21,5 +22,8 @@ setItem x y = (liftEffect (_setItem x y) >>= Promise.toAff)
 
 getItem :: String -> Aff (Maybe String)
 getItem x = toMaybe <$> (liftEffect (_getItem x) >>= Promise.toAff)
+
+removeItem :: String -> Aff (Maybe String)
+removeItem x = toMaybe <$> (liftEffect (_removeItem x) >>= Promise.toAff)
 
 clear = liftEffect _clear >>= Promise.toAff

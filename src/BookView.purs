@@ -21,7 +21,7 @@ import Data.Traversable (traverse_)
 import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Nullable (Nullable, toMaybe)
-import AsyncStorage (clear, getItem)
+import AsyncStorage (clear, getItem, removeItem)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
@@ -122,7 +122,7 @@ buildJsx jsProps = React.do
                 \client ->
                   capture_
                     $ launchAff_ do
-                        clear
+                        _ <- removeItem "treader-session"
                         liftEffect $ traverse_ _.resetStore client
             } --, onLeftButtonPressed: liftEffect}
         M.view
