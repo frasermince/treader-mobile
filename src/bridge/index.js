@@ -60,7 +60,7 @@ import tokenizer from 'sbd';
         characterIteration = total;
       }
     });
-    let phrases = sentence.split(/(,|;)/g);
+    let phrases = sentence.split(/(,|;|–)/g);
     let phrase = phrases.find((phrase) => {
       if (characterIteration + phrase.length > sentenceCharacters) {
         return true;
