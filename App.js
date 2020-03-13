@@ -12,7 +12,9 @@ import { Button, Snackbar } from 'react-native-paper';
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
 //
-
+if(__DEV__) {
+  import('./ReactotronConfig').then(() => console.log('Reactotron Configured'))
+}
 export default App = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
