@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>422319423639-mqo6jddfstir1tg961f6il5f2elt8unj.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.422319423639-mqo6jddfstir1tg961f6il5f2elt8unj</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAdz9gf_pYBulfet-TT9eCJzcFy13Bn2E8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>422319423639</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.fluentgenius.app</string>
+	<key>PROJECT_ID</key>
+	<string>unchart-io</string>
+	<key>STORAGE_BUCKET</key>
+	<string>unchart-io.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:422319423639:ios:212abb488dac2574aae9d2</string>
+	<key>DATABASE_URL</key>
+	<string>https://unchart-io.firebaseio.com</string>
+</dict>
+</plist>

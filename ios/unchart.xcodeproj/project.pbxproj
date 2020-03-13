@@ -16,6 +16,10 @@
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* UnchartTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* UnchartTests.m */; };
+		520DD4E0241C1F6100ECC744 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */; };
+		520DD4E1241C1F6100ECC744 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */; };
+		520DD4E2241C1F6100ECC744 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */; };
+		520DD4E3241C1F6100ECC744 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */; };
 		52E52DB324161D7B0039D82B /* UnchartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E52DB224161D7B0039D82B /* UnchartTests.swift */; };
 		5D02D28980D09CE6E702BC67 /* libPods-UnchartTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */; };
 		A396CD8F75732BC1490B0115 /* libPods-Unchart-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5EA7B76E1DBA34E36C3BC72 /* libPods-Unchart-tvOSTests.a */; };
@@ -57,6 +61,7 @@
 		2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unchart-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unchart-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-UnchartTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5236238223665C35009EA758 /* react-native-vector-icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "react-native-vector-icons"; path = "../node_modules/react-native-vector-icons"; sourceTree = "<group>"; };
 		5236238523665D7C009EA758 /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
 		5236238623665D7C009EA758 /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
@@ -146,6 +151,7 @@
 		13B07FAE1A68108700A75B9A /* Unchart */ = {
 			isa = PBXGroup;
 			children = (
+				520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				5236238423665D7C009EA758 /* Fonts */,
@@ -399,6 +405,7 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				520DD4E0241C1F6100ECC744 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +414,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */,
+				520DD4E1241C1F6100ECC744 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -414,6 +422,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				520DD4E2241C1F6100ECC744 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,6 +430,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				520DD4E3241C1F6100ECC744 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -699,12 +709,12 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-Unchart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 38;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -721,11 +731,11 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-Unchart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 38;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
