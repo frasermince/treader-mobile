@@ -309,6 +309,8 @@ PODS:
     - React
   - RNGestureHandler (1.6.0):
     - React
+  - RNIap (4.4.2):
+    - React
   - RNReanimated (1.7.0):
     - React
   - RNScreens (2.0.0-beta.13):
@@ -365,6 +367,7 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNIap (from `../node_modules/react-native-iap`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -458,6 +461,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNIap:
+    :path: "../node_modules/react-native-iap"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -517,6 +522,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: a88953beefbd347a29072d9eba90e42945fe291e
   RNFS: 0d4191b1052bef9ce70deff00a5b4169c62bbd9b
   RNGestureHandler: dde546180bf24af0b5f737c8ad04b6f3fa51609a
+  RNIap: 4a353600facc146dfc771250b2382f2c25aa22ee
   RNReanimated: 031fe8d9ea93c2bd689a40f05320ef9d96f74d7f
   RNScreens: ba539a5086136eb356e43699cb588a80369763ca
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
@@ -526,4 +532,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3bdaac784e3c6e5545f72ec1f1697d36d69174a4
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.0

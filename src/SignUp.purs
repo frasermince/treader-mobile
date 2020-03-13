@@ -1,5 +1,4 @@
-module SignIn where
-
+module SignUp where
 import Prelude
 import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
@@ -23,21 +22,23 @@ import Effect.Exception (message)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
-import Linking (openUrl)
-
-type Props
-  = {}
+import Effect.Uncurried (runEffectFn2, EffectFn2)
 
 mutation :: DocumentNode
-mutation =
-  gql
-    """
-mutation loginMutation($input: LoginInput!) {
-  login(input: $input) {
+mutation = gql """
+mutation userMutation($input: UserInput!) {
+  user(input: $input) {
     session {token}
   }
 }
-  """
+"""
+
+type Props
+  = { navigation :: { navigate :: EffectFn2 String {} Unit } }
+
+changeField setField =
+  RNE.handler text \t ->
+    setField \_ -> t
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -46,36 +47,37 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "SignIn") buildJsx
-
-changeField setField =
-  RNE.handler text \t ->
-    setField \_ -> t
+        (component "SignUp") buildJsx
 
 buildJsx props = React.do
   client <- useApolloClient
   { setLoading, setError } <- useContext dataStateContext
   mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   email /\ setEmail <- useState ""
+  firstName /\ setFirstName <- useState ""
+  lastName /\ setLastName <- useState ""
   password /\ setPassword <- useState ""
   pure
     $ M.getJsx do
         surface {style: M.css {flex: 1, paddingLeft: 10, paddingRight: 10}} do
           M.view {style: M.css {marginTop: 10, marginBottom: 10}} do
             textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
+            textInput { label: "First Name", onChangeText: changeField setFirstName, value: firstName }
+            textInput { label: "Last Name", onChangeText: changeField setLastName, value: lastName }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
-            button { mode: "contained", onPress: RNE.capture_ (press mutate email password client setError) } (M.jsx $ RN.string "Login")
+            button { mode: "contained", onPress: RNE.capture_ (press mutate email firstName lastName password client setError) } (M.jsx $ RN.string "Register")
+          M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Login" {}} $ M.string "Login"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
-    press mutate email password client setError =
+    press mutate email firstName lastName password client setError =
       launchAff_ do
-        result <- try $ mutate $ { variables: { input: { email, password } } }
+        result <- try $ mutate $ ({variables: { input: { firstName: firstName, lastName: lastName, email: email, password: password}}})
         case result of
           Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
           Right resp -> do
             let
-              session = "Bearer " <> resp.login.session.token
+              session = "Bearer " <> resp.user.session.token
             liftEffect $ traverse_ _.resetStore client
             setItem "treader-session" session
         --    liftEffect $ runEffectFn1 props.navigation.navigate "App"

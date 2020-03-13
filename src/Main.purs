@@ -16,6 +16,8 @@ import Data.Traversable (traverse_)
 import QueryHooks (useUserBooks, Book, User)
 import Markup as M
 import TabNavigator (tabNavigator)
+import AuthenticationNavigator (authenticationNavigator)
+import Subscribe (subscribe)
 import SignIn as SignIn
 
 type Props = {}
@@ -28,9 +30,10 @@ reactComponent =
 
 buildJsx props = React.do
   queryResult <- useUserBooks {}
-  pure $ M.getJsx $ traverse_ (authOrApp props) queryResult
+  pure $ M.getJsx $ traverse_ authOrApp queryResult
 
-authOrApp :: Props -> User -> M.Markup Unit
-authOrApp props d
-  | d.currentUser.isGuest = M.childElement SignIn.reactComponent {}
+authOrApp :: User -> M.Markup Unit
+authOrApp d
+  | d.currentUser.isGuest = authenticationNavigator {}
+  | not d.currentUser.isSubscribed = subscribe {}
   | otherwise = tabNavigator {}
