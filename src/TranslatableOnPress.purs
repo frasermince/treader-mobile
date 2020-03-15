@@ -22,6 +22,7 @@ titleStyles =
 
 type Payload = {variables :: {input :: {snippet :: String, language :: String}}}
 type Props = {snippet :: Maybe String, labelText :: String, mutationFn :: Payload -> Aff {translate :: {translation :: String}} , language :: Maybe String}
+
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect

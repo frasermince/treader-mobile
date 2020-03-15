@@ -1,9 +1,12 @@
 module Navigation where
 import Prelude
 import Data.Function.Uncurried (Fn2, mkFn2)
-import Effect.Uncurried (EffectFn3, runEffectFn3)
+import Effect.Uncurried (EffectFn3, runEffectFn3, EffectFn2)
 import Effect (Effect)
-import React.Basic.Hooks ( Hook, unsafeHook, UseEffect)
+import React.Basic.Hooks ( Hook, unsafeHook, UseEffect, UseContext)
+
+type Navigation a = {navigate :: EffectFn2 String a Unit}
+foreign import useNavigation :: forall a . Hook (UseContext (Navigation a)) (Navigation a)
 
 foreign import useFocusEffect_ ::
   forall key.
@@ -18,3 +21,4 @@ useFocusEffect :: forall key.
   Effect (Effect Unit) ->
   Hook (UseEffect key) Unit
 useFocusEffect key effect = unsafeHook (runEffectFn3 useFocusEffect_ (mkFn2 eq) key effect)
+

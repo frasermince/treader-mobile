@@ -35,5 +35,5 @@ buildJsx props = React.do
 authOrApp :: User -> M.Markup Unit
 authOrApp d
   | d.currentUser.isGuest = authenticationNavigator {}
-  | not d.currentUser.isSubscribed = subscribe {}
+  -- | not d.currentUser.isSubscribed = subscribe {}
   | otherwise = tabNavigator {}

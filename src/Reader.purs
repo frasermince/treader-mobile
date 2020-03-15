@@ -195,13 +195,14 @@ mutation =
   mutation translateMutation($input: TranslateInput!) {
     translate(input: $input) {
       translation
+      is_permitted
     }
   }
 """
 
 useRenditionData showBars setShowBars visibleLocation = React.do
   mutationFn /\ result <- useMutation mutation {}
-  translation /\ setTranslation <- useState $ (Nothing :: Maybe String)
+  translation /\ setTranslation <- useState $ (Nothing :: Maybe BottomContent.Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   selected /\ setSelected <- useState false
   sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
@@ -247,7 +248,7 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       Left err -> pure unit
       Right r -> do
         liftEffect $ setShowBars \_ -> false
-        liftEffect $ setTranslation \_ -> Just r.translate.translation
+        liftEffect $ setTranslation \_ -> Just {text: r.translate.translation, isPermitted: r.translate.is_permitted}
 
   mutateAndChangeState _ _ _ _ setTranslation _ = do
     liftEffect $ setTranslation \_ -> Nothing

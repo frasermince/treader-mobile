@@ -3,6 +3,7 @@ module BottomContent where
 import Prelude
 import Effect.Aff (Aff, launchAff_)
 import React.Basic.DOM.Internal (CSS)
+import React.Basic.Native.Events as RNE
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import Effect.Class (liftEffect)
 import React.Basic.Hooks as React
@@ -33,7 +34,11 @@ import React.Basic.Native.Events (capture_)
 import Foreign.Object (Object)
 import TranslatableOnPress as TranslatableOnPress
 import Data.String (length)
+import Blur (blurView)
+import Effect.Uncurried (runEffectFn2, EffectFn2)
+import Navigation (useNavigation)
 
+type Translation = {text :: String, isPermitted :: Boolean}
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
 
@@ -57,7 +62,7 @@ reactComponent =
 
 type Props
   = {
-    translation :: Maybe String,
+    translation :: Maybe {text :: String, isPermitted :: Boolean},
     morphology :: Maybe (Object String),
     wordPlacement :: Maybe Number,
     surrounding :: Maybe String,
@@ -65,9 +70,28 @@ type Props
     phrase :: Maybe String,
     language :: Maybe String,
     setMorphology :: (Maybe (Object String) -> Maybe (Object String)) -> Effect Unit,
-    setTranslation :: (Maybe String -> Maybe String) -> Effect Unit
+    setTranslation :: (Maybe Translation -> Maybe Translation) -> Effect Unit
     }
 
+blurTextStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%"
+}
+blurStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center"
+  }
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
@@ -104,6 +128,12 @@ runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 
 runAnimation false fade = timing fade { toValue: 0, duration: 20 }
 
+shouldBlur translation = not $ fromMaybe true (_.isPermitted <$> translation)
+unpermittedBlur navigation =
+    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
+      M.touchableOpacity {style: M.css blurTextStyle, onPress: RNE.capture_ $ runEffectFn2 navigation.navigate "Subscribe" {}} do
+        M.text {style: M.css {}} $ M.string "You have used your words for the day. Press to subscribe and receive unlimited words"
+
 container fade height (Just wordPlacement) children
   | height - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
   | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
@@ -111,6 +141,7 @@ container fade height (Just wordPlacement) children
 container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
 buildJsx props = React.do
+  navigation <- useNavigation
   mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
@@ -127,8 +158,10 @@ buildJsx props = React.do
     $ container fade window.height placementForAnimation do
        scrollView { style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
           fromMaybe mempty $ (append translationMarker) <$> translationText
-          tappableTranslations mutationFn
-          maybeDataMap props.morphology
+          M.view {} do
+            tappableTranslations mutationFn
+            maybeDataMap props.morphology
+       if shouldBlur props.translation then unpermittedBlur navigation else mempty
   where
   displaySentence = fromMaybe false do
      s <- props.sentence
@@ -159,7 +192,7 @@ buildJsx props = React.do
 
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
 
-  translationText = (M.text {} <$> M.string <$> props.translation)
+  translationText = (M.text {} <$> M.string <$> _.text <$> props.translation)
 
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)

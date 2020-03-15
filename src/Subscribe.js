@@ -38,7 +38,7 @@ const itemSkus = Platform.select({
 
 const itemSubs = Platform.select({
   ios: [
-    'com.fluentgenius.1',
+    'io.treader.treaderapp',
   ],
   android: [
     'test.sub1', // subscription
@@ -168,8 +168,8 @@ class Subscribe extends Component {
 
   getItems = async (): void => {
     try {
-      const products = await RNIap.getProducts(itemSkus);
-      // const products = await RNIap.getSubscriptions(itemSkus);
+      // const products = await RNIap.getProducts(itemSkus);
+      const products = await RNIap.getSubscriptions(itemSkus);
       console.log('Products', products);
       this.setState({productList: products});
     } catch (err) {
