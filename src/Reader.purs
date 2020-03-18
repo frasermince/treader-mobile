@@ -34,6 +34,8 @@ import Foreign.Object (Object)
 import Debug.Trace (spy)
 import AppState (useAppState)
 import Navigation (useFocusEffect)
+import Subscribe as Subscribe
+import Paper (portal)
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -356,6 +358,7 @@ buildJsx props = React.do
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
   highlightAdjectives /\ setHighlightAdjectives <- useState $ true
+  modalVisible /\ setModalVisible <- useState false
   useEffect unit
     $ do
         launchAff_ do
@@ -382,6 +385,7 @@ buildJsx props = React.do
     Just { src, origin } ->
       pure $ M.getJsx
         $ do
+            portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, setVisible: setModalVisible}
             M.view
               { style: M.css styles.wrapper
               , onLayout: layoutEvent props.setHeight props.setWidth
@@ -413,10 +417,12 @@ buildJsx props = React.do
               { translation: (fst stateChangeListeners.translation)
               , morphology: (fst stateChangeListeners.morphology)
               , wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)
+              , removeContent: (snd stateChangeListeners.highlightedContent $ \_ -> Nothing)
               , sentence: (fst stateChangeListeners.sentence)
               , phrase: (fst stateChangeListeners.phrase)
               , surrounding: (fst stateChangeListeners.surrounding)
               , language: (fst stateChangeListeners.language)
               , setMorphology: (snd stateChangeListeners.morphology)
               , setTranslation: (snd stateChangeListeners.translation)
+              , setModalVisible: setModalVisible
               }

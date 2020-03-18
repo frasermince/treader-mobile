@@ -17,7 +17,7 @@ import QueryHooks (useUserBooks, Book, User)
 import Markup as M
 import TabNavigator (tabNavigator)
 import AuthenticationNavigator (authenticationNavigator)
-import Subscribe (subscribe)
+import Subscribe as Subscribe
 import SignIn as SignIn
 
 type Props = {}

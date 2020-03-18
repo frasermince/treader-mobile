@@ -10,6 +10,11 @@ exports._menu = paper.Menu
 exports._menuItem = paper.Menu.Item
 exports.listIcon = paper.List.Icon
 exports._iconButton = paper.IconButton
+exports._divider = paper.Divider
+exports._modal = paper.Modal
+exports._portal = paper.Portal
+exports._subheading = paper.Subheading
+exports._headline = paper.Headline
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;

@@ -38,7 +38,7 @@ const itemSkus = Platform.select({
 
 const itemSubs = Platform.select({
   ios: [
-    'io.treader.treaderapp',
+    'io.unchart.monthly',
   ],
   android: [
     'test.sub1', // subscription
@@ -209,7 +209,7 @@ class Subscribe extends Component {
   // Version 3 apis
   requestPurchase = async (sku): void => {
     try {
-      RNIap.requestPurchase(sku);
+      RNIap.requestPurchase(sku, false);
     } catch (err) {
       console.warn(err.code, err.message);
     }
@@ -217,7 +217,7 @@ class Subscribe extends Component {
 
   requestSubscription = async (sku): void => {
     try {
-      RNIap.requestSubscription(sku);
+      RNIap.requestSubscription(sku, false);
     } catch (err) {
       Alert.alert(err.message);
     }
@@ -252,7 +252,7 @@ class Subscribe extends Component {
             </Text>
 
             <TouchableOpacity
-              onPress={(): void => this.getItems()}
+              onPress={(): void => this.getSubscriptions()}
               activeOpacity={0.5}
               style={styles.btn}
               textStyle={styles.txt}>

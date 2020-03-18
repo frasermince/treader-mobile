@@ -24,6 +24,13 @@ foreign import _menu :: forall props. ReactComponent props
 
 foreign import _menuItem :: forall props. ReactComponent props
 
+foreign import _divider :: forall props. ReactComponent props
+
+foreign import _modal :: forall props. ReactComponent props
+foreign import _portal :: forall props. ReactComponent props
+foreign import _subheading :: forall props. ReactComponent props
+foreign import _headline :: forall props. ReactComponent props
+
 foreign import navigationOptions ::
   forall props opts.
   ReactComponent props -> Record opts -> ReactComponent props
@@ -44,4 +51,14 @@ title = parentElement _title
 
 menu = parentElement _menu
 
+modal = parentElement _modal
+
 menuItem = childElement _menuItem
+
+divider = childElement _divider
+
+portal = parentElement _portal
+
+subheading = parentElement _subheading
+
+headline = parentElement _headline

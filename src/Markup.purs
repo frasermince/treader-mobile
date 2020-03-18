@@ -10,14 +10,18 @@ import Data.Tuple
 import Record as Record
 import Data.Symbol (SProxy(..))
 import React.Basic.Hooks as H
+import Debug.Trace (spy)
+import Data.Maybe (fromMaybe)
+import Data.Array (head)
+import Data.Foldable (foldl)
 
 newtype Markup a
-  = Markup (Tuple JSX a)
+  = Markup (Tuple (Array JSX) a)
 
 instance semigroupMarkup :: Semigroup a => Semigroup (Markup a) where
   append a b = Markup (Tuple jsx value)
     where
-    jsx = (getJsx a) <> (getJsx b)
+    jsx = (getChildren a) <> (getChildren b)
 
     value = (runMarkup a) <> (runMarkup b)
 
@@ -40,25 +44,25 @@ instance bindMarkup :: Bind (Markup) where
 
 instance monadMarkup :: Monad Markup
 
+getChildren :: forall a. Markup a -> Array JSX
+getChildren (Markup (Tuple jsx a)) = jsx
+
 getJsx :: forall a. Markup a -> JSX
-getJsx (Markup (Tuple jsx a)) = jsx
+getJsx (Markup (Tuple jsx a)) = (foldl (\accum m -> accum <> m) mempty jsx)
 
 runMarkup :: forall a. Markup a -> a
 runMarkup (Markup (Tuple jsx a)) = a
 
-jsx :: JSX -> Markup Unit
+jsx :: Array JSX -> Markup Unit
 jsx j = Markup (Tuple (j) unit)
 
 childrenProxy = SProxy :: SProxy "children"
 
 parent :: forall p. Lacks "children" p => ({ children :: Array JSX | p } -> JSX) -> Record p -> Markup Unit -> Markup Unit
-parent el props kids = jsx $ el $ Record.insert childrenProxy [ getJsx kids ] props
+parent el props kids = jsx [el $ Record.insert childrenProxy (getChildren kids) props]
 
 child :: forall p. (Record p -> JSX) -> Record p -> Markup Unit
-child el props = jsx $ el props
-
-wrappedChild :: forall p m. Functor m => (Record p -> m JSX) -> Record p -> m (Markup Unit)
-wrappedChild el props = jsx <$> el props
+child el props = jsx [el props]
 
 --touchableOpacity :: forall p. Lacks "children" p => Record p -> Markup JSX -> Markup JSX
 touchableOpacity = parent RN.touchableOpacity
@@ -73,7 +77,7 @@ view = parent RN.view
 
 statusBar = child RN.statusBar
 
-string s = jsx $ RN.string s
+string s = jsx [RN.string s]
 
 parentElement component = parent (H.element component)
 

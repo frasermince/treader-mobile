@@ -7,7 +7,7 @@ import { View } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import { ApolloProvider } from '@apollo/react-hooks';
 import apolloClient from './src/ApolloClient';
-import { Button, Snackbar } from 'react-native-paper';
+import { Button, Snackbar, DefaultTheme } from 'react-native-paper';
 
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
@@ -39,7 +39,7 @@ export default App = () => {
   if (client) {
     return (
       <ApolloProvider client={client}>
-        <PaperProvider>
+        <PaperProvider theme={{...DefaultTheme, roundness: 3}}>
           <DataStateContext value={contextValue}>
             <Main/>
           </DataStateContext>

@@ -70,7 +70,9 @@ type Props
     phrase :: Maybe String,
     language :: Maybe String,
     setMorphology :: (Maybe (Object String) -> Maybe (Object String)) -> Effect Unit,
-    setTranslation :: (Maybe Translation -> Maybe Translation) -> Effect Unit
+    setTranslation :: (Maybe Translation -> Maybe Translation) -> Effect Unit,
+    setModalVisible :: (Boolean -> Boolean) -> Effect Unit,
+    removeContent :: Effect Unit
     }
 
 blurTextStyle = {
@@ -129,10 +131,13 @@ runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 runAnimation false fade = timing fade { toValue: 0, duration: 20 }
 
 shouldBlur translation = not $ fromMaybe true (_.isPermitted <$> translation)
-unpermittedBlur navigation =
+unpermittedBlur props =
     blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
-      M.touchableOpacity {style: M.css blurTextStyle, onPress: RNE.capture_ $ runEffectFn2 navigation.navigate "Subscribe" {}} do
+      M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
         M.text {style: M.css {}} $ M.string "You have used your words for the day. Press to subscribe and receive unlimited words"
+  where blurPress = RNE.capture_ do
+          props.removeContent
+          props.setModalVisible \_ -> true
 
 container fade height (Just wordPlacement) children
   | height - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
@@ -161,7 +166,7 @@ buildJsx props = React.do
           M.view {} do
             tappableTranslations mutationFn
             maybeDataMap props.morphology
-       if shouldBlur props.translation then unpermittedBlur navigation else mempty
+       if shouldBlur props.translation then unpermittedBlur props else mempty
   where
   displaySentence = fromMaybe false do
      s <- props.sentence

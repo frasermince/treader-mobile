@@ -1,4 +1,4 @@
-module Subscribe where
+module Foreign.Subscribe where
 
 import Prelude
 import React.Basic.Hooks (ReactComponent)

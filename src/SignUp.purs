@@ -65,7 +65,7 @@ buildJsx props = React.do
             textInput { label: "First Name", onChangeText: changeField setFirstName, value: firstName }
             textInput { label: "Last Name", onChangeText: changeField setLastName, value: lastName }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
-            button { mode: "contained", onPress: RNE.capture_ (press mutate email firstName lastName password client setError) } (M.jsx $ RN.string "Register")
+            button { mode: "contained", onPress: RNE.capture_ (press mutate email firstName lastName password client setError) } $ M.string "Register"
           M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Login" {}} $ M.string "Login"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
