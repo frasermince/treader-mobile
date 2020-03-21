@@ -6,7 +6,6 @@ import Control.Promise (Promise)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff)
 import Effect (Effect)
-import Data.Nullable (toMaybe)
 import Data.Nullable (toMaybe, Nullable)
 import Data.Maybe (Maybe(..))
 

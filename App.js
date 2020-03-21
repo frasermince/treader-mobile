@@ -39,23 +39,23 @@ export default App = () => {
   if (client) {
     return (
       <ApolloProvider client={client}>
-        <PaperProvider theme={{...DefaultTheme, roundness: 3}}>
-          <DataStateContext value={contextValue}>
+        <DataStateContext value={contextValue}>
+          <PaperProvider theme={{...DefaultTheme, roundness: 3}}>
             <Main/>
-          </DataStateContext>
-          <Snackbar
-            visible={errorVisible}
-            onDismiss={() => setErrorVisible(false)}
-            action={{
-              label: 'Close',
-              onPress: () => {
-                // Do something
-              },
-            }}
-          >
-            {error}
-          </Snackbar>
-        </PaperProvider>
+            <Snackbar
+              visible={errorVisible}
+              onDismiss={() => setErrorVisible(false)}
+              action={{
+                label: 'Close',
+                onPress: () => {
+                  // Do something
+                },
+              }}
+            >
+              {error}
+            </Snackbar>
+          </PaperProvider>
+        </DataStateContext>
       </ApolloProvider>
     );
   } else {

@@ -4,15 +4,41 @@ import Prelude
 import React.Basic.Hooks as React
 import Effect.Unsafe (unsafePerformEffect)
 import Paper (surface, title, divider, button, modal, subheading, headline)
-import React.Basic.Hooks (JSX, ReactComponent, component)
+import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext)
 import Markup as M
 import Swiper (swiper)
 import Debug.Trace (spy)
 import React.Basic.Native.Events as RNE
 import Effect (Effect)
 import Icon (icon)
+import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, finishTransactionIOS)
+import Effect.Aff (Aff, launchAff_, try)
+import Effect.Class (liftEffect)
+import Context (dataStateContext, Context)
+import Effect.Console (log)
+import Data.Maybe (Maybe(..), isJust, fromMaybe)
+import Effect.Exception (message)
+import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Data.Array (head)
+import Data.Either (Either(..))
+import ApolloHooks (useMutation, gql, DocumentNode)
+import Data.Nullable (toMaybe, Nullable)
+import Data.String (stripPrefix, Pattern(..))
 
 type Props = {visible :: Boolean, setVisible :: (Boolean -> Boolean) -> Effect Unit}
+
+mutation :: DocumentNode
+mutation =
+  gql
+    """
+mutation updateCurrentUser($input: UserInput!) {
+  update_user(input: $input) {
+    result {token}
+  }
+}
+  """
+
+stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -20,7 +46,34 @@ reactComponent =
     $ do
         component "Reader" $ buildJsx
 
+purchase Nothing _ = mempty
+purchase (Just sku) setError = launchAff_ do
+     result <- try $ requestSubscription sku false
+     case spy "RESULT" result of
+          Left error -> liftEffect $ runEffectFn1 (spy "SET ERROR" setError) $ message error
+          Right resp -> liftEffect $ log $ show resp
+
 buildJsx props = React.do
+  mutationFn /\ result <- useMutation mutation {}
+  { setLoading, setError } <- useContext dataStateContext
+  subscriptionId /\ setSubscriptionId <- useState (Nothing :: Maybe String)
+  useEffect unit do
+     purchaseUpdatedListener $ \p -> do
+        if isJust $ toMaybe p.transactionReceipt then do
+            result <- try $ mutationFn {variables: {input: {receipt: p.transactionReceipt}}}
+            case result of
+                 Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+                 Right r -> do
+                    finishTransactionIOS p.transactionId
+                    liftEffect $ props.setVisible \_ -> false
+        else mempty
+
+     launchAff_ do
+       subs <- getSubscriptions ["io.unchart.monthly"]
+       liftEffect $ setSubscriptionId \_ -> _.productId <$> (head subs)
+       pure unit
+     pure mempty
+
   pure $ M.getJsx do
       let dismiss = props.setVisible \_ -> false
       modal {visible: props.visible, contentContainerStyle: modalStyle, onDismiss: dismiss} do
@@ -36,7 +89,7 @@ buildJsx props = React.do
               subheading {} $ M.string "Upgrade to Premium for"
               M.text {style: priceStyle} $ M.string "$11.99/mo"
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle } $ M.string "CONTINUE"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchase subscriptionId setError} $ M.string "CONTINUE"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
             M.text {style: M.css {color: "white"}} $ M.string "Recurring billing, cancel anytime"
@@ -96,7 +149,7 @@ slideStyle = M.css
 
 mainButtonStyle = M.css
   {
-    marginBottom: 20,
+    marginBottom: 15,
     width: 300,
     height: 40,
     textSize: 50
