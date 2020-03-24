@@ -43,6 +43,7 @@ export default App = () => {
           <PaperProvider theme={{...DefaultTheme, roundness: 3}}>
             <Main/>
             <Snackbar
+              style={{zIndex: 25}}
               visible={errorVisible}
               onDismiss={() => setErrorVisible(false)}
               action={{

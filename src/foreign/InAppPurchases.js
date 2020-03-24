@@ -15,9 +15,8 @@ exports._requestSubscription = function(sku) {
 }
 
 exports._purchaseUpdatedListener = function(fn) {
-  return function () {
-    return module.purchaseUpdatedListener(fn);
-  }
+  console.log("P FN", module.purchaseUpdatedListener);
+  return module.purchaseUpdatedListener(fn);
 }
 
 exports._finishTransactionIOS = function(id) {

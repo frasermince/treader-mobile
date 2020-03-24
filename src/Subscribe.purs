@@ -25,7 +25,7 @@ import ApolloHooks (useMutation, gql, DocumentNode)
 import Data.Nullable (toMaybe, Nullable)
 import Data.String (stripPrefix, Pattern(..))
 
-type Props = {visible :: Boolean, setVisible :: (Boolean -> Boolean) -> Effect Unit}
+type Props = {visible :: Boolean, onDismiss :: Effect Unit}
 
 mutation :: DocumentNode
 mutation =
@@ -33,7 +33,7 @@ mutation =
     """
 mutation updateCurrentUser($input: UserInput!) {
   update_user(input: $input) {
-    result {token}
+    result
   }
 }
   """
@@ -48,7 +48,7 @@ reactComponent =
 
 purchase Nothing _ = mempty
 purchase (Just sku) setError = launchAff_ do
-     result <- try $ requestSubscription sku false
+     result <- try $ (spy "REQUEST" requestSubscription) sku false
      case spy "RESULT" result of
           Left error -> liftEffect $ runEffectFn1 (spy "SET ERROR" setError) $ message error
           Right resp -> liftEffect $ log $ show resp
@@ -59,13 +59,14 @@ buildJsx props = React.do
   subscriptionId /\ setSubscriptionId <- useState (Nothing :: Maybe String)
   useEffect unit do
      purchaseUpdatedListener $ \p -> do
-        if isJust $ toMaybe p.transactionReceipt then do
-            result <- try $ mutationFn {variables: {input: {receipt: p.transactionReceipt}}}
-            case result of
+        if isJust $ toMaybe (spy "RECEIPT" p.transactionReceipt) then do
+            result <- try $ mutationFn $ spy "MUTATION" {variables: {input: {receipt: p.transactionReceipt}}}
+            case spy "MUTATION RESULT" result of
                  Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
                  Right r -> do
+                    liftEffect $ log "FINISH MUTATION"
                     finishTransactionIOS p.transactionId
-                    liftEffect $ props.setVisible \_ -> false
+                    liftEffect $ props.onDismiss
         else mempty
 
      launchAff_ do
@@ -75,7 +76,7 @@ buildJsx props = React.do
      pure mempty
 
   pure $ M.getJsx do
-      let dismiss = props.setVisible \_ -> false
+      let dismiss = props.onDismiss
       modal {visible: props.visible, contentContainerStyle: modalStyle, onDismiss: dismiss} do
           M.view {style: surfaceStyle} do
             M.view {style: benefitsSectionStyle} do

@@ -15,13 +15,14 @@ import Prim.RowList (class RowToList)
 import Type.Proxy (Proxy(..))
 import Data.Eq (class EqRecord)
 import Effect.Uncurried (runEffectFn1)
+import Data.Nullable (toMaybe, Nullable)
 import Debug.Trace (spy)
 
 type Book
   = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
 
 type User
-  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String } }
+  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String } }
 
 userBooksQuery :: DocumentNode
 userBooksQuery =
@@ -34,7 +35,9 @@ query getUser {
     lastName
     email
     isPermitted
+    isSubscribed
     isGuest
+    iosVersion
     books {
       id
       name

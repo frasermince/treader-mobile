@@ -385,7 +385,7 @@ buildJsx props = React.do
     Just { src, origin } ->
       pure $ M.getJsx
         $ do
-            portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, setVisible: setModalVisible}
+            portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
             M.view
               { style: M.css styles.wrapper
               , onLayout: layoutEvent props.setHeight props.setWidth
