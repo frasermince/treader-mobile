@@ -15,12 +15,10 @@ exports._requestSubscription = function(sku) {
 }
 
 exports._purchaseUpdatedListener = function(fn) {
-  console.log("P FN", module.purchaseUpdatedListener);
   return module.purchaseUpdatedListener(fn);
 }
 
 exports._purchaseErrorListener = function(fn) {
-  console.log("ERROR FN", module.purchaseErrorListener);
   return module.purchaseErrorListener(fn);
 }
 

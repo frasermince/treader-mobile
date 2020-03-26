@@ -7,7 +7,6 @@ import Paper (surface, title, divider, button, modal, subheading, headline)
 import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext)
 import Markup as M
 import Swiper (swiper)
-import Debug.Trace (spy)
 import React.Basic.Native.Events as RNE
 import Effect (Effect)
 import Icon (icon)
@@ -53,9 +52,9 @@ purchaseHandler setError = launchAff_ do
 
 purchase Nothing _ = mempty
 purchase (Just sku) setError = do
-     result <- try $ (spy "REQUEST" requestSubscription) sku false
-     case spy "RESULT" result of
-          Left error -> liftEffect $ runEffectFn1 (spy "SET ERROR" setError) $ message error
+     result <- try $ requestSubscription sku false
+     case result of
+          Left error -> liftEffect $ runEffectFn1 setError $ message error
           Right resp -> liftEffect $  (log $ "PURCHASE RESPONSE " <> (show resp))
 
 buildJsx props = React.do
@@ -66,9 +65,9 @@ buildJsx props = React.do
         liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
         liftEffect $ log "LISTENER"
-        if isJust $ toMaybe (spy "RECEIPT" p.transactionReceipt) then do
-            result <- try $ mutationFn $ spy "MUTATION" {variables: {input: {receipt: p.transactionReceipt}}}
-            case spy "MUTATION RESULT" result of
+        if isJust $ toMaybe p.transactionReceipt then do
+            result <- try $ mutationFn $ {variables: {input: {receipt: p.transactionReceipt}}}
+            case result of
                  Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
                  Right r -> do
                     liftEffect $ log "FINISH MUTATION"
