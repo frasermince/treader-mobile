@@ -19,6 +19,12 @@ exports._purchaseUpdatedListener = function(fn) {
   return module.purchaseUpdatedListener(fn);
 }
 
+exports._purchaseErrorListener = function(fn) {
+  console.log("ERROR FN", module.purchaseErrorListener);
+  return module.purchaseErrorListener(fn);
+}
+
+
 exports._finishTransactionIOS = function(id) {
   return function () {
     return module.finishTransactionIOS(id);

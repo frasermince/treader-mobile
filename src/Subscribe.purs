@@ -11,7 +11,7 @@ import Debug.Trace (spy)
 import React.Basic.Native.Events as RNE
 import Effect (Effect)
 import Icon (icon)
-import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, finishTransactionIOS)
+import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransactionIOS)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Context (dataStateContext, Context)
@@ -46,19 +46,26 @@ reactComponent =
     $ do
         component "Reader" $ buildJsx
 
+purchaseHandler setError = launchAff_ do
+  subs <- getSubscriptions ["io.unchart.monthly"]
+  let sku = _.productId <$> (head subs)
+  purchase sku setError
+
 purchase Nothing _ = mempty
-purchase (Just sku) setError = launchAff_ do
+purchase (Just sku) setError = do
      result <- try $ (spy "REQUEST" requestSubscription) sku false
      case spy "RESULT" result of
           Left error -> liftEffect $ runEffectFn1 (spy "SET ERROR" setError) $ message error
-          Right resp -> liftEffect $ log $ show resp
+          Right resp -> liftEffect $  (log $ "PURCHASE RESPONSE " <> (show resp))
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   { setLoading, setError } <- useContext dataStateContext
-  subscriptionId /\ setSubscriptionId <- useState (Nothing :: Maybe String)
   useEffect unit do
+     purchaseErrorListener $ \e -> launchAff_ do
+        liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
+        liftEffect $ log "LISTENER"
         if isJust $ toMaybe (spy "RECEIPT" p.transactionReceipt) then do
             result <- try $ mutationFn $ spy "MUTATION" {variables: {input: {receipt: p.transactionReceipt}}}
             case spy "MUTATION RESULT" result of
@@ -69,10 +76,6 @@ buildJsx props = React.do
                     liftEffect $ props.onDismiss
         else mempty
 
-     launchAff_ do
-       subs <- getSubscriptions ["io.unchart.monthly"]
-       liftEffect $ setSubscriptionId \_ -> _.productId <$> (head $ spy "SUBS" subs)
-       pure unit
      pure mempty
 
   pure $ M.getJsx do
@@ -90,7 +93,7 @@ buildJsx props = React.do
               subheading {} $ M.string "Upgrade to Premium for"
               M.text {style: priceStyle} $ M.string "$11.99/mo"
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchase subscriptionId setError} $ M.string "CONTINUE"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "CONTINUE"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
             M.text {style: M.css {color: "white"}} $ M.string "Recurring billing, cancel anytime"

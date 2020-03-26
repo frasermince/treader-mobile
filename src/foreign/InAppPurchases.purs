@@ -14,6 +14,7 @@ type Product = {productId :: String}
 foreign import _getSubscriptions :: Array String -> Effect (Promise (Nullable (Array Product)))
 foreign import _requestSubscription :: String -> Boolean -> Effect (Promise Unit)
 foreign import _purchaseUpdatedListener :: EffectFn1 (EffectFn1 Purchase Unit) Unit
+foreign import _purchaseErrorListener :: EffectFn1 (EffectFn1 {} Unit) Unit
 foreign import _finishTransactionIOS :: String -> Effect (Promise Unit)
 
 getSubscriptions :: Array String -> Aff (Array Product)
@@ -24,6 +25,9 @@ requestSubscription x y = (liftEffect (_requestSubscription x y) >>= Promise.toA
 
 purchaseUpdatedListener :: (Purchase -> Effect Unit) -> Effect Unit
 purchaseUpdatedListener fn = runEffectFn1 _purchaseUpdatedListener $ mkEffectFn1 fn
+
+purchaseErrorListener :: ({} -> Effect Unit) -> Effect Unit
+purchaseErrorListener fn = runEffectFn1 _purchaseErrorListener $ mkEffectFn1 fn
 
 finishTransactionIOS :: String -> Aff Unit
 finishTransactionIOS x = (liftEffect (_finishTransactionIOS x) >>= Promise.toAff)
