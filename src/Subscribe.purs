@@ -32,7 +32,12 @@ mutation =
     """
 mutation updateCurrentUser($input: UserInput!) {
   update_user(input: $input) {
-    result
+    user {
+      id
+      appleReceipt
+      isSubscribed
+      isPermitted
+    }
   }
 }
   """
