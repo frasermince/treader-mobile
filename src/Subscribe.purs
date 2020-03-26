@@ -58,7 +58,7 @@ buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   subscriptionId /\ setSubscriptionId <- useState (Nothing :: Maybe String)
   useEffect unit do
-     purchaseUpdatedListener $ \p -> do
+     purchaseUpdatedListener $ \p -> launchAff_ do
         if isJust $ toMaybe (spy "RECEIPT" p.transactionReceipt) then do
             result <- try $ mutationFn $ spy "MUTATION" {variables: {input: {receipt: p.transactionReceipt}}}
             case spy "MUTATION RESULT" result of
@@ -71,7 +71,7 @@ buildJsx props = React.do
 
      launchAff_ do
        subs <- getSubscriptions ["io.unchart.monthly"]
-       liftEffect $ setSubscriptionId \_ -> _.productId <$> (head subs)
+       liftEffect $ setSubscriptionId \_ -> _.productId <$> (head $ spy "SUBS" subs)
        pure unit
      pure mempty
 
