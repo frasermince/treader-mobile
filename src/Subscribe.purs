@@ -93,9 +93,10 @@ buildJsx props = React.do
 
             M.view {style: priceSectionStyle} do
               subheading {} $ M.string "Upgrade to Premium for"
+              subheading {style: M.css {marginTop: 40}} $ M.string "30 days free and then"
               M.text {style: priceStyle} $ M.string "$11.99/mo"
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "CONTINUE"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "START FREE TRIAL"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
             M.text {style: M.css {color: "white"}} $ M.string "Recurring billing, cancel anytime"
