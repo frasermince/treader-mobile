@@ -69,13 +69,11 @@ buildJsx props = React.do
      purchaseErrorListener $ \e -> launchAff_ do
         liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
-        liftEffect $ log "LISTENER"
         if isJust $ toMaybe p.transactionReceipt then do
-            result <- try $ mutationFn $ {variables: {input: {receipt: p.transactionReceipt}}}
+            result <- try $ mutationFn $ {variables: {input: {apple_receipt: p.transactionReceipt}}}
             case result of
                  Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
                  Right r -> do
-                    liftEffect $ log "FINISH MUTATION"
                     finishTransactionIOS p.transactionId
                     liftEffect $ props.onDismiss
         else mempty
