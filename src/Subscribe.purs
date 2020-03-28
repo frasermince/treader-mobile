@@ -51,7 +51,7 @@ reactComponent =
         component "Reader" $ buildJsx
 
 purchaseHandler setError = launchAff_ do
-  subs <- getSubscriptions ["io.unchart.monthly"]
+  subs <- getSubscriptions ["io.unchart.sub"]
   let sku = _.productId <$> (head subs)
   purchase sku setError
 
