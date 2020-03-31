@@ -162,7 +162,7 @@ buildJsx props = React.do
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
        scrollView { style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
-          fromMaybe mempty $ (append translationMarker) <$> translationText
+          translationMarker <> fromMaybe translationPlaceholder translationText
           M.view {} do
             tappableTranslations mutationFn
             maybeDataMap props.morphology
@@ -198,6 +198,7 @@ buildJsx props = React.do
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
 
   translationText = (M.text {} <$> M.string <$> _.text <$> props.translation)
+  translationPlaceholder = M.text {} $ M.string ""
 
 maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
