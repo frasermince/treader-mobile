@@ -123,7 +123,7 @@ priceSectionStyle = M.css
 
 bottomViewStyle = M.css
   {
-    justifyContent: "center",
+    marginTop: 20,
     alignItems: "center",
     flex: 1
   }
