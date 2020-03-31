@@ -76,7 +76,7 @@ styles =
   }
 
 type Query
-  = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String } }
+  = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String } }
 
 query =
   gql
@@ -87,11 +87,8 @@ query =
       lastName
       email
     }
-    comments(book: $book, cfirange: "a") {
-      text
-      cfirange
-    }
     book(slug: $book) {
+      id
       epubUrl
       processedEpubUrl
     }
@@ -149,7 +146,7 @@ newtype UseStreamer h
 
 derive instance ntUseStreamer :: Newtype (UseStreamer h) _
 
-useStreamer :: ((Boolean -> Boolean) -> Effect Unit) -> (Effect Unit) -> String -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String })
+useStreamer :: ((Boolean -> Boolean) -> Effect Unit) -> (Effect Unit) -> String -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String, bookId :: String })
 useStreamer setLoaded toggleBars book =
   coerceHook
     $ React.do
@@ -169,9 +166,11 @@ useStreamer setLoaded toggleBars book =
         --pure $ streamerResult (Just {book: {epubUrl: toNullable $ Just $ "https://s3.amazonaws.com/epubjs/books/moby-dick.epub", processedEpubUrl: null}}) src origin
         pure $ streamerResult result src origin
   where
-  streamerResult d src origin = (bookUrl >>> streamerRecord src origin) <$> d
+  streamerResult d src origin = do
+     bookResult <- d
+     pure $ streamerRecord src origin (bookUrl bookResult) bookResult.book.id
 
-  streamerRecord = { src: _, origin: _, url: _ }
+  streamerRecord = { src: _, origin: _, url: _, bookId: _}
 
   bookUrl = _.book >>> findUrl
 
@@ -195,14 +194,14 @@ mutation =
   gql
     """
   mutation translateMutation($input: TranslateInput!) {
-    translate(input: $input) {
+    translateWithContext(input: $input) {
       translation
       is_permitted
     }
   }
 """
 
-useRenditionData showBars setShowBars visibleLocation = React.do
+useRenditionData showBars setShowBars visibleLocation bookId = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe BottomContent.Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
@@ -225,7 +224,8 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       }
   useEffect highlightedContent
     $ do
-        launchAff_ $ mutateAndChangeState mutationFn highlightedContent language setShowBars setTranslation setSelected
+        let payload = makePayload highlightedContent language phrase sentence bookId
+        launchAff_ $ mutateAndChangeState mutationFn payload setShowBars setTranslation setSelected
         pure mempty
   pure
     $ ref
@@ -241,18 +241,29 @@ useRenditionData showBars setShowBars visibleLocation = React.do
       , chapterTitle
       }
   where
-  mutateAndChangeState mutationFn (Just highlightedContent) (Just language) setShowBars setTranslation setSelected = do
-    let
-      payload = { variables: { input: { snippet: highlightedContent.text, language: language } } }
+  makePayload (Just highlightedContent) (Just language) (Just phrase) (Just sentence) (Just bookId) = Just {
+    variables: {
+      input: {
+        snippet: highlightedContent.text,
+        language: language,
+        phrase: phrase,
+        sentence: sentence,
+        bookId: bookId
+      }
+    }
+  }
+
+  makePayload _ _ _ _ _ = Nothing
+  mutateAndChangeState mutationFn (Just payload) setShowBars setTranslation setSelected = do
     liftEffect $ setSelected \_ -> true
     result <- try $ mutationFn payload
     case result of
       Left err -> pure unit
       Right r -> do
         liftEffect $ setShowBars \_ -> false
-        liftEffect $ setTranslation \_ -> Just {text: r.translate.translation, isPermitted: r.translate.is_permitted}
+        liftEffect $ setTranslation \_ -> Just {text: r.translateWithContext.translation, isPermitted: r.translateWithContext.is_permitted}
 
-  mutateAndChangeState _ _ _ _ setTranslation _ = do
+  mutateAndChangeState _ _ _ setTranslation _ = do
     liftEffect $ setTranslation \_ -> Nothing
 
 layoutEvent setHeight setWidth = mkEffectFn1 e
@@ -352,6 +363,9 @@ setTheme highlightVerbs highlightNouns highlightAdjectives = build (adjectives $
     defaultTheme
       >>> modify adjKey (\_ -> colors.none)
 
+getBookId result = do
+  r <- result
+  pure $ r.bookId
 buildJsx props = React.do
   loaded /\ setLoaded <- useState false
   flow /\ setFlow <- useState "paginated"
@@ -368,7 +382,7 @@ buildJsx props = React.do
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
   streamResult <- useStreamer setLoaded props.toggleBars $ props.slug
-  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation
+  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation (getBookId streamResult)
   useEffect props.slug do
      setLoaded \_ -> false
      snd stateChangeListeners.highlightedContent $ \_ -> Nothing
