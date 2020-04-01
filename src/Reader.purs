@@ -241,13 +241,13 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
       , chapterTitle
       }
   where
-  makePayload (Just highlightedContent) (Just language) (Just phrase) (Just sentence) (Just bookId) = Just {
+  makePayload (Just highlightedContent) (Just language) phrase sentence (Just bookId) = Just {
     variables: {
       input: {
         snippet: highlightedContent.text,
         language: language,
-        phrase: phrase,
-        sentence: sentence,
+        phrase: toNullable phrase,
+        sentence: toNullable sentence,
         bookId: bookId
       }
     }
