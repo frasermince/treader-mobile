@@ -60,7 +60,7 @@ purchase (Just sku) setError = do
      result <- try $ requestSubscription sku false
      case result of
           Left error -> liftEffect $ runEffectFn1 setError $ message error
-          Right resp -> liftEffect $  (log $ "PURCHASE RESPONSE " <> (show resp))
+          Right resp -> liftEffect $ (log $ "PURCHASE RESPONSE " <> (show resp))
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}

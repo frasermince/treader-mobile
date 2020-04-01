@@ -18,6 +18,11 @@ import ApolloHooks (useMutation, gql, DocumentNode, useApolloClient)
 import QueryHooks (useUserBooks)
 import Data.Nullable (toMaybe, Nullable)
 import Subscribe as Subscribe
+import Data.DateTime.Instant (instant, toDateTime)
+import Data.Time.Duration (Milliseconds(..)) as Duration
+import Data.DateTime (date, month, day, year)
+import Data.Formatter.DateTime (format, FormatterCommand(..))
+import Data.List (List(..), (:))
 
 type Props = {}
 
@@ -42,7 +47,16 @@ logout client = launchAff_ do
   _ <- removeItem "treader-session"
   liftEffect $ traverse_ _.resetStore client
 
-subscription true (Just subscriptionEndDate) _ = listItem {title: RN.string "Manage My Subscription", description: RN.string $ "1 Month Unchart Premium Membership. Cycle ends on " <> subscriptionEndDate , right: chevron}
+subscription true (Just subscriptionEndDate) _ = listItem {
+  title: RN.string "Manage My Subscription",
+  description: description subscriptionDate,
+  right: chevron
+}
+  where description (Just d) = RN.string $ "1 Month Unchart Premium Membership. Cycle ends on " <> format (MonthFull : (Placeholder " ") : DayOfMonth : Nil) d
+        description Nothing = mempty
+        subscriptionDate = do
+          inst <- instant $ Duration.Milliseconds $ subscriptionEndDate * 1000.0
+          pure $ toDateTime $ inst
 
 subscription true Nothing _ = listItem {title: RN.string "Manage My Subscription", right: chevron}
 subscription false _ setModalVisible = listItem {title: RN.string "Upgrade Now", right: chevron, onPress: RNE.capture_ $ setModalVisible \_ -> true}

@@ -22,7 +22,7 @@ type Book
   = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
 
 type User
-  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String, subscriptionEndDate :: Nullable String } }
+  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String, subscriptionEndDate :: Nullable Number } }
 
 userBooksQuery :: DocumentNode
 userBooksQuery =
