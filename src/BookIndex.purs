@@ -71,6 +71,7 @@ buildJsx props = React.do
   dom d files = React.do
     pure $ M.getJsx
       $ M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-          surface { style: M.css { flex: 1 } } do
-            listSection {} do
-              foldl (item files) mempty d.currentUser.books
+         surface { style: M.css { flex: 1 } } do
+            M.scrollView {style: M.css { flex: 1}} do
+              listSection {} do
+                foldl (item files) mempty d.currentUser.books

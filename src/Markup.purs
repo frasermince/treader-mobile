@@ -70,6 +70,8 @@ touchableOpacity = parent RN.touchableOpacity
 --text :: forall p. Lacks "children" p => Record p -> Markup JSX -> Markup JSX
 text = parent RN.text
 
+scrollView = parent RN.scrollView
+
 safeAreaView = parent RN.safeAreaView
 
 --view :: forall p. Lacks "children" p => Record p -> Markup -> Markup
