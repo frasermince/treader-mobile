@@ -23,6 +23,7 @@ import Data.Time.Duration (Milliseconds(..)) as Duration
 import Data.DateTime (date, month, day, year)
 import Data.Formatter.DateTime (format, FormatterCommand(..))
 import Data.List (List(..), (:))
+import Linking (openUrl, canOpenUrl)
 
 type Props = {}
 
@@ -47,10 +48,13 @@ logout client = launchAff_ do
   _ <- removeItem "treader-session"
   liftEffect $ traverse_ _.resetStore client
 
+openSubscriptionPage = if canOpenUrl "https://apps.apple.com/account/subscriptions" then openUrl "https://apps.apple.com/account/subscriptions" else mempty
+
 subscription true (Just subscriptionEndDate) _ = listItem {
   title: RN.string "Manage My Subscription",
   description: description subscriptionDate,
-  right: chevron
+  right: chevron,
+  onPress: RNE.capture_ openSubscriptionPage
 }
   where description (Just d) = RN.string $ "1 Month Unchart Premium Membership. Cycle ends on " <> format (MonthFull : (Placeholder " ") : DayOfMonth : Nil) d
         description Nothing = mempty
@@ -58,7 +62,7 @@ subscription true (Just subscriptionEndDate) _ = listItem {
           inst <- instant $ Duration.Milliseconds $ subscriptionEndDate * 1000.0
           pure $ toDateTime $ inst
 
-subscription true Nothing _ = listItem {title: RN.string "Manage My Subscription", right: chevron}
+subscription true Nothing _ = listItem {title: RN.string "Manage My Subscription", right: chevron, onPress: RNE.capture_ $ openSubscriptionPage}
 subscription false _ setModalVisible = listItem {title: RN.string "Upgrade Now", right: chevron, onPress: RNE.capture_ $ setModalVisible \_ -> true}
 
 jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
