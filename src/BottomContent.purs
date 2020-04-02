@@ -8,7 +8,7 @@ import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\
 import Effect.Class (liftEffect)
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
-import Animated (scrollView, timing, value)
+import Animated (scrollView, timing, value, getNode, scrollTo)
 import Effect.Unsafe (unsafePerformEffect)
 import Record as Record
 import Platform as Platform
@@ -37,6 +37,8 @@ import Data.String (length)
 import Blur (blurView)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Navigation (useNavigation)
+import Data.Nullable (Nullable, toMaybe, toNullable, null)
+import Data.Traversable (traverse_)
 
 type Translation = {text :: String, isPermitted :: Boolean}
 mapValue :: String -> String -> String
@@ -149,9 +151,12 @@ buildJsx props = React.do
   navigation <- useNavigation
   mutationFn /\ result <- useMutation mutation {}
   fade /\ setFade <- useState $ value 1
+  ref <- useRef null
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
 
   useEffect props.wordPlacement do
+     result <- readRefMaybe ref
+     traverse_ (\s -> scrollTo (getNode s) 0) result
      launchAff_ $ do
         runAnimation visible fade
         liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
@@ -161,7 +166,7 @@ buildJsx props = React.do
      pure mempty
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
-       scrollView { style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
+       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
           translationMarker <> fromMaybe translationPlaceholder translationText
           M.view {} do
             tappableTranslations mutationFn

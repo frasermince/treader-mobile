@@ -23,3 +23,15 @@ exports._timing = function(animation) {
 }
 exports._view = native.Animated.View
 exports._scrollView = native.Animated.ScrollView
+
+exports.getNode = function (component) {
+  return component.getNode();
+}
+
+exports.scrollTo = function (node, position) {
+  return function (position) {
+    return function () {
+      return node.scrollTo({x: position});
+    }
+  }
+}
