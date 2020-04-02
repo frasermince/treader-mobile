@@ -65,6 +65,9 @@ subscription true (Just subscriptionEndDate) _ = listItem {
 subscription true Nothing _ = listItem {title: RN.string "Manage My Subscription", right: chevron, onPress: RNE.capture_ $ openSubscriptionPage}
 subscription false _ setModalVisible = listItem {title: RN.string "Upgrade Now", right: chevron, onPress: RNE.capture_ $ setModalVisible \_ -> true}
 
+openPrivacyPolicy = openUrl "https://app.unchart.io/privacy-policy"
+openTermsOfUse = openUrl "http://www.apple.com/legal/itunes/appstore/dev/stdeula"
+
 jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
   portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
   M.view {style: containerStyle} do
@@ -72,6 +75,10 @@ jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
     divider {style: M.css {height: 1, width: "100%"}}
     listSection {style: M.css {width: "100%"}} do
       subscription d.currentUser.isSubscribed (toMaybe d.currentUser.subscriptionEndDate) setModalVisible
+      divider {style: M.css {height: 1, width: "100%"}}
+      listItem {title: RN.string "Privacy Policy", onPress: RNE.capture_ $ openPrivacyPolicy, right: chevron}
+      divider {style: M.css {height: 1, width: "100%"}}
+      listItem {title: RN.string "Terms Of Use", onPress: RNE.capture_ $ openTermsOfUse, right: chevron}
       divider {style: M.css {height: 1, width: "100%"}}
       listItem {title: RN.string "Signout", right: signoutIcon, onPress: RNE.capture_ $ logout client}
     divider {style: M.css {height: 1, width: "100%"}}
