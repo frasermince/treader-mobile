@@ -713,7 +713,7 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-Unchart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
@@ -735,7 +735,7 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-Unchart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
