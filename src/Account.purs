@@ -67,6 +67,7 @@ subscription false _ setModalVisible = listItem {title: RN.string "Upgrade Now",
 
 openPrivacyPolicy = openUrl "https://app.unchart.io/privacy-policy"
 openTermsOfUse = openUrl "http://www.apple.com/legal/itunes/appstore/dev/stdeula"
+openContact = openUrl "mailto:fraser@unchart.io"
 
 jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
   portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
@@ -79,6 +80,9 @@ jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
       listItem {title: RN.string "Privacy Policy", onPress: RNE.capture_ $ openPrivacyPolicy, right: chevron}
       divider {style: M.css {height: 1, width: "100%"}}
       listItem {title: RN.string "Terms Of Use", onPress: RNE.capture_ $ openTermsOfUse, right: chevron}
+      divider {style: M.css {height: 1, width: "100%"}}
+      listItem {title: RN.string "Contact Us", onPress: RNE.capture_ $ openContact, right: chevron}
+
       divider {style: M.css {height: 1, width: "100%"}}
       listItem {title: RN.string "Signout", right: signoutIcon, onPress: RNE.capture_ $ logout client}
     divider {style: M.css {height: 1, width: "100%"}}
