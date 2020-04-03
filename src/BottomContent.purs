@@ -166,9 +166,9 @@ buildJsx props = React.do
      pure mempty
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
-       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20}, contentContainerStyle: M.css {flexGrow: 1} } do
+       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20, paddingTop: 20 }, contentContainerStyle: M.css {flexGrow: 1} } do
           translationMarker <> fromMaybe translationPlaceholder translationText
-          M.view {} do
+          M.view {style: M.css {paddingBottom: 40}} do
             tappableTranslations mutationFn
             maybeDataMap props.morphology
        if shouldBlur props.translation then unpermittedBlur props else mempty
