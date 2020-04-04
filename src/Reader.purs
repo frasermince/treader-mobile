@@ -36,6 +36,8 @@ import AppState (useAppState)
 import Navigation (useFocusEffect)
 import Subscribe as Subscribe
 import Paper (portal)
+import ComponentTypes
+
 
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
@@ -203,17 +205,16 @@ mutation =
 
 useRenditionData showBars setShowBars visibleLocation bookId = React.do
   mutationFn /\ result <- useMutation mutation {}
-  translation /\ setTranslation <- useState $ (Nothing :: Maybe BottomContent.Translation)
+  translation /\ setTranslation <- useState $ (Nothing :: Maybe Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   selected /\ setSelected <- useState false
-  sentence /\ setSentence <- useState $ (Nothing :: Maybe String)
-  phrase /\ setPhrase <- useState $ (Nothing :: Maybe String)
-  surrounding /\ setSurrounding <- useState $ (Nothing :: Maybe String)
+  context /\ setContext <- useState $ (Nothing :: Maybe Context)
   epubcfi <- useState $ (Nothing :: Maybe String)
   morphology /\ setMorphology <- useState $ (Nothing :: Maybe (Object String))
   language /\ setLanguage <- useState $ (Nothing :: Maybe String)
   chapterTitle <- useState $ (Nothing :: Maybe String)
   ref <- useRef null
+
   useAppState
     $ { onForeground:
         do
@@ -224,7 +225,7 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
       }
   useEffect highlightedContent
     $ do
-        let payload = makePayload highlightedContent language phrase sentence bookId
+        let payload = makePayload highlightedContent language (spy "***CONTEXT" context) bookId
         launchAff_ $ mutateAndChangeState mutationFn payload setShowBars setTranslation setSelected
         pure mempty
   pure
@@ -234,26 +235,26 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
       , epubcfi
       , morphology: morphology /\ setMorphology
       , language: language /\ setLanguage
-      , sentence: sentence /\ setSentence
-      , phrase: phrase /\ setPhrase
-      , surrounding: surrounding /\ setSurrounding
+      , context: context /\ setContext
       , selected: selected /\ setSelected
       , chapterTitle
       }
   where
-  makePayload (Just highlightedContent) (Just language) phrase sentence (Just bookId) = Just {
+  makePayload (Just highlightedContent) (Just language) (Just context) (Just bookId) = Just {
     variables: {
       input: {
         snippet: highlightedContent.text,
         language: language,
-        phrase: toNullable phrase,
-        sentence: toNullable sentence,
+        phrase: toNullable $ context.phrase,
+        sentence: toNullable $ context.sentence,
+        phraseOffset: toNullable $ context.phraseOffset,
+        sentenceOffset: toNullable $ context.sentenceOffset,
         bookId: bookId
       }
     }
   }
 
-  makePayload _ _ _ _ _ = Nothing
+  makePayload _ _ _ _ = Nothing
   mutateAndChangeState mutationFn (Just payload) setShowBars setTranslation setSelected = do
     liftEffect $ setSelected \_ -> true
     result <- try $ mutationFn payload
@@ -432,9 +433,7 @@ buildJsx props = React.do
               , morphology: (fst stateChangeListeners.morphology)
               , wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)
               , removeContent: (snd stateChangeListeners.highlightedContent $ \_ -> Nothing)
-              , sentence: (fst stateChangeListeners.sentence)
-              , phrase: (fst stateChangeListeners.phrase)
-              , surrounding: (fst stateChangeListeners.surrounding)
+              , context: (fst stateChangeListeners.context)
               , language: (fst stateChangeListeners.language)
               , setMorphology: (snd stateChangeListeners.morphology)
               , setTranslation: (snd stateChangeListeners.translation)

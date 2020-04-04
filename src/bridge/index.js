@@ -46,6 +46,8 @@ import tokenizer from 'sbd';
 
   function getSentence(range) {
     let paragraphRange = new Range();
+    let sentenceOffset = 0;
+    let phraseOffset = 0;
     paragraphRange.setStart(range.startContainer.parentElement, 0);
     paragraphRange.setEnd(range.startContainer, 0);
     let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent, {"sanitize": true})
@@ -55,6 +57,7 @@ import tokenizer from 'sbd';
       // + 1 for the space that has been removed
       let total = characterIteration + sentence.length + 1
       if (total > sentenceCharacters) {
+        sentenceOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
         characterIteration = total;
@@ -63,6 +66,7 @@ import tokenizer from 'sbd';
     let phrases = sentence.split(/(,|;|–)/g);
     let phrase = phrases.find((phrase) => {
       if (characterIteration + phrase.length > sentenceCharacters) {
+        phraseOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
         characterIteration += phrase.length;
@@ -74,7 +78,7 @@ import tokenizer from 'sbd';
     multiRange = getNextWord(multiRange, false);
     multiRange = getNextWord(multiRange, false);
     let surrounding = multiRange.toString()
-    return {sentence, phrase, surrounding};
+    return {sentence, phrase, surrounding, sentenceOffset, phraseOffset};
   }
 
   function getWordRange(e) {
@@ -176,20 +180,14 @@ import tokenizer from 'sbd';
     return language;
   }
 
-  function setWordInformation(highlightedContent, sentence, phrase, surrounding, epubcfi, morphology, fromTop) {
+  function setWordInformation(highlightedContent, context, epubcfi, morphology, fromTop) {
     if (highlightedContent && fromTop) {
       sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
     } else {
       sendMessage({method:"set", key: "highlightedContent", value: null});
     }
-    if (sentence) {
-      sendMessage({method:"set", key: "sentence", value: sentence});
-    }
-    if (phrase) {
-      sendMessage({method:"set", key: "phrase", value: phrase});
-    }
-    if (surrounding) {
-      sendMessage({method:"set", key: "surrounding", value: surrounding});
+    if (context) {
+      sendMessage({method:"set", key: "context", jsonValue: JSON.stringify(context)});
     }
     sendMessage({method:"set", key: "epubcfi", value: epubcfi});
     sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
@@ -444,11 +442,11 @@ import tokenizer from 'sbd';
       
       rendition.hooks.content.register(function(contents, rendition) {
         window.contents = contents;
-        contents.triggerSelectedEvent = function(cfi, range, sentence, phrase, surrounding){
+        contents.triggerSelectedEvent = function(cfi, range, context){
           if(cfi) {
             this.previouslySelected = true;
             // cfirange = this.section.cfiFromRange(range);
-            this.emit("selected", {cfi, range, sentence, phrase, surrounding});
+            this.emit("selected", {cfi, range, context});
             //this.emit("selectedRange", range);
           } else if (this.previouslySelected) {
             this.previouslySelected = false;
@@ -457,7 +455,7 @@ import tokenizer from 'sbd';
         }
 
         contents.on("deselected", function() {
-          setWordInformation(null, null, null, null, null, null, null);
+          setWordInformation(null, null, null, null, null);
           sendMessage({method:"set", key: "translation", value: null});
           let svg = document.getElementById("select-box");
           svg.style.visibility = "hidden";
@@ -521,7 +519,7 @@ import tokenizer from 'sbd';
 
         function touchMoveHandler(e) {
           let svg = document.getElementById("select-box");
-          setWordInformation(null, null, null, null, null, null, null);
+          setWordInformation(null, null, null, null, null);
           range = document.createRange();
           svg.style.visibility = "hidden";
           currentPosition.x = e.targetTouches[0].pageX;
@@ -584,12 +582,12 @@ import tokenizer from 'sbd';
             }
             */
             if (range) {
-              let {sentence, phrase, surrounding} = getSentence(range);
+              let context = getSentence(range);
               cfi = contents.cfiFromRange(range);
-              contents.triggerSelectedEvent(cfi, range, sentence, phrase, surrounding);
+              contents.triggerSelectedEvent(cfi, range, context);
             } else {
               range = document.createRange();
-              contents.triggerSelectedEvent(null, null, null, null, null);
+              contents.triggerSelectedEvent(null, null, null);
               cfi = contents.cfiFromNode(target).toString();
 
               if(isLongPress) {
@@ -648,7 +646,7 @@ import tokenizer from 'sbd';
         sendMessageWithoutCache({method:"relocated", location: location});
       });
 
-      rendition.on("selected", function({cfi, range, sentence, phrase, surrounding}, contents, t) {
+      rendition.on("selected", function({cfi, range, context}, contents, t) {
         let span = range.startContainer;
         let text = range.toString();
         let svg = document.getElementById("select-box");
@@ -659,9 +657,9 @@ import tokenizer from 'sbd';
         svg.style.top = range.getBoundingClientRect().y;
         svg.style.visibility = "visible";
         if (span && span.tagName.toLowerCase() == 'span' ) {
-          setWordInformation(text, sentence, phrase, surrounding, range, span.dataset, range.getBoundingClientRect().top);
+          setWordInformation(text, context, range, span.dataset, range.getBoundingClientRect().top);
         } else {
-          setWordInformation(text, sentence, phrase, surrounding, range, null, range.getBoundingClientRect().top);
+          setWordInformation(text, context, range, null, range.getBoundingClientRect().top);
         }
       });
 

@@ -39,8 +39,8 @@ import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Navigation (useNavigation)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Traversable (traverse_)
+import ComponentTypes
 
-type Translation = {text :: String, isPermitted :: Boolean}
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
 
@@ -67,9 +67,7 @@ type Props
     translation :: Maybe {text :: String, isPermitted :: Boolean},
     morphology :: Maybe (Object String),
     wordPlacement :: Maybe Number,
-    surrounding :: Maybe String,
-    sentence :: Maybe String,
-    phrase :: Maybe String,
+    context :: Maybe Context,
     language :: Maybe String,
     setMorphology :: (Maybe (Object String) -> Maybe (Object String)) -> Effect Unit,
     setTranslation :: (Maybe Translation -> Maybe Translation) -> Effect Unit,
@@ -174,28 +172,49 @@ buildJsx props = React.do
        if shouldBlur props.translation then unpermittedBlur props else mempty
   where
   displaySentence = fromMaybe false do
-     s <- props.sentence
+     context <- props.context
+     s <- context.sentence
      pure $ (length s) < 400
   displayPhrase = fromMaybe false do
-     p <- props.phrase
-     surrounding <- props.surrounding
-     sentence <- props.sentence
+     context <- props.context
+     p <- context.phrase
+     surrounding <- context.surrounding
+     sentence <- context.sentence
      pure $ (length sentence - length p > 25) && length p < 400
 
   displaySurrounding = fromMaybe false do
-     p <- props.phrase
-     s <- props.surrounding
+     context <- props.context
+     p <- context.phrase
+     s <- context.surrounding
      let delta = (length p) - (length s)
      pure $ delta > 20 || delta < -20
+
+  phraseOffset = do
+     context <- props.context
+     context.sentenceOffset
+
+  sentenceOffset = do
+     context <- props.context
+     context.sentenceOffset
+  sentence = do
+     context <- props.context
+     context.sentence
+  phrase = do
+     context <- props.context
+     context.phrase
+  surrounding = do
+     context <- props.context
+     context.surrounding
+
   tappableTranslations mutationFn = do
-     if props.sentence == props.phrase || displaySurrounding
-       then M.childElement TranslatableOnPress.reactComponent {snippet: props.surrounding, labelText: "Adjacent", mutationFn: mutationFn, language: props.language}
+     if sentence == phrase || displaySurrounding
+       then M.childElement TranslatableOnPress.reactComponent {snippet: surrounding, labelText: "Adjacent", mutationFn: mutationFn, language: props.language}
        else mempty
-     if props.sentence /= props.phrase && displayPhrase
-       then M.childElement TranslatableOnPress.reactComponent {snippet: props.phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
+     if sentence /= phrase && displayPhrase
+       then M.childElement TranslatableOnPress.reactComponent {snippet: phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
        else mempty
      if displaySentence && not (displayPhrase && displaySurrounding)
-       then M.childElement TranslatableOnPress.reactComponent {snippet: props.sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
+       then M.childElement TranslatableOnPress.reactComponent {snippet: sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
        else mempty
 
   visible = isJust props.wordPlacement
