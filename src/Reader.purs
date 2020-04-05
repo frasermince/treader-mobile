@@ -223,10 +223,11 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
           setHighlightedContent \_ -> Nothing
           setShowBars \_ -> false
       }
-  useEffect highlightedContent
+  useEffect context
     $ do
-        let payload = makePayload highlightedContent language (spy "***CONTEXT" context) bookId
-        launchAff_ $ mutateAndChangeState mutationFn payload setShowBars setTranslation setSelected
+        launchAff_ do
+           let payload = makePayload highlightedContent language context bookId
+           mutateAndChangeState mutationFn payload setShowBars setTranslation setSelected
         pure mempty
   pure
     $ ref
