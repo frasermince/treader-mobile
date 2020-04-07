@@ -19,6 +19,7 @@ import TabNavigator (tabNavigator)
 import AuthenticationNavigator (authenticationNavigator)
 import Data.Nullable (toMaybe, Nullable)
 import Subscribe as Subscribe
+import Introduction as Introduction
 import SignIn as SignIn
 import Paper (portal)
 import Effect.Aff (Aff, launchAff_, try)
@@ -37,13 +38,17 @@ mutation updateCurrentUser($input: UserInput!) {
       id
       isSubscribed
       isPermitted
-      iosVersion
+      showPayment
     }
   }
 }
   """
 
-dismiss mutationFn = launchAff_ $ mutationFn {variables: {input: {ios_version: "1.3.0"}}}
+dismiss mutationFn = launchAff_ $ mutationFn {variables: {input: {showPayment: false}}}
+
+isCurrentVersion d = fromMaybe false $ do
+  v <- toMaybe d.currentUser.iosVersion
+  pure $ v == "1.3.4"
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -59,6 +64,7 @@ buildJsx props = React.do
 authOrApp :: Effect Unit -> User -> M.Markup Unit
 authOrApp onDismiss d
   | d.currentUser.isGuest = authenticationNavigator {}
-  | (isNothing $ toMaybe d.currentUser.iosVersion) && not d.currentUser.isSubscribed =
+  | (fromMaybe true $ toMaybe d.currentUser.showPayment) && not d.currentUser.isSubscribed =
       portal {} $ M.childElement Subscribe.reactComponent {visible: true, onDismiss: onDismiss}
+  | not $ isCurrentVersion d = M.childElement Introduction.reactComponent {}
   | otherwise = tabNavigator {}

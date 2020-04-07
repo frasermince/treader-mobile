@@ -48,7 +48,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Reader" $ buildJsx
+        component "Subscribe" $ buildJsx
 
 purchaseHandler setError = launchAff_ do
   subs <- getSubscriptions ["io.unchart.sub"]
