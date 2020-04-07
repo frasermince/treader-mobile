@@ -72,6 +72,8 @@ text = parent RN.text
 
 scrollView = parent RN.scrollView
 
+flatlist = parent RN.flatlist
+
 safeAreaView = parent RN.safeAreaView
 
 --view :: forall p. Lacks "children" p => Record p -> Markup -> Markup
