@@ -4,6 +4,7 @@ const { InMemoryCache } = require('apollo-cache-inmemory')
 import { createLink } from "apollo-absinthe-upload-link";
 import { AsyncStorage } from 'react-native'
 import { persistCache } from 'apollo-cache-persist';
+import Config from "react-native-config";
 import env from '../env'
 
 const authLink = setContext(async function(_, { headers }) {
@@ -27,7 +28,7 @@ export default client = async function() {
     cache: cache,
     link: authLink.concat(createLink(
       {
-        uri: env.graphqlHost,
+        uri: Config.GRAPHQL_HOST,
       }
     )),
   });
