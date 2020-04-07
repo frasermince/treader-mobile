@@ -1,3 +1,3 @@
-var native = require('react-native');
+var fastImage = require('react-native-fast-image');
 
-exports._image = native.Image;
+exports._image = fastImage.default;
