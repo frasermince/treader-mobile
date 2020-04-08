@@ -1,2 +1,2 @@
 var Config = require('react-native-config');
-exports.config = Config;
+exports.config = Config.default;
