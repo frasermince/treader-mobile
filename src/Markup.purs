@@ -72,7 +72,7 @@ text = parent RN.text
 
 scrollView = parent RN.scrollView
 
-flatlist = parent RN.flatlist
+flatList = child RN.flatList
 
 safeAreaView = parent RN.safeAreaView
 
