@@ -40,7 +40,7 @@ buildJsx props = React.do
           liftEffect $ setFiles \_ -> Just files
     pure mempty
   queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
-  case queryResult of
+  case queryResult.state of
     Nothing -> pure mempty
     Just d -> dom d files
   where

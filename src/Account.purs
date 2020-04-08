@@ -36,9 +36,9 @@ reactComponent =
 
 buildJsx props = React.do
   client <- useApolloClient
-  maybeResult <- useUserBooks {}
+  result <- useUserBooks {}
   modalVisible <- useState false
-  pure $ M.getJsx $ jsxFromUser maybeResult client modalVisible
+  pure $ M.getJsx $ jsxFromUser result.state client modalVisible
 
 signoutIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "logout" }
 

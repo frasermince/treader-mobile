@@ -158,7 +158,7 @@ useStreamer setLoaded toggleBars book =
         let
           streamer = createStreamer
         let
-          maybeUrl = bookUrl <$> result
+          maybeUrl = bookUrl <$> result.state
         let
           affFn = \url -> launchAff_ $ (streamerAff toggleBars streamer setOrigin setSrc url)
         useEffect maybeUrl
@@ -166,7 +166,7 @@ useStreamer setLoaded toggleBars book =
               traverse_ affFn maybeUrl
               pure $ killStream streamer
         --pure $ streamerResult (Just {book: {epubUrl: toNullable $ Just $ "https://s3.amazonaws.com/epubjs/books/moby-dick.epub", processedEpubUrl: null}}) src origin
-        pure $ streamerResult result src origin
+        pure $ streamerResult result.state src origin
   where
   streamerResult d src origin = do
      bookResult <- d

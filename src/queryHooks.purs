@@ -7,7 +7,7 @@ import React.Basic.Hooks as React
 import React.Basic.Hooks (useContext, useEffect, Hook, UseEffect, UseContext, JSX, coerceHook)
 import Data.Newtype (class Newtype)
 import Data.Either (Either(..))
-import ApolloHooks (useQuery, gql, QueryState(..), DocumentNode)
+import ApolloHooks (useQuery, gql, QueryState(..), DocumentNode, QueryResult)
 import Context (dataStateContext, Context)
 import Data.Maybe (Maybe(..))
 import Type.Row (RProxy)
@@ -54,10 +54,11 @@ useUserBooks opts = useData (Proxy :: Proxy User) userBooksQuery opts
 newtype UseData (d :: Type) hooks
   = UseData (UseEffect (QueryState d) (UseContext Context (UseEffect Unit hooks)))
 
+type DataResult r = {state :: Maybe r, refetch :: {} -> Effect Unit, networkStatus :: Int}
 derive instance ntUseData :: Newtype (UseData d hooks) _
 
 class Queryable (recordType :: # Type) where
-  useData :: forall opts. Proxy (Record recordType) -> DocumentNode -> Record opts -> Hook (UseData (Record recordType)) (Maybe (Record recordType))
+  useData :: forall opts. Proxy (Record recordType) -> DocumentNode -> Record opts -> Hook (UseData (Record recordType)) (DataResult (Record recordType))
 
 instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a) where
   useData _ query options =
@@ -65,11 +66,11 @@ instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a)
       $ React.do
           result <- useQuery query options
           { setLoading, setError } <- useContext dataStateContext
-          useEffect result
+          useEffect result.state
             $ do
-                dataEffect (runEffectFn1 setLoading) (runEffectFn1 setError) result
+                dataEffect (runEffectFn1 setLoading) (runEffectFn1 setError) result.state
                 pure $ mempty
-          pure $ fetchData result
+          pure {state: fetchData result.state, refetch: result.refetch, networkStatus: result.networkStatus }
 
 dataEffect :: forall d. ((Boolean -> Boolean) -> Effect Unit) -> (String -> Effect Unit) -> QueryState (Record d) -> Effect Unit
 dataEffect setLoading setError (Data _) = pure unit
