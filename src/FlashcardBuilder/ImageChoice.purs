@@ -80,8 +80,8 @@ buildJsx props = React.do
            M.text {style: M.css{marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
            divider {style: M.css {height: 1, width: "100%"}}
-           paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
-           paragraph {} $ M.string $ params.rangeTranslation
+           paragraph {style: M.css {paddingTop: 50, paddingLeft: 5, paddingRight: 5}} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
+           paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
            --textInput {label: "Search", onChangeText: changeField setSearch, value: search }
            --button { mode: "contained", onPress: RNE.capture_ $ getImages search setImages setError } $ M.string "Search"
            M.flatList {

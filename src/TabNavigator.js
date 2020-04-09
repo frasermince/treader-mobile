@@ -17,7 +17,7 @@ FlashcardNavigator = () => {
       <Stack.Navigator mode={"modal"}>
         <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Recently Selected Words"}} />
         <Stack.Screen name="SentenceChoice" component={SentenceChoice} options={{headerTitle: "Choose Sentence"}} />
-        <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Image"}} />
+        <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Images"}} />
       </Stack.Navigator>
   );
 }
