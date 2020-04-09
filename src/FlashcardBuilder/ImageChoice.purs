@@ -16,14 +16,24 @@ import Effect.Exception (message)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Data.Either (Either(..))
+import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
+import React.Basic.Events (EventFn, unsafeEventFn)
+import Unsafe.Coerce (unsafeCoerce)
 
 type Selection = {word :: String, sentence :: String, phrase :: String, phraseOffset :: Int, sentenceOffset :: Int, book :: {language :: String}}
 
 type Props = {route :: {params :: {selection :: Selection, selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String}}}
 
+text :: EventFn (RNE.NativeSyntheticEvent String) String
+text = unsafeEventFn \e -> (unsafeCoerce e)
+
+changeField setField =
+  RNE.handler text \t ->
+    setField \_ -> t
+
 getImages keyword setImages setError = launchAff_ do
   liftEffect $ setImages \_ -> []
-  result <- try $ imageSearch keyword 0 5
+  result <- try $ imageSearch keyword 0 4
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ spy "ERROR" $ message error
     Right images -> liftEffect $ setImages \_ -> images
@@ -34,11 +44,12 @@ reactComponent =
     $ do
         component "ImageChoice" $ buildJsx
 
-result i = pure $ element _image {style: M.css {height: window.width / 3, width: window.width / 3}, source: {uri: spy "URI" i.item.link}}
+result i = pure $ element _image {style: M.css {height: window.width / 4, width: window.width / 4}, source: {uri: spy "URI" i.item.link}}
 
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   let selection = props.route.params.selection
+  search /\ setSearch <- useState selection.word
   images /\ setImages <- useState ([] :: Array Image)
   useEffect selection.word do
     getImages selection.word setImages setError
@@ -51,4 +62,6 @@ buildJsx props = React.do
          divider {style: M.css {height: 1, width: "100%"}}
          paragraph {} $ M.string $ props.route.params.range
          paragraph {} $ M.string $ props.route.params.rangeTranslation
-         M.flatList {data: images, renderItem: mkEffectFn1 result, style: M.css {flex: 1}, numColumns: 3.0}
+         textInput {label: "Search", onChangeText: changeField setSearch, value: search }
+         button { mode: "contained", onPress: RNE.capture_ $ getImages search setImages setError } $ M.string "Search"
+         M.flatList {data: images, renderItem: mkEffectFn1 result, style: M.css {flex: 1}, numColumns: 4.0}
