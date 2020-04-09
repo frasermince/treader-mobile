@@ -15,6 +15,7 @@ exports._modal = paper.Modal
 exports._portal = paper.Portal
 exports._subheading = paper.Subheading
 exports._headline = paper.Headline
+exports._paragraph = paper.Paragraph
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;

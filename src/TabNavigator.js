@@ -4,7 +4,8 @@ import { reactComponent as BookScreen} from "../output/BookView";
 import { reactComponent as IndexScreen} from "../output/BookIndex";
 import { reactComponent as AccountScreen} from "../output/Account";
 import { reactComponent as DailySelections} from "../output/FlashcardBuilder.DailySelections";
-import { reactComponent as ChooseSentence} from "../output/FlashcardBuilder.ChooseSentence";
+import { reactComponent as SentenceChoice} from "../output/FlashcardBuilder.SentenceChoice";
+import { reactComponent as ImageChoice} from "../output/FlashcardBuilder.ImageChoice";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
@@ -15,7 +16,8 @@ FlashcardNavigator = () => {
   return (
       <Stack.Navigator mode={"modal"}>
         <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Recently Selected Words"}} />
-        <Stack.Screen name="SentenceChoice" component={ChooseSentence} options={{headerTitle: "Choose Sentence"}} />
+        <Stack.Screen name="SentenceChoice" component={SentenceChoice} options={{headerTitle: "Choose Sentence"}} />
+        <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Image"}} />
       </Stack.Navigator>
   );
 }
