@@ -140,7 +140,7 @@ unpermittedBlur props =
           props.setModalVisible \_ -> true
 
 container fade height (Just wordPlacement) children
-  | height - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
+  | (floor height) - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
   | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
 container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children

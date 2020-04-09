@@ -14,19 +14,18 @@ import Effect.Class (liftEffect)
 import Data.Undefinable (toUndefinable)
 import Data.Maybe (Maybe(..))
 import Markup as M
-import Data.Foldable (foldl)
 import Effect.Exception (message)
 import Image (_image)
 import Data.String (length)
 import React.Basic.Native as RN
 import Paper (title)
-import Data.String (split, Pattern(..), trim)
 import Config (config)
 import Translator (translate)
 import Record.Unsafe (unsafeGet)
+import FlashcardBuilder.Util(underlineWord)
 
 type Selection = {word :: String, sentence :: String, phrase :: String, phraseOffset :: Int, sentenceOffset :: Int, book :: {language :: String}}
-type Props = {route :: {params :: {selection :: Selection}}, navigation :: { navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String } Unit }}
+type Props = {route :: {params :: {selection :: Selection}}, navigation :: { navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit }}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -34,31 +33,12 @@ reactComponent =
     $ do
         component "SentenceChoice" $ buildJsx
 
-underlineWord sentence offset = _.textList $ foldl foldFn accumStart words
-  where words = split (Pattern " ") sentence
-        accumStart = {textList: mempty, sentenceLength: 0}
-        textResult :: forall a . Record a -> String -> JSX -> JSX
-        textResult style word list = list <>
-                                     (M.getJsx $ M.text {style: M.css style} $ M.string word)
-                                     <> (M.getJsx $ M.text {style: M.css style} $ M.string " ")
-        foldFn {textList, sentenceLength} word
-            | (sentenceLength + length word) > offset && sentenceLength < offset =
-                {
-                  textList: textResult {textDecorationLine: "underline", fontWeight: "bold"} word textList,
-                  sentenceLength: sentenceLength + length word + 1
-                }
-            | otherwise =
-                  {
-                    textList: textResult {fontWeight: "bold"} word textList,
-                    sentenceLength: sentenceLength + length word + 1
-                  }
-
 sentenceListItem range offset translation redirect = listItem {
     title: underlineWord range offset,
     titleNumberOfLines: 5,
     descriptionNumberOfLines: 5,
     description: translation,
-    onPress: RNE.capture_ $ redirect range translation
+    onPress: RNE.capture_ $ redirect range translation offset
   }
 buildJsx props = React.do
   let selection = props.route.params.selection
@@ -97,10 +77,11 @@ buildJsx props = React.do
         divider {style: M.css {height: 1, width: "100%"}}
         sentenceListItem selection.sentence selection.sentenceOffset sentenceTranslation (redirect wordTranslation)
         divider {style: M.css {height: 1, width: "100%"}}
-  where redirectFn selection wordTranslation range rangeTranslation =
+  where redirectFn selection wordTranslation range rangeTranslation rangeOffset =
           runEffectFn2 props.navigation.navigate "ImageChoice" $
             { selection: selection
             , range: range
             , rangeTranslation: rangeTranslation
             , wordTranslation: wordTranslation
+            , rangeOffset: rangeOffset
             }
