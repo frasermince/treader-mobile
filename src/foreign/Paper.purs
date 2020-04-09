@@ -30,6 +30,7 @@ foreign import _modal :: forall props. ReactComponent props
 foreign import _portal :: forall props. ReactComponent props
 foreign import _subheading :: forall props. ReactComponent props
 foreign import _headline :: forall props. ReactComponent props
+foreign import _paragraph :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
@@ -56,6 +57,8 @@ modal = parentElement _modal
 menuItem = childElement _menuItem
 
 divider = childElement _divider
+
+paragraph = parentElement _paragraph
 
 portal = parentElement _portal
 
