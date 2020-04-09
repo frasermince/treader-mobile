@@ -1,4 +1,4 @@
-module DailySelectionList where
+module FlashcardBuilder.DailySelections where
 import Prelude
 import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
@@ -57,4 +57,4 @@ buildJsx props = React.do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface {style: M.css { flex: 1 }} do
             flatList {data: (spy "DATA" r).dailySelections, renderItem: mkEffectFn1 $ selectionMarkup redirect, style: M.css {flex: 1}, onRefresh: result.refetch {}, refreshing: result.networkStatus == 1}
-  where redirect selection = runEffectFn2 props.navigation.navigate "Build Sentence Flashcards" { selection: selection }
+  where redirect selection = runEffectFn2 props.navigation.navigate "SentenceChoice" { selection: selection }

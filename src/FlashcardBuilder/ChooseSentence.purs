@@ -1,4 +1,4 @@
-module FlashcardBuilder where
+module FlashcardBuilder.ChooseSentence where
 
 import Prelude
 import ImageSearch (imageSearch, Image)
@@ -107,7 +107,6 @@ buildJsx props = React.do
   pure $ M.getJsx do
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
-        title {} $ M.string selection.word
         divider {style: M.css {height: 1, width: "100%"}}
         if length selection.phrase /= length selection.sentence
           then sentenceListItem selection.phrase selection.phraseOffset phraseTranslation else mempty
