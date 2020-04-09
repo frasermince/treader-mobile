@@ -34,13 +34,6 @@ reactComponent =
     $ do
         component "SentenceChoice" $ buildJsx
 
-text :: EventFn (RNE.NativeSyntheticEvent String) String
-text = unsafeEventFn \e -> (unsafeCoerce e)
-
-changeField setField =
-  RNE.handler text \t ->
-    setField \_ -> t
-
 underlineWord sentence offset = _.textList $ foldl foldFn accumStart words
   where words = split (Pattern " ") sentence
         accumStart = {textList: mempty, sentenceLength: 0}
