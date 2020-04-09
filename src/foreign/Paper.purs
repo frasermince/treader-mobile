@@ -31,6 +31,7 @@ foreign import _portal :: forall props. ReactComponent props
 foreign import _subheading :: forall props. ReactComponent props
 foreign import _headline :: forall props. ReactComponent props
 foreign import _paragraph :: forall props. ReactComponent props
+foreign import _badge :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
@@ -65,3 +66,5 @@ portal = parentElement _portal
 subheading = parentElement _subheading
 
 headline = parentElement _headline
+
+badge = parentElement _badge
