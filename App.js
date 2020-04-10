@@ -40,7 +40,7 @@ export default App = () => {
     return (
       <ApolloProvider client={client}>
         <DataStateContext value={contextValue}>
-          <PaperProvider theme={{...DefaultTheme, roundness: 3}}>
+          <PaperProvider theme={{...DefaultTheme, roundness: 3, colors: {...DefaultTheme.colors, primary:"#66aab1" }}}>
             <Main/>
             <Snackbar
               style={{zIndex: 25}}
