@@ -24,6 +24,9 @@ import Data.Array (replicate, modifyAt, (!!))
 import Data.Int (floor)
 import Data.Maybe (fromMaybe)
 import MaterialIcon (icon)
+import TextToSpeech (speak, setDefaultLanguage)
+import Data.Map (fromFoldable, lookup)
+import Data.Traversable (traverse_)
 
 type Selection = {word :: String, sentence :: String, phrase :: String, phraseOffset :: Int, sentenceOffset :: Int, book :: {language :: String}}
 
@@ -31,6 +34,14 @@ type Props = {route :: {params :: {selection :: Selection, selection :: Selectio
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
+
+languageList = fromFoldable [
+  ("en" /\ "en-US"),
+  ("es" /\ "es-MX"),
+  ("fr" /\ "fr-FR"),
+  ("de" /\ "de-DE"),
+  ("it" /\ "it-IT")
+]
 
 changeField setField =
   RNE.handler text \t ->
@@ -70,6 +81,9 @@ buildJsx props = React.do
   search /\ setSearch <- useState selection.word
   images /\ setImages <- useState ([] :: Array Image)
   showSearch /\ setShowSearch <- useState false
+  useEffect selection.book.language do
+    traverse_ setDefaultLanguage $ lookup selection.book.language languageList
+    pure mempty
   useEffect selection.word do
     getImages setSelected selection.word setImages setError
     pure mempty
@@ -81,20 +95,23 @@ buildJsx props = React.do
            headline {} $ M.string selection.word
            M.text {style: M.css{marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
-           divider {style: M.css {height: 1, width: "100%"}}
-           paragraph {style: M.css {paddingTop: 50, paddingLeft: 5, paddingRight: 5}} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
-           paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
-           M.view {style: M.css {flex: 1, justifyContent: "flex-end"}} do
+           M.view {style: M.css {flex: 1}} do
+            divider {style: M.css {height: 1, width: "100%"}}
+            M.view {style: M.css {paddingTop: 40, paddingLeft: 5, paddingRight: 5}} do
+              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range {}}
+              paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
+            paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
+           M.view {style: M.css {flex: 3, justifyContent: "flex-end"}} do
             if showSearch then do
-              fab {icon: "close", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 10}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
-              textInput {label: "Search", onChangeText: changeField setSearch, value: search, style: M.css {marginTop: 10} }
+              fab {icon: "close", small: true, style: M.css {width: 40, alignSelf: "flex-end"}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+              textInput {label: "Search", onChangeText: changeField setSearch, value: search, style: M.css {marginTop: 40} }
               button { onPress: RNE.capture_ $ getImages setSelected search setImages setError } $ M.string "Search"
-            else fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 110}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+            else fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 130}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
             M.flatList {
               data: images,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,
               keyExtractor: mkEffectFn2 \i n -> pure i.link,
-              style: M.css {flex: 1},
-              contentContainerStyle: M.css {flex: 1, justifyContent: "flex-end"}, numColumns: 4.0
+              style: M.css {flex: 2},
+              contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
             button { mode: "contained", onPress: RNE.capture_ $ mempty} $ M.string "Add Images"
