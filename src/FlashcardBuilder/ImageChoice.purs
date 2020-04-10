@@ -1,7 +1,7 @@
 module FlashcardBuilder.ImageChoice where
 
 import Prelude
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab)
 import ImageSearch (imageSearch, Image)
 import Markup as M
 import React.Basic.Hooks as React
@@ -49,7 +49,7 @@ reactComponent =
     $ do
         component "ImageChoice" $ buildJsx
 
-imageStyle isSelected = {height: window.width / 4.5, width: window.width / 4.5, margin: "1.5%", borderColor: "green", borderWidth: if isSelected then 1 else 0}
+imageStyle isSelected = {height: window.width / 4.5, width: window.width / 4.5, margin: "1.5%", borderColor: "#66aab1", borderWidth: if isSelected then 1 else 0}
 
 determineSelection setSelected index =
   setSelected \array -> fromMaybe array $ modifyAt index not array
@@ -58,7 +58,7 @@ selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
   let isSelected = fromMaybe false $ selected !! index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
-    if isSelected then badge {style: M.css {position: "absolute", zIndex: 2, top: -6, right: 1, backgroundColor: "green" }} $ icon {color: "white", name: "check", size: 14} else mempty
+    if isSelected then badge {style: M.css {position: "absolute", zIndex: 2, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
     image {style: M.css $ imageStyle isSelected, source: {uri: i.item.link}}
 
 buildJsx props = React.do
@@ -68,6 +68,7 @@ buildJsx props = React.do
   selected /\ setSelected <- useState $ replicate 8 false
   search /\ setSearch <- useState selection.word
   images /\ setImages <- useState ([] :: Array Image)
+  showSearch /\ setShowSearch <- useState false
   useEffect selection.word do
     getImages selection.word setImages setError
     pure mempty
@@ -82,13 +83,17 @@ buildJsx props = React.do
            divider {style: M.css {height: 1, width: "100%"}}
            paragraph {style: M.css {paddingTop: 50, paddingLeft: 5, paddingRight: 5}} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
            paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
-           --textInput {label: "Search", onChangeText: changeField setSearch, value: search }
-           --button { mode: "contained", onPress: RNE.capture_ $ getImages search setImages setError } $ M.string "Search"
-           M.flatList {
-            data: images,
-            renderItem: mkEffectFn1 $ selectableImage selected setSelected,
-            keyExtractor: mkEffectFn2 \i n -> pure i.link,
-            style: M.css {flex: 1},
-            contentContainerStyle: M.css {flex: 1, justifyContent: "flex-end"}, numColumns: 4.0
-           }
-           button { mode: "contained", onPress: RNE.capture_ $ mempty} $ M.string "Add Images"
+           M.view {style: M.css {flex: 1, justifyContent: "flex-end"}} do
+            fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end"}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+            if showSearch then do
+              textInput {label: "Search", onChangeText: changeField setSearch, value: search }
+              button { mode: "contained", onPress: RNE.capture_ $ getImages search setImages setError } $ M.string "Search"
+            else mempty
+            M.flatList {
+              data: images,
+              renderItem: mkEffectFn1 $ selectableImage selected setSelected,
+              keyExtractor: mkEffectFn2 \i n -> pure i.link,
+              style: M.css {flex: 1},
+              contentContainerStyle: M.css {flex: 1, justifyContent: "flex-end"}, numColumns: 4.0
+            }
+            button { mode: "contained", onPress: RNE.capture_ $ mempty} $ M.string "Add Images"
