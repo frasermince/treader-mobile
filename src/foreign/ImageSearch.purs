@@ -9,7 +9,7 @@ import Data.Nullable (toMaybe, Nullable)
 
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
 foreign import _imageSearch :: String -> Int -> Int -> Effect (Promise (Array Image))
-type Image = {link :: String}
+type Image = {link :: String, image :: {thumbnailLink :: String}}
 
 imageSearch :: String -> Int -> Int -> Aff (Array Image)
 imageSearch keyword low high = (liftEffect (_imageSearch keyword low high) >>= Promise.toAff)

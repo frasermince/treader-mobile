@@ -36,11 +36,12 @@ changeField setField =
   RNE.handler text \t ->
     setField \_ -> t
 
-getImages keyword setImages setError = launchAff_ do
+getImages setSelected keyword setImages setError = launchAff_ do
+  liftEffect $ setSelected \_ -> replicate 8 false
   liftEffect $ setImages \_ -> []
   result <- try $ imageSearch keyword 0 8
   case result of
-    Left error -> liftEffect $ runEffectFn1 setError $ spy "ERROR" $ message error
+    Left error -> liftEffect $ runEffectFn1 setError $ message error
     Right images -> liftEffect $ setImages \_ -> images
 
 reactComponent :: ReactComponent Props
@@ -58,8 +59,8 @@ selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
   let isSelected = fromMaybe false $ selected !! index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
-    if isSelected then badge {style: M.css {position: "absolute", zIndex: 2, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
-    image {style: M.css $ imageStyle isSelected, source: {uri: i.item.link}}
+    if isSelected then badge {style: M.css {position: "absolute", zIndex: 8, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
+    image {style: M.css $ imageStyle isSelected, source: {uri: i.item.image.thumbnailLink}}
 
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
@@ -70,7 +71,7 @@ buildJsx props = React.do
   images /\ setImages <- useState ([] :: Array Image)
   showSearch /\ setShowSearch <- useState false
   useEffect selection.word do
-    getImages selection.word setImages setError
+    getImages setSelected selection.word setImages setError
     pure mempty
 
   pure $ M.getJsx do
@@ -84,11 +85,11 @@ buildJsx props = React.do
            paragraph {style: M.css {paddingTop: 50, paddingLeft: 5, paddingRight: 5}} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
            paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
            M.view {style: M.css {flex: 1, justifyContent: "flex-end"}} do
-            fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end"}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
             if showSearch then do
-              textInput {label: "Search", onChangeText: changeField setSearch, value: search }
-              button { mode: "contained", onPress: RNE.capture_ $ getImages search setImages setError } $ M.string "Search"
-            else mempty
+              fab {icon: "close", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 10}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+              textInput {label: "Search", onChangeText: changeField setSearch, value: search, style: M.css {marginTop: 10} }
+              button { onPress: RNE.capture_ $ getImages setSelected search setImages setError } $ M.string "Search"
+            else fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 110}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
             M.flatList {
               data: images,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,
