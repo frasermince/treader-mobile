@@ -17,6 +17,7 @@ exports._subheading = paper.Subheading
 exports._headline = paper.Headline
 exports._paragraph = paper.Paragraph
 exports._badge = paper.Badge
+exports._fab = paper.FAB
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;
