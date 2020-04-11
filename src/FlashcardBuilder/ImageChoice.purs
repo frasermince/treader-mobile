@@ -3,6 +3,7 @@ module FlashcardBuilder.ImageChoice where
 import Prelude
 import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab)
 import ImageSearch (imageSearch, Image)
+import ApolloHooks (useMutation, gql)
 import Markup as M
 import React.Basic.Hooks as React
 import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext, element)
@@ -11,7 +12,7 @@ import Image (image)
 import Dimensions (window)
 import Debug.Trace (spy)
 import Context (dataStateContext, Context)
-import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2)
+import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2, runEffectFn2, EffectFn2)
 import Effect.Exception (message)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
@@ -27,10 +28,12 @@ import MaterialIcon (icon)
 import TextToSpeech (speak, setDefaultLanguage)
 import Data.Map (fromFoldable, lookup)
 import Data.Traversable (traverse_)
+import Data.FoldableWithIndex (foldlWithIndexDefault)
+import ComponentTypes (Selection)
+import Data.String (stripPrefix, Pattern(..))
+import Data.Array ((:))
 
-type Selection = {word :: String, sentence :: String, phrase :: String, phraseOffset :: Int, sentenceOffset :: Int, book :: {language :: String}}
-
-type Props = {route :: {params :: {selection :: Selection, selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}}
+type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -55,6 +58,11 @@ getImages setSelected keyword setImages setError = launchAff_ do
     Left error -> liftEffect $ runEffectFn1 setError $ message error
     Right images -> liftEffect $ setImages \_ -> images
 
+selectedImages selectedIndices images =
+  foldlWithIndexDefault foldFn [] images
+  where foldFn index accum image = if isSelected selectedIndices index then image.image.thumbnailLink : accum else accum
+
+isSelected selected index = fromMaybe false $ selected !! index
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
@@ -68,13 +76,46 @@ determineSelection setSelected index =
 
 selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
-  let isSelected = fromMaybe false $ selected !! index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
-    if isSelected then badge {style: M.css {position: "absolute", zIndex: 8, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
-    image {style: M.css $ imageStyle isSelected, source: {uri: i.item.image.thumbnailLink}}
+    if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 8, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
+    image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.image.thumbnailLink}}
+
+stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
+
+makePayload selection range rangeTranslation rangeOffset imageUrl =
+  { variables:
+    { input:
+      {
+        startOffset: rangeOffset,
+        wordLength: selection.wordLength,
+        imageUrl: imageUrl,
+        bookId: selection.book.id,
+        sentenceText: range,
+        sentenceTranslation: rangeTranslation
+      }
+    }
+  }
+
+saveFlashcard mutate payload setError redirect = launchAff_ do
+  result <- try $ mutate $ payload
+  case result of
+    Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+    Right resp -> liftEffect redirect
+
+
+mutation =
+  gql
+    """
+mutation flashcardMutation($input: LoginInput!) {
+  flashcard(input: $input) {
+    flashcard {startOffset}
+  }
+}
+  """
 
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
+  mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   let params = props.route.params
   let selection = params.selection
   selected /\ setSelected <- useState $ replicate 8 false
@@ -88,6 +129,7 @@ buildJsx props = React.do
     getImages setSelected selection.word setImages setError
     pure mempty
 
+  let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset $ selectedImages selected images
   pure $ M.getJsx do
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
@@ -114,4 +156,12 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ mempty} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn params} $ M.string "Add Images"
+  where redirectFn params =
+          runEffectFn2 props.navigation.navigate "WordSelection" $
+            { selection: params.selection
+            , range: params.range
+            , rangeTranslation: params.rangeTranslation
+            , wordTranslation: params.wordTranslation
+            , rangeOffset: params.rangeOffset
+            }

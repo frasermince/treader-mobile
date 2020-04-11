@@ -23,8 +23,8 @@ import Config (config)
 import Translator (translate)
 import Record.Unsafe (unsafeGet)
 import FlashcardBuilder.Util(underlineWord)
+import ComponentTypes (Selection)
 
-type Selection = {word :: String, sentence :: String, phrase :: String, phraseOffset :: Int, sentenceOffset :: Int, book :: {language :: String}}
 type Props = {route :: {params :: {selection :: Selection}}, navigation :: { navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit }}
 
 reactComponent :: ReactComponent Props
