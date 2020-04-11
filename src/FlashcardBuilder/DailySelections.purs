@@ -15,8 +15,8 @@ import Effect.Uncurried (runEffectFn2, EffectFn2)
 import React.Basic.Native.Events as RNE
 import Debug.Trace
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
+import ComponentTypes (Selection)
 
-type Selection = {word :: String, sentence :: String, phrase :: String, sentenceOffset :: Int, phraseOffset :: Int}
 type Props
   = { navigation :: { navigate :: EffectFn2 String { selection :: Selection } Unit } }
 
@@ -39,7 +39,9 @@ query =
       phrase
       phraseOffset
       sentenceOffset
+      wordLength
       book {
+        id
         language
       }
     }
