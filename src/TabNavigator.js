@@ -28,7 +28,7 @@ export default TabNavigator = () => {
   let homeIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"home"} size={25} />;
   let bookIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"book"} size={25} />
   let accountIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"account-box"} size={25} />
-  let flashcardIcon = ({focused, color}) => <CommunityIcon style={[{color: color}]} name={"card-plus-icon"} size={25} />
+  let flashcardIcon = ({focused, color}) => <CommunityIcon style={[{color: color}]} name={"card-bulleted-outline"} size={25} />
   return (
     <NavigationContainer>
       <Tab.Navigator barStyle={{backgroundColor: "black"}}>
