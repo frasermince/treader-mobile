@@ -30,6 +30,7 @@
     "apollo-link-error": "^1.1.12",
     "apollo-link-http": "^1.5.16",
     "crypto-browserify": "^3.12.0",
+    "ebisu-js": "^1.0.4",
     "epubjs": "frasermince/epub.js#fm/page-jumping",
     "epubjs-rn": "frasermince/epubjs-rn",
     "events": "^3.0.0",

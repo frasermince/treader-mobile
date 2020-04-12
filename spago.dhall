@@ -22,6 +22,7 @@ You can edit this file as you like.
     , "react-basic-native"
     , "record"
     , "tuples-native"
+    , "typelevel"
     , "typelevel-prelude"
     ]
 , packages =
