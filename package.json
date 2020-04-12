@@ -8,7 +8,7 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
-    "build": "parcel build src/bridge/index.html && spago build --purs-args '-g sourcemaps'"
+    "build": "parcel build src/bridge/index.html --no-minify && spago build --purs-args '-g sourcemaps'"
   },
   "dependencies": {
     "@apollo/react-hooks": "^3.1.3",
