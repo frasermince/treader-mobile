@@ -33,6 +33,11 @@ foreign import _headline :: forall props. ReactComponent props
 foreign import _paragraph :: forall props. ReactComponent props
 foreign import _badge :: forall props. ReactComponent props
 foreign import _fab :: forall props. ReactComponent props
+foreign import _dialog :: forall props. ReactComponent props
+foreign import _dialogTitle :: forall props. ReactComponent props
+foreign import _dialogContent :: forall props. ReactComponent props
+foreign import _dialogActions :: forall props. ReactComponent props
+foreign import _searchbar :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
@@ -71,3 +76,10 @@ headline = parentElement _headline
 badge = parentElement _badge
 
 fab = childElement _fab
+
+searchbar = childElement _searchbar
+
+dialog = parentElement _dialog
+dialogContent = parentElement _dialogContent
+dialogActions = parentElement _dialogActions
+dialogTitle = parentElement _dialogTitle
