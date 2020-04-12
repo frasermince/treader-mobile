@@ -10,7 +10,6 @@ import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEff
 import Effect.Unsafe (unsafePerformEffect)
 import Image (image)
 import Dimensions (window)
-import Debug.Trace (spy)
 import Context (dataStateContext, Context)
 import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2, runEffectFn2, EffectFn2)
 import Effect.Exception (message)
@@ -32,6 +31,7 @@ import Data.FoldableWithIndex (foldlWithIndexDefault)
 import ComponentTypes (Selection)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Array ((:))
+import Ebisu as Ebisu
 
 type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
 
@@ -86,6 +86,10 @@ makePayload selection range rangeTranslation rangeOffset imageUrl =
   { variables:
     { input:
       {
+        a: a,
+        b: b,
+        t: t,
+        selectedSnippetId: selection.id,
         startOffset: rangeOffset,
         wordLength: selection.wordLength,
         imageUrl: imageUrl,
@@ -95,6 +99,7 @@ makePayload selection range rangeTranslation rangeOffset imageUrl =
       }
     }
   }
+  where a /\ b /\ t = Ebisu.defaultModel 24.0
 
 saveFlashcard mutate payload setError redirect = launchAff_ do
   result <- try $ mutate $ payload
@@ -107,7 +112,7 @@ mutation =
   gql
     """
 mutation flashcardMutation($input: LoginInput!) {
-  flashcard(input: $input) {
+  createFlashcard(input: $input) {
     flashcard {startOffset}
   }
 }

@@ -34,6 +34,7 @@ query =
     """
   query getSelections {
     dailySelections {
+      id
       word
       sentence
       phrase

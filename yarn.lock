@@ -4033,6 +4033,14 @@ duplexer3@^0.1.4:
   resolved "https://registry.yarnpkg.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
   integrity sha1-7gHdHKwO08vH/b6jfcCo8c4ALOI=
 
+ebisu-js@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/ebisu-js/-/ebisu-js-1.0.4.tgz#f0f04d4cb3749698e929389efee4336d14b364ea"
+  integrity sha512-9xcv92endi/w32cF0n55b53PkiRU2Lrbr003XqYfhK9fMmoLHVj6wrKaDdNKsqza5Jfd/iyIkg8gBmeoFqZOkA==
+  dependencies:
+    gamma "^1.0.0"
+    minimize-golden-section-1d "^3.0.0"
+
 ecc-jsbn@~0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz#3a83a904e54353287874c564b7549386849a98c9"
@@ -5051,6 +5059,11 @@ fusing@1.0.x:
   dependencies:
     emits "3.0.x"
     predefine "0.1.x"
+
+gamma@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/gamma/-/gamma-1.0.0.tgz#983c1c939fe23d932701585711e1d9a430cb74cb"
+  integrity sha1-mDwck5/iPZMnAVhXEeHZpDDLdMs=
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -7355,6 +7368,11 @@ minimist@~0.0.1:
   version "0.0.10"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.10.tgz#de3f98543dbf96082be48ad1a0c7cda836301dcf"
   integrity sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=
+
+minimize-golden-section-1d@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/minimize-golden-section-1d/-/minimize-golden-section-1d-3.0.0.tgz#1b8d1f99d5bc76bed564eceed6151fa06915284c"
+  integrity sha512-zwsb9Jvbmbnz1KskO2AZ1XhHShc5B7MrgQgX2Kpc7bpB4JWHG1PMHP7umM8St5xOi2wszci2QcDWjrp5Dr8Mmw==
 
 minipass@^2.6.0, minipass@^2.8.6, minipass@^2.9.0:
   version "2.9.0"

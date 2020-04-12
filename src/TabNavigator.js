@@ -6,6 +6,7 @@ import { reactComponent as AccountScreen} from "../output/Account";
 import { reactComponent as DailySelections} from "../output/FlashcardBuilder.DailySelections";
 import { reactComponent as SentenceChoice} from "../output/FlashcardBuilder.SentenceChoice";
 import { reactComponent as ImageChoice} from "../output/FlashcardBuilder.ImageChoice";
+import { reactComponent as WordSelection} from "../output/FlashcardBuilder.WordSelection";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
@@ -18,6 +19,7 @@ FlashcardNavigator = () => {
         <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Recently Selected Words"}} />
         <Stack.Screen name="SentenceChoice" component={SentenceChoice} options={{headerTitle: "Choose Sentence"}} />
         <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Images"}} />
+        <Stack.Screen name="WordSelection" component={WordSelection} options={{headerTitle: "Choose More Words"}} />
       </Stack.Navigator>
   );
 }
