@@ -1,7 +1,8 @@
 module FlashcardBuilder.ImageChoice where
 
 import Prelude
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
+import Record.Unsafe.Union (unsafeUnion)
 import ImageSearch (imageSearch, Image)
 import ApolloHooks (useMutation, gql)
 import Markup as M
@@ -28,16 +29,19 @@ import TextToSpeech (speak, setDefaultLanguage)
 import Data.Map (fromFoldable, lookup)
 import Data.Traversable (traverse_)
 import Data.FoldableWithIndex (foldlWithIndexDefault)
+import Data.Foldable(foldl)
 import ComponentTypes (Selection)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Array ((:))
 import Ebisu as Ebisu
+import KeyboardAwareDialog (keyboardAwareDialog)
 
 type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
 
+chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
 languageList = fromFoldable [
   ("en" /\ "en-US"),
   ("es" /\ "es-MX"),
@@ -77,7 +81,7 @@ determineSelection setSelected index =
 selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
-    if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 8, top: -6, right: 1, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
+    if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 10, top: 2, right: 10, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
     image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.image.thumbnailLink}}
 
 stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
@@ -109,7 +113,7 @@ saveFlashcard mutate payload setError redirect = launchAff_ do
 
 searchFromDialog setShowSearch setSelected search setImages setError = do
   setShowSearch \_ -> false
-  getImages setSelected search setImages setError 
+  getImages setSelected search setImages setError
 
 mutation =
   gql
@@ -121,6 +125,11 @@ mutation flashcardMutation($input: LoginInput!) {
 }
   """
 
+noneSelected selected = foldl (\accum s -> accum && not s) true selected
+
+paragraphItem params false = M.getJsx $ paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
+paragraphItem params true = M.getJsx $ paragraph {} $ M.string $ params.rangeTranslation
+
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   mutate /\ d <- useMutation mutation { errorPolicy: "all" }
@@ -130,6 +139,7 @@ buildJsx props = React.do
   search /\ setSearch <- useState selection.word
   images /\ setImages <- useState ([] :: Array Image)
   showSearch /\ setShowSearch <- useState false
+  showTranslation /\ setShowTranslation <- useState false
   useEffect selection.book.language do
     traverse_ setDefaultLanguage $ lookup selection.book.language languageList
     pure mempty
@@ -140,11 +150,11 @@ buildJsx props = React.do
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset $ selectedImages selected images
   pure $ M.getJsx do
     portal {} do
-      dialog {visible: showSearch, onDismiss: RNE.capture_ $ setShowSearch \_ -> false} do
-         dialogTitle {} $ M.string "Search Google For Images"
-         dialogContent {} do
+      keyboardAwareDialog {visible: showSearch, onDismiss: setShowSearch \_ -> false} do
+        dialogTitle {} $ M.string "Search Google For Images"
+        dialogContent {} do
             textInput { placeholder: "Search", onChangeText: changeField setSearch, value: search }
-         dialogActions {} do
+        dialogActions {} do
             button {onPress: RNE.capture_ $ setShowSearch \_ -> false} $ M.string "Cancel"
             button {onPress: RNE.capture_ $ searchFromDialog setShowSearch setSelected search setImages setError} $ M.string "Search"
 
@@ -154,14 +164,14 @@ buildJsx props = React.do
            headline {} $ M.string selection.word
            M.text {style: M.css{marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
-           M.view {style: M.css {flex: 1}} do
+           M.view {style: M.css {flex: 4}} do
             divider {style: M.css {height: 1, width: "100%"}}
-            M.view {style: M.css {paddingTop: 40, paddingLeft: 5, paddingRight: 5}} do
+            M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range {}}
-              paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
-            paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
-           M.view {style: M.css {flex: 3, justifyContent: "flex-end"}} do
-            fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 130}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+              listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: chevron, style: M.css {paddingTop: 10}}
+            --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
+            fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+           M.view {style: M.css {flex: 3, justifyContent: "flex-end", zIndex: 2}} do
             M.flatList {
               data: images,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,
@@ -169,7 +179,7 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn params} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn params, disabled: noneSelected selected} $ M.string "Add Images"
   where redirectFn params =
           runEffectFn2 props.navigation.navigate "WordSelection" $
             { selection: params.selection

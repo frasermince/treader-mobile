@@ -53,6 +53,7 @@
     "react-native-gesture-handler": "^1.6.0",
     "react-native-google-image-search": "^0.1.0",
     "react-native-iap": "^4.4.2",
+    "react-native-keyboard-spacer": "^0.4.1",
     "react-native-paper": "^3.6.0",
     "react-native-power-translator": "^1.1.1",
     "react-native-reanimated": "^1.7.0",
