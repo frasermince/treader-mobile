@@ -1,7 +1,7 @@
 module FlashcardBuilder.ImageChoice where
 
 import Prelude
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar)
 import ImageSearch (imageSearch, Image)
 import ApolloHooks (useMutation, gql)
 import Markup as M
@@ -107,6 +107,9 @@ saveFlashcard mutate payload setError redirect = launchAff_ do
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
     Right resp -> liftEffect redirect
 
+searchFromDialog setShowSearch setSelected search setImages setError = do
+  setShowSearch \_ -> false
+  getImages setSelected search setImages setError 
 
 mutation =
   gql
@@ -136,6 +139,15 @@ buildJsx props = React.do
 
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset $ selectedImages selected images
   pure $ M.getJsx do
+    portal {} do
+      dialog {visible: showSearch, onDismiss: RNE.capture_ $ setShowSearch \_ -> false} do
+         dialogTitle {} $ M.string "Search Google For Images"
+         dialogContent {} do
+            textInput { placeholder: "Search", onChangeText: changeField setSearch, value: search }
+         dialogActions {} do
+            button {onPress: RNE.capture_ $ setShowSearch \_ -> false} $ M.string "Cancel"
+            button {onPress: RNE.capture_ $ searchFromDialog setShowSearch setSelected search setImages setError} $ M.string "Search"
+
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
          M.view {style: M.css {flex: 2, justifyContent: "flex-end", marginLeft: 15}} do
@@ -149,11 +161,7 @@ buildJsx props = React.do
               paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
             paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
            M.view {style: M.css {flex: 3, justifyContent: "flex-end"}} do
-            if showSearch then do
-              fab {icon: "close", small: true, style: M.css {width: 40, alignSelf: "flex-end"}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
-              textInput {label: "Search", onChangeText: changeField setSearch, value: search, style: M.css {marginTop: 40} }
-              button { onPress: RNE.capture_ $ getImages setSelected search setImages setError } $ M.string "Search"
-            else fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 130}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+            fab {icon: "magnify", small: true, style: M.css {width: 40, alignSelf: "flex-end", marginTop: 130}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
             M.flatList {
               data: images,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,

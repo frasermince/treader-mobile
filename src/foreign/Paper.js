@@ -18,6 +18,11 @@ exports._headline = paper.Headline
 exports._paragraph = paper.Paragraph
 exports._badge = paper.Badge
 exports._fab = paper.FAB
+exports._dialog = paper.Dialog
+exports._dialogTitle = paper.Dialog.Title
+exports._dialogContent = paper.Dialog.Content
+exports._dialogActions = paper.Dialog.Actions
+exports._searchbar = paper.Searchbar
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;
