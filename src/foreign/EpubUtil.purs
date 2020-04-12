@@ -32,21 +32,23 @@ type MaybeStateChangeTuple a
   = T2 (Nullable a) (EffectFn1 (Fn1 (Nullable a) (Nullable a)) Unit)
 
 contextToNullable :: Context -> NullableContext
-contextToNullable {sentence, phrase, surrounding, sentenceOffset, phraseOffset} = {
+contextToNullable {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength} = {
   sentence: toNullable sentence,
   phrase: toNullable phrase,
   surrounding: toNullable surrounding,
   sentenceOffset: toNullable sentenceOffset,
-  phraseOffset: toNullable phraseOffset
+  phraseOffset: toNullable phraseOffset,
+  wordLength: wordLength
 }
 
 contextToMaybe :: NullableContext -> Context
-contextToMaybe {sentence, phrase, surrounding, sentenceOffset, phraseOffset} = {
+contextToMaybe {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength} = {
   sentence: toMaybe sentence,
   phrase: toMaybe phrase,
   surrounding: toMaybe surrounding,
   sentenceOffset: toMaybe sentenceOffset,
-  phraseOffset: toMaybe phraseOffset
+  phraseOffset: toMaybe phraseOffset,
+  wordLength: wordLength
 }
 
 

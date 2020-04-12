@@ -250,6 +250,7 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
         sentence: toNullable $ context.sentence,
         phraseOffset: toNullable $ context.phraseOffset,
         sentenceOffset: toNullable $ context.sentenceOffset,
+        wordLength: context.wordLength,
         bookId: bookId
       }
     }

@@ -45,6 +45,7 @@ import tokenizer from 'sbd';
   }
 
   function getSentence(range) {
+    let wordLength = range.endOffset;
     let paragraphRange = new Range();
     let sentenceOffset = 0;
     let phraseOffset = 0;
@@ -78,7 +79,7 @@ import tokenizer from 'sbd';
     multiRange = getNextWord(multiRange, false);
     multiRange = getNextWord(multiRange, false);
     let surrounding = multiRange.toString()
-    return {sentence, phrase, surrounding, sentenceOffset, phraseOffset};
+    return {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength};
   }
 
   function getWordRange(e) {
