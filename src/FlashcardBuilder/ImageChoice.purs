@@ -41,7 +41,7 @@ type Props = {route :: {params :: {selection :: Selection, range :: String, word
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
 
-chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
+translateIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
 languageList = fromFoldable [
   ("en" /\ "en-US"),
   ("es" /\ "es-MX"),
@@ -168,7 +168,7 @@ buildJsx props = React.do
             divider {style: M.css {height: 1, width: "100%"}}
             M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range {}}
-              listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: chevron, style: M.css {paddingTop: 10}}
+              listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
             --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
             fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
            M.view {style: M.css {flex: 3, justifyContent: "flex-end", zIndex: 2}} do
