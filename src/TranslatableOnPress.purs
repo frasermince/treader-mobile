@@ -48,7 +48,7 @@ buildJsx props = React.do
 
   translationMarker = M.text { style: titleStyles } $ M.string $ props.labelText <> " Translation"
 
-  marker = M.text { style: titleStyles } $ M.string $ props.labelText <> " (tap to translate)"
+  marker = M.text { style: titleStyles } $ M.string $ props.labelText
 
   sentenceText = (M.text {} <$> M.string <$> props.snippet)
 

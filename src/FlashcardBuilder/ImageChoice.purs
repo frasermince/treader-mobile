@@ -36,7 +36,7 @@ import Data.Array ((:))
 import Ebisu as Ebisu
 import KeyboardAwareDialog (keyboardAwareDialog)
 
-type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
+type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { sentenceId :: Int } Unit } }
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -95,7 +95,7 @@ makePayload selection range rangeTranslation rangeOffset imageUrl =
         t: t,
         selectedSnippetId: selection.id,
         startOffset: rangeOffset,
-        wordLength: selection.wordLength,
+        word: selection.word,
         imageUrl: imageUrl,
         bookId: selection.book.id,
         sentenceText: range,
@@ -109,7 +109,7 @@ saveFlashcard mutate payload setError redirect = launchAff_ do
   result <- try $ mutate $ payload
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-    Right resp -> liftEffect redirect
+    Right resp -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
 
 searchFromDialog setShowSearch setSelected search setImages setError = do
   setShowSearch \_ -> false
@@ -120,7 +120,7 @@ mutation =
     """
 mutation flashcardMutation($input: LoginInput!) {
   createFlashcard(input: $input) {
-    flashcard {startOffset}
+    flashcard {sentenceId}
   }
 }
   """
@@ -162,7 +162,7 @@ buildJsx props = React.do
       surface { style: M.css { flex: 1 } } do
          M.view {style: M.css {flex: 2, justifyContent: "flex-end", marginLeft: 15}} do
            headline {} $ M.string selection.word
-           M.text {style: M.css{marginBottom: 30}} $ M.string params.wordTranslation
+           M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
            M.view {style: M.css {flex: 4}} do
             divider {style: M.css {height: 1, width: "100%"}}
@@ -179,12 +179,8 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn params, disabled: noneSelected selected} $ M.string "Add Images"
-  where redirectFn params =
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError redirectFn, disabled: noneSelected selected} $ M.string "Add Images"
+  where redirectFn sentenceId =
           runEffectFn2 props.navigation.navigate "WordSelection" $
-            { selection: params.selection
-            , range: params.range
-            , rangeTranslation: params.rangeTranslation
-            , wordTranslation: params.wordTranslation
-            , rangeOffset: params.rangeOffset
+            { sentenceId: sentenceId
             }
