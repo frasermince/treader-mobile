@@ -36,7 +36,7 @@ import Data.Array ((:))
 import Ebisu as Ebisu
 import KeyboardAwareDialog (keyboardAwareDialog)
 
-type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int}}, navigation :: {navigate :: EffectFn2 String { sentenceId :: Int } Unit } }
+type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String}}, navigation :: {navigate :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -86,7 +86,7 @@ selectableImage selected setSelected i = pure $ M.getJsx do
 
 stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
-makePayload selection range rangeTranslation rangeOffset imageUrl =
+makePayload selection range rangeTranslation rangeOffset imageUrl word =
   { variables:
     { input:
       {
@@ -95,10 +95,11 @@ makePayload selection range rangeTranslation rangeOffset imageUrl =
         t: t,
         selectedSnippetId: selection.id,
         startOffset: rangeOffset,
-        word: selection.word,
+        word: word,
         imageUrl: imageUrl,
         bookId: selection.book.id,
         sentenceText: range,
+        language: selection.book.language,
         sentenceTranslation: rangeTranslation
       }
     }
@@ -136,18 +137,18 @@ buildJsx props = React.do
   let params = props.route.params
   let selection = params.selection
   selected /\ setSelected <- useState $ replicate 8 false
-  search /\ setSearch <- useState selection.word
+  search /\ setSearch <- useState params.word
   images /\ setImages <- useState ([] :: Array Image)
   showSearch /\ setShowSearch <- useState false
   showTranslation /\ setShowTranslation <- useState false
   useEffect selection.book.language do
     traverse_ setDefaultLanguage $ lookup selection.book.language languageList
     pure mempty
-  useEffect selection.word do
-    getImages setSelected selection.word setImages setError
+  useEffect params.word do
+    getImages setSelected params.word setImages setError
     pure mempty
 
-  let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset $ selectedImages selected images
+  let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected images) params.word
   pure $ M.getJsx do
     portal {} do
       keyboardAwareDialog {visible: showSearch, onDismiss: setShowSearch \_ -> false} do
@@ -161,7 +162,7 @@ buildJsx props = React.do
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
          M.view {style: M.css {flex: 2, justifyContent: "flex-end", marginLeft: 15}} do
-           headline {} $ M.string selection.word
+           headline {} $ M.string params.word
            M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
            M.view {style: M.css {flex: 4}} do
@@ -179,8 +180,9 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError redirectFn, disabled: noneSelected selected} $ M.string "Add Images"
-  where redirectFn sentenceId =
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn selection, disabled: noneSelected selected} $ M.string "Add Images"
+  where redirectFn selection sentenceId =
           runEffectFn2 props.navigation.navigate "WordSelection" $
             { sentenceId: sentenceId
+            , selection: selection
             }
