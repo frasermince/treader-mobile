@@ -15,23 +15,35 @@ import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
-import Data.Array (head, notElem, filter)
+import Data.Array (sortWith)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
+import Debug.Trace (spy)
 
 type Props = {route :: {params :: {sentenceId :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
 
-type Query
-  = {flashcards :: Array {sentence :: {text :: String, translation :: String}, word :: String}}
+type FlashcardOffset = {word :: String, offset :: Int}
+type FlashcardExistence = {with :: Array FlashcardOffset, without :: Array FlashcardOffset}
+type Sentence
+  = {text :: String, translation :: String, flashcardExistence :: FlashcardExistence}
+
+type Query = {sentence :: Sentence}
 
 query =
   gql
     """
     query getFlashcards($sentenceId: ID) {
-      flashcards(sentenceId: $sentenceId) {
-        word
-        sentence {
-          text
-          translation
+      sentence(id: $sentenceId) {
+        text
+        translation
+        flashcardExistence {
+          with {
+            word
+            offset
+          }
+          without {
+            word
+            offset
+          }
         }
       }
     }
@@ -39,43 +51,35 @@ query =
 
 translateIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
 
-getResults queryResult = do
-  r <- queryResult
-  firstFlashcard <- head r.flashcards
-  pure $ {sentence: firstFlashcard.sentence, flashcards: r.flashcards}
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
         component "WordSelection" $ buildJsx
 
-wordElement word = pure $ M.getJsx do
+wordElement w = pure $ M.getJsx do
   M.view {style: M.css {padding: 20, borderWidth: 1, flex: 1}} do
-    M.text {} $ M.string word.item
+    M.text {} $ M.string w.item.word
 
-headlineItem sentence false = M.getJsx $ paragraph {} $ M.string $ sentence.text
-headlineItem sentence true = M.getJsx $ paragraph {} $ M.string $ sentence.translation
-
-wordsWithoutFlashcards flashcards word = notElem word flashcards
+headlineItem text translation false = M.getJsx $ paragraph {} $ M.string $ text
+headlineItem text translation true = M.getJsx $ paragraph {} $ M.string $ translation
 
 buildJsx props = React.do
   let params = props.route.params
   showTranslation /\ setShowTranslation <- useState false
   result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all" }
-  case getResults $ result.state of
+  case spy "RESULT" result.state of
        Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Loading"
-       Just {flashcards: flashcards, sentence: sentence} -> pure $ M.getJsx do
-         let flashcardWords = map _.word flashcards
-         let words = filter (wordsWithoutFlashcards flashcardWords) $ split (Pattern " ") sentence.text
+       Just {sentence: { flashcardExistence: {with, without}, text, translation}} -> pure $ M.getJsx do
          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface { style: M.css { flex: 1 } } do
               M.view {style: M.css {flex: 1, marginLeft: 15, marginRight: 15}} do
 
-                listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem sentence showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
+                listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
                 M.view {style: M.css {flex: 1} } do
                   M.flatList {
-                    data: words,
+                    data: sortWith _.offset without,
                     renderItem: mkEffectFn1 $ wordElement,
-                    style: M.css {flex: 2},
-                    contentContainerStyle: M.css {flex: 2, margin: 10}, numColumns: 2.0
+                    style: M.css {flex: 1},
+                    contentContainerStyle: M.css {flex: 1, padding: 10, justifyContent: "space-between", flexDirection: "row"}, numColumns: 2.0
                   }
