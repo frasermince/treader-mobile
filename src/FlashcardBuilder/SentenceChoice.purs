@@ -25,7 +25,7 @@ import Record.Unsafe (unsafeGet)
 import FlashcardBuilder.Util(underlineWord)
 import ComponentTypes (Selection)
 
-type Props = {route :: {params :: {selection :: Selection}}, navigation :: { navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit }}
+type Props = {route :: {params :: {selection :: Selection}}, navigation :: { navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String } Unit }}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -84,4 +84,5 @@ buildJsx props = React.do
             , rangeTranslation: rangeTranslation
             , wordTranslation: wordTranslation
             , rangeOffset: rangeOffset
+            , word: selection.word
             }

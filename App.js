@@ -21,7 +21,7 @@ if(__DEV__) {
 
 
 export default App = () => {
-  if (Config.IS_STORYBOOK) {
+  if (Config.IS_STORYBOOK == "true") {
     return (<StoryBook />);
   } else {
 

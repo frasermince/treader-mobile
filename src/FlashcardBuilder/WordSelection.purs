@@ -7,7 +7,7 @@ import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEff
 import Effect.Unsafe (unsafePerformEffect)
 import Record.Unsafe.Union (unsafeUnion)
 import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2, runEffectFn2, EffectFn2)
-import ComponentTypes (Selection)
+import ComponentTypes (Selection, Sentence)
 import Data.String (split, Pattern(..), trim)
 import Dimensions (window)
 import ApolloHooks (useMutation, gql)
@@ -17,14 +17,10 @@ import Type.Proxy (Proxy(..))
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Array (sortWith)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
+import FlashcardBuilder.WordGrid as WordGrid
 import Debug.Trace (spy)
 
-type Props = {route :: {params :: {sentenceId :: Int}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int } Unit } }
-
-type FlashcardOffset = {word :: String, offset :: Int}
-type FlashcardExistence = {with :: Array FlashcardOffset, without :: Array FlashcardOffset}
-type Sentence
-  = {text :: String, translation :: String, flashcardExistence :: FlashcardExistence}
+type Props = {route :: {params :: {sentenceId :: Int, selection :: Selection}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String } Unit } }
 
 type Query = {sentence :: Sentence}
 
@@ -43,6 +39,7 @@ query =
           without {
             word
             offset
+            translation
           }
         }
       }
@@ -56,10 +53,6 @@ reactComponent =
   unsafePerformEffect
     $ do
         component "WordSelection" $ buildJsx
-
-wordElement w = pure $ M.getJsx do
-  M.view {style: M.css {padding: 20, borderWidth: 1, flex: 1}} do
-    M.text {} $ M.string w.item.word
 
 headlineItem text translation false = M.getJsx $ paragraph {} $ M.string $ text
 headlineItem text translation true = M.getJsx $ paragraph {} $ M.string $ translation
@@ -77,9 +70,13 @@ buildJsx props = React.do
 
                 listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
                 M.view {style: M.css {flex: 1} } do
-                  M.flatList {
-                    data: sortWith _.offset without,
-                    renderItem: mkEffectFn1 $ wordElement,
-                    style: M.css {flex: 1},
-                    contentContainerStyle: M.css {flex: 1, padding: 10, justifyContent: "space-between", flexDirection: "row"}, numColumns: 2.0
-                  }
+                  M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection}
+  where redirectFn text translation selection word wordTranslation offset =
+          runEffectFn2 props.navigation.navigate "ImageChoice" $
+            { wordTranslation: wordTranslation
+            , rangeOffset: offset
+            , selection: selection
+            , range: text
+            , rangeTranslation: translation
+            , word: word
+            }
