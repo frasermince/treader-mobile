@@ -8,7 +8,7 @@ import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2, runE
 import ComponentTypes (FlashcardOffsetTranslation)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 
-type Props = {words :: Array FlashcardOffsetTranslation, redirect :: String -> String -> Int -> Effect Unit}
+type Props = {header :: JSX, words :: Array FlashcardOffsetTranslation, redirect :: String -> String -> Int -> Effect Unit}
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
@@ -23,6 +23,7 @@ buildJsx props = React.do
   pure $ M.getJsx $ M.flatList {
     data: props.words,
     renderItem: mkEffectFn1 $ wordElement props.redirect,
-    style: M.css {width: "100%"},
-    contentContainerStyle: M.css {flex: 1, margin: 10}, numColumns: 2.0
+    style: M.css {minWidth: "100%"},
+    "ListHeaderComponent": props.header,
+    contentContainerStyle: M.css {minWidth: "100%", margin: 10}, numColumns: 2.0
   }
