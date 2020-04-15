@@ -15,11 +15,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 FlashcardNavigator = () => {
   const Stack = createStackNavigator();
   return (
-      <Stack.Navigator mode={"modal"}>
+      <Stack.Navigator>
         <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Recently Selected Words"}} />
         <Stack.Screen name="SentenceChoice" component={SentenceChoice} options={{headerTitle: "Choose Sentence"}} />
         <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Images"}} />
-        <Stack.Screen name="WordSelection" component={WordSelection} options={{headerTitle: "Choose More Words"}} />
+        <Stack.Screen name="WordSelection" component={WordSelection} options={{headerTitle: "Choose More Words", headerLeft: null}} />
       </Stack.Navigator>
   );
 }
