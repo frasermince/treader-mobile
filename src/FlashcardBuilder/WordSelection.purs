@@ -20,7 +20,7 @@ import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, ti
 import FlashcardBuilder.WordGrid as WordGrid
 import Debug.Trace (spy)
 
-type Props = {route :: {params :: {sentenceId :: Int, selection :: Selection}}, navigation :: {navigate :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String } Unit } }
+type Props = {route :: {params :: {sentenceId :: Int, selection :: Selection}}, navigation :: {push :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String } Unit } }
 
 type Query = {sentence :: Sentence}
 
@@ -72,7 +72,7 @@ buildJsx props = React.do
           surface { style: M.css { flex: 1 } } do
             M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection, header: M.getJsx $ header showTranslation translation text}
   where redirectFn text translation selection word wordTranslation offset =
-          runEffectFn2 props.navigation.navigate "ImageChoice" $
+          runEffectFn2 props.navigation.push "ImageChoice" $
             { wordTranslation: wordTranslation
             , rangeOffset: offset
             , selection: selection

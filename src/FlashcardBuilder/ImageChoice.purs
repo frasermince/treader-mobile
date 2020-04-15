@@ -36,7 +36,7 @@ import Data.Array ((:))
 import Ebisu as Ebisu
 import KeyboardAwareDialog (keyboardAwareDialog)
 
-type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String}}, navigation :: {navigate :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
+type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String}}, navigation :: {push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -182,7 +182,7 @@ buildJsx props = React.do
             }
             button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate payload setError $ redirectFn selection, disabled: noneSelected selected} $ M.string "Add Images"
   where redirectFn selection sentenceId =
-          runEffectFn2 props.navigation.navigate "WordSelection" $
+          runEffectFn2 props.navigation.push "WordSelection" $
             { sentenceId: sentenceId
             , selection: selection
             }
