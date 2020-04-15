@@ -57,20 +57,20 @@ reactComponent =
 headlineItem text translation false = M.getJsx $ paragraph {} $ M.string $ text
 headlineItem text translation true = M.getJsx $ paragraph {} $ M.string $ translation
 
+header (showTranslation /\ setShowTranslation) translation text =
+  M.view {style: M.css {height: 100, marginLeft: 15, marginRight: 15}} do
+    listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10, flex: 1}}
+
 buildJsx props = React.do
   let params = props.route.params
-  showTranslation /\ setShowTranslation <- useState false
+  showTranslation <- useState false
   result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all" }
   case spy "RESULT" result.state of
        Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Loading"
        Just {sentence: { flashcardExistence: {with, without}, text, translation}} -> pure $ M.getJsx do
          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface { style: M.css { flex: 1 } } do
-              M.view {style: M.css {flex: 1, marginLeft: 15, marginRight: 15}} do
-
-                listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
-                M.view {style: M.css {flex: 1} } do
-                  M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection}
+            M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection, header: M.getJsx $ header showTranslation translation text}
   where redirectFn text translation selection word wordTranslation offset =
           runEffectFn2 props.navigation.navigate "ImageChoice" $
             { wordTranslation: wordTranslation

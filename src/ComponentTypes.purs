@@ -14,5 +14,3 @@ type FlashcardOffsetTranslation = {word :: String, offset :: Int, translation ::
 type FlashcardExistence = {with :: Array FlashcardOffset, without :: Array FlashcardOffsetTranslation}
 type Sentence
   = {text :: String, translation :: String, flashcardExistence :: FlashcardExistence}
-
-
