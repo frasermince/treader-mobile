@@ -11,13 +11,27 @@ type File
   = { path :: String, name :: String }
 
 foreign import bookDir :: String
+foreign import audioDir :: String
 
 foreign import _exists :: String -> Effect (Promise Boolean)
 
 foreign import _readDirectory :: String -> Effect (Promise (Array File))
 
+foreign import _writeFile :: String -> String -> String -> Effect (Promise Unit)
+foreign import _readFile :: String -> String -> Effect (Promise String)
+foreign import _unlink :: String -> Effect (Promise Unit)
+foreign import absintheFile :: {uri :: String, name :: String, type :: String} -> String
+
+unlink :: String -> Aff Unit
+unlink s = (liftEffect (_unlink s) >>= Promise.toAff)
 readDirectory :: String -> Aff (Array File)
 readDirectory s = (liftEffect (_readDirectory s) >>= Promise.toAff)
 
 exists :: String -> Aff Boolean
 exists s = (liftEffect (_exists s) >>= Promise.toAff)
+
+writeFile :: String -> String -> String -> Aff Unit
+writeFile path d encoding = (liftEffect (_writeFile path d encoding) >>= Promise.toAff)
+
+readFile :: String -> String -> Aff String
+readFile path encoding = (liftEffect (_readFile path encoding) >>= Promise.toAff)

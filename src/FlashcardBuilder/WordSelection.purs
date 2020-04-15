@@ -20,7 +20,7 @@ import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, ti
 import FlashcardBuilder.WordGrid as WordGrid
 import Debug.Trace (spy)
 
-type Props = {route :: {params :: {sentenceId :: Int, selection :: Selection}}, navigation :: {push :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String } Unit } }
+type Props = {route :: {params :: {sentenceId :: Int, selection :: Selection}}, navigation :: {push :: EffectFn2 String { selection :: Selection, wordTranslation :: String, rangeTranslation :: String, range :: String, rangeOffset :: Int, word :: String, existingSentence :: Boolean, audio :: Maybe String } Unit } }
 
 type Query = {sentence :: Sentence}
 
@@ -29,6 +29,7 @@ query =
     """
     query getFlashcards($sentenceId: ID) {
       sentence(id: $sentenceId) {
+        audioUrl
         text
         translation
         flashcardExistence {
@@ -59,7 +60,7 @@ headlineItem text translation true = M.getJsx $ paragraph {} $ M.string $ transl
 
 header (showTranslation /\ setShowTranslation) translation text =
   M.view {style: M.css {height: 100, marginLeft: 15, marginRight: 15}} do
-    listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10, flex: 1}}
+    listItem {titleNumberOfLines: 7, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: headlineItem text translation showTranslation, right: translateIcon, style: M.css {paddingTop: 10, flex: 1}}
 
 buildJsx props = React.do
   let params = props.route.params
@@ -67,11 +68,11 @@ buildJsx props = React.do
   result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all" }
   case spy "RESULT" result.state of
        Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Loading"
-       Just {sentence: { flashcardExistence: {with, without}, text, translation}} -> pure $ M.getJsx do
+       Just {sentence: { flashcardExistence: {with, without}, text, translation, audioUrl}} -> pure $ M.getJsx do
          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface { style: M.css { flex: 1 } } do
-            M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection, header: M.getJsx $ header showTranslation translation text}
-  where redirectFn text translation selection word wordTranslation offset =
+            M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection audioUrl, header: M.getJsx $ header showTranslation translation text}
+  where redirectFn text translation selection audio word wordTranslation offset =
           runEffectFn2 props.navigation.push "ImageChoice" $
             { wordTranslation: wordTranslation
             , rangeOffset: offset
@@ -79,4 +80,6 @@ buildJsx props = React.do
             , range: text
             , rangeTranslation: translation
             , word: word
+            , existingSentence: true
+            , audio: Just audio
             }
