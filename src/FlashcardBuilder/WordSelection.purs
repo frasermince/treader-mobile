@@ -65,9 +65,9 @@ header (showTranslation /\ setShowTranslation) translation text =
 buildJsx props = React.do
   let params = props.route.params
   showTranslation <- useState false
-  result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all" }
+  result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all", fetchPolicy: "cache-and-network" }
   case spy "RESULT" result.state of
-       Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Loading"
+       Nothing -> pure $ mempty
        Just {sentence: { flashcardExistence: {with, without}, text, translation, audioUrl}} -> pure $ M.getJsx do
          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface { style: M.css { flex: 1 } } do

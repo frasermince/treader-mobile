@@ -10,6 +10,8 @@ import apolloClient from './src/ApolloClient';
 import { Button, Snackbar, DefaultTheme } from 'react-native-paper';
 import Config from "react-native-config"
 import StoryBook from './storybook';
+import { ActivityIndicator, Colors } from 'react-native-paper';
+
 
 
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
@@ -19,6 +21,14 @@ if(__DEV__) {
   import('./ReactotronConfig').then(() => console.log('Reactotron Configured'))
 }
 
+let loadingStyle = {
+  zIndex: 3,
+  position: 'absolute',
+  alignItems: 'center',
+  left: "43%",
+  top: "43%",
+  justifyContent: 'center'
+}
 
 export default App = () => {
   if (Config.IS_STORYBOOK == "true") {
@@ -48,24 +58,24 @@ export default App = () => {
     if (client) {
       return (
         <ApolloProvider client={client}>
-        <DataStateContext value={contextValue}>
-        <PaperProvider theme={{...DefaultTheme, roundness: 3, colors: {...DefaultTheme.colors, primary: "#66aab1" }}}>
-        <Main/>
-        <Snackbar
-        style={{zIndex: 25}}
-        visible={errorVisible}
-        onDismiss={() => setErrorVisible(false)}
-        action={{
-          label: 'Close',
-            onPress: () => {
-              // Do something
-            },
-        }}
-        >
-        {error}
-        </Snackbar>
-        </PaperProvider>
-        </DataStateContext>
+          <DataStateContext value={contextValue}>
+            <PaperProvider theme={{...DefaultTheme, roundness: 3, colors: {...DefaultTheme.colors, primary: "#66aab1" }}}>
+              <ActivityIndicator animating={loading} size={"large"} style={loadingStyle}/>
+              <Main/>
+              <Snackbar
+                style={{zIndex: 25}}
+                visible={errorVisible}
+                onDismiss={() => setErrorVisible(false)}
+                action={{
+                  label: 'Close',
+                    onPress: () => {
+                      // Do something
+                    },
+              }}>
+                {error}
+              </Snackbar>
+            </PaperProvider>
+          </DataStateContext>
         </ApolloProvider>
       );
     } else {

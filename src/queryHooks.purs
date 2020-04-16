@@ -73,11 +73,15 @@ instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a)
           pure {state: fetchData result.state, refetch: result.refetch, networkStatus: result.networkStatus }
 
 dataEffect :: forall d. ((Boolean -> Boolean) -> Effect Unit) -> (String -> Effect Unit) -> QueryState (Record d) -> Effect Unit
-dataEffect setLoading setError (Data _) = pure unit
+dataEffect setLoading setError (Data _) = do
+  setLoading \_ -> false
+  pure unit
 
 dataEffect setLoading setError Loading = setLoading \_ -> true
 
-dataEffect setLoading setError (Error e) = setError $ spy "message" e.message
+dataEffect setLoading setError (Error e) = do
+  setLoading \_ -> false
+  setError $ spy "message" e.message
 
 fetchData :: forall a. QueryState a -> Maybe a
 fetchData (Data d) = Just d
