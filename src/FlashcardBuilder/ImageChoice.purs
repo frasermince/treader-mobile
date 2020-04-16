@@ -203,16 +203,20 @@ makePayload selection range rangeTranslation rangeOffset imageUrl word true = Ex
   }
   where a /\ b /\ t = Ebisu.defaultModel 24.0
 
-saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioPath setError redirect text language = launchAff_ do
+saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioPath setError redirect text language setLoading = launchAff_ do
+  liftEffect $ runEffectFn1 setLoading $ \_ -> true
   e <- fileExists audioPath
   if e then mempty else fetchWaveNet text language setAudioPath
   result <- try $ mutateWithSentence $ payload $ absintheFile {uri: fromMaybe defaultAudioFile audioPath, name: "speech.mp3", type: "application/mpeg"}
+  liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
     Right resp -> liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
-saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _= launchAff_ do
+saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading = launchAff_ do
+  liftEffect $ runEffectFn1 setLoading $ \_ -> true
   result <- try $ mutate payload
+  liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
     Right resp -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
@@ -310,7 +314,7 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioPath setError (redirectFn selection) params.range selection.book.language, disabled: noneSelected selected} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioPath setError (redirectFn selection) params.range selection.book.language setLoading, disabled: noneSelected selected} $ M.string "Add Images"
   where redirectFn selection sentenceId =
           runEffectFn2 props.navigation.push "WordSelection" $
             { sentenceId: sentenceId
