@@ -44,6 +44,11 @@ import tokenizer from 'sbd';
     return range
   }
 
+  function ltrim(str) {
+    if(!str) return str;
+    return str.replace(/^\s+/g, '');
+  }
+
   function getSentence(range) {
     let wordLength = range.endOffset;
     let paragraphRange = new Range();
@@ -51,12 +56,12 @@ import tokenizer from 'sbd';
     let phraseOffset = 0;
     paragraphRange.setStart(range.startContainer.parentElement, 0);
     paragraphRange.setEnd(range.startContainer, 0);
-    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent, {"sanitize": true})
-    let sentenceCharacters = paragraphRange.toString().length
+    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent.trim(), {"sanitize": true});
+    let sentenceCharacters = paragraphRange.toString().length;
     let characterIteration = 0;
     let sentence = sentences.find((sentence) => {
       // + 1 for the space that has been removed
-      let total = characterIteration + sentence.length + 1
+      let total = characterIteration + sentence.length + 1;
       if (total > sentenceCharacters) {
         sentenceOffset = sentenceCharacters - characterIteration;
         return true;
@@ -79,6 +84,12 @@ import tokenizer from 'sbd';
     multiRange = getNextWord(multiRange, false);
     multiRange = getNextWord(multiRange, false);
     let surrounding = multiRange.toString()
+    let sentenceWhitespaceLength = sentence.length - ltrim(sentence).length
+    let phraseWhitespaceLength = phrase.length - ltrim(phrase).length
+    sentence = sentence.trim();
+    phrase = phrase.trim();
+    sentenceOffset -= sentenceWhitespaceLength;
+    phraseOffset -= phraseWhitespaceLength;
     return {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength};
   }
 
