@@ -33,8 +33,8 @@ reactComponent =
     $ do
         component "SentenceChoice" $ buildJsx
 
-sentenceListItem range offset translation redirect = listItem {
-    title: underlineWord range offset,
+sentenceListItem range offset word translation redirect = listItem {
+    title: underlineWord range offset word,
     titleNumberOfLines: 5,
     descriptionNumberOfLines: 5,
     description: translation,
@@ -73,9 +73,9 @@ buildJsx props = React.do
         listItem {title: M.getJsx $ M.text {} $ M.string wordTranslation}
         divider {style: M.css {height: 1, width: "100%"}}
         if length selection.phrase /= length selection.sentence
-          then sentenceListItem selection.phrase selection.phraseOffset phraseTranslation (redirect wordTranslation) else mempty
+          then sentenceListItem selection.phrase selection.phraseOffset selection.word phraseTranslation (redirect wordTranslation) else mempty
         divider {style: M.css {height: 1, width: "100%"}}
-        sentenceListItem selection.sentence selection.sentenceOffset sentenceTranslation (redirect wordTranslation)
+        sentenceListItem selection.sentence selection.sentenceOffset selection.word sentenceTranslation (redirect wordTranslation)
         divider {style: M.css {height: 1, width: "100%"}}
   where redirectFn selection wordTranslation range rangeTranslation rangeOffset =
           runEffectFn2 props.navigation.navigate "ImageChoice" $
