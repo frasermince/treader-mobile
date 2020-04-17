@@ -56,8 +56,8 @@ import tokenizer from 'sbd';
     let phraseOffset = 0;
     paragraphRange.setStart(range.startContainer.parentElement, 0);
     paragraphRange.setEnd(range.startContainer, 0);
-    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent.trim(), {"sanitize": true});
-    let sentenceCharacters = paragraphRange.toString().length;
+    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent, {"sanitize": true});
+    let sentenceCharacters = paragraphRange.toString().trim().length;
     let characterIteration = 0;
     let sentence = sentences.find((sentence) => {
       // + 1 for the space that has been removed
