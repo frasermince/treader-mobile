@@ -248,7 +248,7 @@ mutation flashcardMutation($input: LoginInput!) {
 
 noneSelected selected = foldl (\accum s -> accum && not s) true selected
 
-paragraphItem params false = M.getJsx $ paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset]
+paragraphItem params false = M.getJsx $ paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset params.word]
 paragraphItem params true = M.getJsx $ paragraph {} $ M.string $ params.rangeTranslation
 
 fileExists :: Maybe String -> Aff Boolean
