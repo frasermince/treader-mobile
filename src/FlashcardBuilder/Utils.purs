@@ -21,5 +21,5 @@ underlineWord :: String -> Int -> String -> JSX
 underlineWord sentence 0 w = beginningTextResult word after
   where {before: word, after: after} = splitAt (length w) (trim sentence)
 underlineWord sentence offset w = textResult before word after
-  where {before: before, after: a} = splitAt (offset - 1) (trim sentence)
+  where {before: before, after: a} = splitAt (offset + 1) (trim sentence)
         {before: word, after: after} = splitAt (length w) a
