@@ -85,6 +85,8 @@ statusBar = child RN.statusBar
 
 image = child RN.image
 
+imageBackground = parent RN.imageBackground
+
 string s = jsx [RN.string s]
 
 parentElement component = parent (H.element component)
