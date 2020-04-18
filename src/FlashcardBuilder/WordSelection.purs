@@ -27,7 +27,7 @@ type Query = {sentence :: Sentence}
 query =
   gql
     """
-    query getFlashcards($sentenceId: ID) {
+    query getSentences($sentenceId: ID) {
       sentence(id: $sentenceId) {
         audioUrl
         text

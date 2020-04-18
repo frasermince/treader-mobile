@@ -6,7 +6,8 @@ import { reactComponent as AccountScreen} from "../output/Account";
 import { reactComponent as DailySelections} from "../output/FlashcardBuilder.DailySelections";
 import { reactComponent as SentenceChoice} from "../output/FlashcardBuilder.SentenceChoice";
 import { reactComponent as ImageChoice} from "../output/FlashcardBuilder.ImageChoice";
-import Review from "./Tinder/Review"
+import { reactComponent as Review} from "../output/FlashcardReview.Main";
+//import Review from "./Tinder/Review"
 import { reactComponent as WordSelection} from "../output/FlashcardBuilder.WordSelection";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
