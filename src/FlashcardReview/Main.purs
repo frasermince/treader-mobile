@@ -35,7 +35,7 @@ query =
         a
         b
         t
-        start_offset
+        startOffset
         word
         sentence {
           audioUrl
@@ -49,7 +49,7 @@ query =
 
 
 cardJsx swipeLeft swipeRight i accum cardData = do
-  accum <> M.childElement CardItem.reactComponent {imageUrl: cardData.imageUrl, word: cardData.word, description: cardData.sentence.text, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i}
+  accum <> M.childElement CardItem.reactComponent {imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i}
 
 reactComponent :: ReactComponent Props
 reactComponent =
