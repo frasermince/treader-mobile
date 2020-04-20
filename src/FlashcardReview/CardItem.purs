@@ -19,9 +19,8 @@ import Dimensions (window)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Traversable (traverse_)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
-import Debug.Trace (spy)
 import BindThis (bindThis)
-import FlashcardBuilder.Util (clozeWord)
+import FlashcardBuilder.Util (clozeWord, underlineWordMarkup)
 
 gray = "#757E90"
 containerCardItem = {
@@ -70,21 +69,20 @@ buildJsx props = React.do
   flipRef <- useRef null
   let flip = do
         result <- readRefMaybe flipRef
-        traverse_ (\s -> bindThis s.flipY s) (spy "RESULT" result)
+        traverse_ (\s -> bindThis s.flipY s) result
 
   pure $ M.getJsx do
      card {index: props.index, style: M.css {width: window.width}, ref: flipRef} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
-            M.text {style: M.css nameStyle} $ M.string props.word
             M.view {style: M.css {flexDirection: "row"}} do
-               clozeWord (spy "SENTENCE" props.sentence) (spy "OFFSET" props.offset) props.word $ M.css descriptionCardItem
+               clozeWord props.sentence props.offset props.word $ M.css descriptionCardItem
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css nameStyle} $ M.string props.word
             M.view {style: M.css {flexDirection: "row"}} do
-               clozeWord (spy "SENTENCE" props.sentence) (spy "OFFSET" props.offset) props.word $ M.css descriptionCardItem
+               underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
