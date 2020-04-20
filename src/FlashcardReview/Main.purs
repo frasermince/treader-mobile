@@ -14,7 +14,6 @@ import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Data.FoldableWithIndex (foldlWithIndexDefault)
 import Dimensions (window)
-import Debug.Trace (spy)
 import WhiteImageBackground (whiteImageBackground)
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
@@ -86,4 +85,4 @@ buildJsx props = React.do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           whiteImageBackground {style: M.css imageBackgroundStyles} do
             M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-              cardStack {verticalSwipe: false, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx swipeLeft swipeRight) mempty flashcards
+              cardStack {verticalSwipe: false, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx swipeLeft swipeRight) mempty $ flashcards
