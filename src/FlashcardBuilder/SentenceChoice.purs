@@ -34,7 +34,7 @@ reactComponent =
         component "SentenceChoice" $ buildJsx
 
 sentenceListItem range offset word translation redirect = listItem {
-    title: underlineWord range offset word,
+    title: underlineWord range offset word $ M.css {fontWeight: "bold"},
     titleNumberOfLines: 5,
     descriptionNumberOfLines: 5,
     description: translation,

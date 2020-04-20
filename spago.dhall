@@ -22,6 +22,7 @@ You can edit this file as you like.
     , "react-basic-hooks"
     , "react-basic-native"
     , "record"
+    , "stringutils"
     , "tuples-native"
     , "typelevel"
     , "typelevel-prelude"
