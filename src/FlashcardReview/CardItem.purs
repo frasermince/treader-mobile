@@ -46,8 +46,8 @@ containerCardItem = {
 imageStyle imageCount = {
   borderRadius: 8,
   flex: 1,
-  width: (window.width / imageCount) - 50.0,
-  height: (window.width / imageCount) - 50.0
+  width: ((window.width - (window.width / 2.0)) / imageCount),
+  height: ((window.width - (window.width / 2.0)) / imageCount)
 }
 
 nameStyle = {
@@ -59,9 +59,9 @@ nameStyle = {
 
 promptStyle = {
   paddingTop: 5,
-  paddingBottom: "10%",
   color: "#363636",
-  fontSize: 20
+  fontSize: 20,
+  flex: 1
 }
 
 descriptionCardItem = {
@@ -69,7 +69,7 @@ descriptionCardItem = {
   fontSize: 20
 }
 
-type Props = {word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String}
+type Props = {word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit}
 
 imageJsx imageCount accum imageUrl = accum <> image {style: M.css $ imageStyle $ toNumber imageCount, source: {uri: imageUrl}}
 
@@ -82,6 +82,10 @@ reactComponent =
 fileExists :: Maybe String -> Aff Boolean
 fileExists (Just filePath) = exists filePath
 fileExists Nothing = pure false
+
+flipEnd setIsFlipped audioPath = do
+  setIsFlipped \_ -> true
+  play $ fromMaybe "" audioPath
 
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
@@ -107,20 +111,20 @@ buildJsx props = React.do
 
 
   pure $ M.getJsx do
-     card {index: props.index, style: M.css {width: window.width}, ref: flipRef} do
+     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped audioPath} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
-            M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5}} do
+            M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 4}} do
                clozeWord (spy "SENTENCE" props.sentence) props.offset props.word $ M.css descriptionCardItem
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css promptStyle} $ M.string props.word
-            M.text {style: M.css {marginRight: 5, marginLeft: 5}} do
+            M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 2}} do
                underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
-
-            fab {icon: "volume-medium", small: true, style: M.css {width: 40, marginTop: "10%"}, onPress: RNE.capture_ $ play $ fromMaybe "" audioPath}
+            M.view {style: M.css {flex: 3}} do
+              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ play $ fromMaybe "" audioPath}
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
