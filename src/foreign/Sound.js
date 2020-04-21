@@ -7,6 +7,7 @@ exports.play = function (music) {
         console.warn('failed to load the sound', error)
         return null
       }
+      Sound.setCategory("Playback");
       speech.play((success) => {
         if (!success) {
           console.warn('playback failed due to audio decoding errors')

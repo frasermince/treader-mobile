@@ -28,7 +28,7 @@ underlineWord sentence length w style fontWeight fontSize = M.getJsx $ underline
 underlineWordMarkup :: String -> Int -> String -> CSS -> String -> Int -> Markup Unit
 underlineWordMarkup sentence length w style fontWeight fontSize = applyToWord (underlinedWord fontWeight fontSize) sentence length w style
 
-cloze word = M.view {style: M.css {borderBottomWidth: 1.6, borderBottomColor: "black", width: "15%", bottom: 2, marginLeft: 4, marginRight: 4}} $ M.text {} $ M.string $ ""
+cloze word = M.text {numberOfLines: 1.0, style: M.css {marginLeft: 10, marginRight: 4, textDecorationLine: "underline", fontWeight: "bold"}} $ M.string "               "
 
 clozeWord :: String -> Int -> String -> CSS -> Markup Unit
 clozeWord sentence length w style = applyToWord cloze sentence length w style
