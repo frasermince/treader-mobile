@@ -7,8 +7,8 @@ import Control.Promise (Promise)
 import Effect.Class (liftEffect)
 
 
-foreign import _fetch :: forall a b. String -> String -> Record a -> Effect (Promise (Record b))
+foreign import _fetch :: forall a b c. Record a -> String -> String -> Record b -> Effect (Promise (Record c))
 
 
-fetch :: forall a b . String -> String -> Record a -> Aff (Record b)
-fetch method url options = (liftEffect (_fetch method url options) >>= Promise.toAff)
+fetch :: forall a b c . Record a -> String -> String -> Record b -> Aff (Record c)
+fetch config method url options = (liftEffect (_fetch config method url options) >>= Promise.toAff)

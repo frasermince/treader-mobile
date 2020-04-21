@@ -19,10 +19,11 @@ import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import ApolloHooks (useMutation, gql)
+import Debug.Trace (spy)
 
 type Props = {}
 
-type Flashcard = {word :: String, sentence :: {text :: String, translation :: String, audio :: String}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int}
+type Flashcard = {word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int}
 type Query = {flashcards :: Array Flashcard}
 
 query =
@@ -37,6 +38,7 @@ query =
         startOffset
         word
         sentence {
+          id
           audioUrl
           text
           translation
@@ -48,7 +50,7 @@ query =
 
 
 cardJsx swipeLeft swipeRight i accum cardData = do
-  accum <> M.childElement CardItem.reactComponent {imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i}
+  accum <> M.childElement CardItem.reactComponent {imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -85,4 +87,4 @@ buildJsx props = React.do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           whiteImageBackground {style: M.css imageBackgroundStyles} do
             M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-              cardStack {verticalSwipe: false, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx swipeLeft swipeRight) mempty $ flashcards
+              cardStack {verticalSwipe: false, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx swipeLeft swipeRight) mempty $ spy "FLASHCARDS" flashcards

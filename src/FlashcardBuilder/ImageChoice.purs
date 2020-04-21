@@ -94,11 +94,12 @@ fetchWaveNet text language setAudioPath = do
         },
         voice: {
           languageCode: languageCode,
-          name: languageCode <> "-Wavenet-A",
+          name: languageCode <> "-Wavenet-C",
           ssmlGender: "FEMALE"
         },
         audioConfig: {
-          audioEncoding: "MP3"
+          audioEncoding: "MP3",
+          speakingRate: 0.90
         }
       }
   let url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" <> (unsafeGet "CSE_API_KEY" config)
@@ -275,7 +276,7 @@ buildJsx props = React.do
      case params.audio of
           Nothing -> mempty
           Just url -> launchAff_ do
-             result <- fetch "GET" url {}
+             result <- fetch {fileCache: true} "GET" url {}
              path <- liftEffect result.path
              liftEffect $ setAudioPath \_ -> Just $ spy "FETCHED PATH" $ "file://" <> path
      pure $ launchAff_ do
