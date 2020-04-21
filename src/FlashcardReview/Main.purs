@@ -49,8 +49,8 @@ query =
 
 
 
-cardJsx swipeLeft swipeRight i accum cardData = do
-  accum <> M.childElement CardItem.reactComponent {imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id}
+cardJsx setIsFlipped swipeLeft swipeRight i accum cardData = do
+  accum <> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -72,6 +72,7 @@ buildJsx props = React.do
   ]
   swipeRef <- useRef null
   result <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
+  isFlipped /\ setIsFlipped <- useState false
 
   let swipeLeft = do
         result <- readRefMaybe swipeRef
@@ -87,4 +88,4 @@ buildJsx props = React.do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           whiteImageBackground {style: M.css imageBackgroundStyles} do
             M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-              cardStack {verticalSwipe: false, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx swipeLeft swipeRight) mempty $ spy "FLASHCARDS" flashcards
+              cardStack {initialIndex: 1, onSwiped: setIsFlipped \_ -> false, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx setIsFlipped swipeLeft swipeRight) mempty $ spy "FLASHCARDS" flashcards
