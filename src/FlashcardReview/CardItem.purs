@@ -120,7 +120,7 @@ buildJsx props = React.do
             M.text {style: M.css {marginRight: 5, marginLeft: 5}} do
                underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
 
-            fab {icon: "volume-medium", small: true, style: M.css {width: 40, marginTop: 50}, onPress: RNE.capture_ $ play $ fromMaybe "" audioPath}
+            fab {icon: "volume-medium", small: true, style: M.css {width: 40, marginTop: "10%"}, onPress: RNE.capture_ $ play $ fromMaybe "" audioPath}
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
