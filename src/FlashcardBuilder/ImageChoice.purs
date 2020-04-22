@@ -51,6 +51,7 @@ import Data.Either (Either(..))
 import Foreign.Object (lookup) as Object
 import FetchBlob (fetch)
 import Debug.Trace (spy)
+import Sound (play, Sound, release, stop, createSound)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -78,15 +79,15 @@ data Payload = NewSentencePayload
 
 type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String, existingSentence :: Boolean, audio :: Maybe String}}, navigation :: {push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
 
-speak text language audioPath setAudioPath = launchAff_ do
-  e <- fileExists $ spy "PATH" audioPath
-  if e
-    then liftEffect $ spy "*****EXISTED" play (fromMaybe defaultAudioFile audioPath)
-    else do
-       fetchWaveNet text language setAudioPath
-       liftEffect $ play defaultAudioFile
+speak :: String -> String -> Maybe Sound -> (String -> Effect (Maybe Sound)) -> Effect Unit
+speak text language sound setAudioInformation = launchAff_ do
+  case sound of
+       Just s -> liftEffect $ stop s (play s)
+       Nothing -> do
+          s <- fetchWaveNet text language setAudioInformation
+          liftEffect $ traverse_ (\s -> stop s (play s)) s
 
-fetchWaveNet text language setAudioPath = do
+fetchWaveNet text language setAudioInformation = do
   let languageCode = fromMaybe "" $ lookup language languageList
   let payload = {
         input: {
@@ -105,13 +106,17 @@ fetchWaveNet text language setAudioPath = do
   let url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" <> (unsafeGet "CSE_API_KEY" config)
   result <- AX.post ResponseFormat.json url $ Just $ RequestBody.json $ encodeJson payload
   case result of
-    Left err -> liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+    Left err -> do
+       liftEffect $ log $ "GET /api response failed to decode: " <> AX.printError err
+       pure Nothing
     Right response ->
       case (getAudio response) of
-        Nothing -> liftEffect $ log $ "JSON decode error"
+        Nothing -> do
+           liftEffect $ log $ "JSON decode error"
+           pure Nothing
         (Just audioContent) -> do
-          liftEffect $ setAudioPath \_ -> Just defaultAudioFile
           spy "*****CREATED" $ writeFile defaultAudioFile audioContent "base64"
+          liftEffect $ setAudioInformation defaultAudioFile
   where getAudio result = do
           object <- J.toObject result.body
           audioJson <- Object.lookup "audioContent" object
@@ -204,10 +209,12 @@ makePayload selection range rangeTranslation rangeOffset imageUrl word true = Ex
   }
   where a /\ b /\ t = Ebisu.defaultModel 24.0
 
-saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioPath setError redirect text language setLoading = launchAff_ do
+saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioInformation setError redirect text language setLoading = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
   e <- fileExists audioPath
-  if e then mempty else fetchWaveNet text language setAudioPath
+  if e then mempty else do
+     _ <- fetchWaveNet text language setAudioInformation
+     pure unit
   result <- try $ mutateWithSentence $ payload $ absintheFile {uri: fromMaybe defaultAudioFile audioPath, name: "speech.mp3", type: "application/mpeg"}
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
@@ -269,6 +276,13 @@ buildJsx props = React.do
   showSearch /\ setShowSearch <- useState false
   showTranslation /\ setShowTranslation <- useState false
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
+  sound /\ setSound <- useState (Nothing :: Maybe Sound)
+  let setAudioInformation path = do
+        let s = createSound path
+        setAudioPath \_ -> Just path
+        setSound \_ -> Just $ s
+        pure $ Just s
+
   useEffect params.word do
     getImages setSelected params.word setImages setError
     pure mempty
@@ -278,7 +292,7 @@ buildJsx props = React.do
           Just url -> launchAff_ do
              result <- fetch {fileCache: true} "GET" url {}
              path <- liftEffect result.path
-             liftEffect $ setAudioPath \_ -> Just $ spy "FETCHED PATH" $ "file://" <> path
+             liftEffect $ setAudioInformation $ spy "FETCHED PATH" $ "file://" <> path
      pure $ launchAff_ do
         e <- fileExists audioPath
         if e then unlink $ fromMaybe defaultAudioFile audioPath else mempty
@@ -303,7 +317,7 @@ buildJsx props = React.do
            M.view {style: M.css {flex: 4}} do
             divider {style: M.css {height: 1, width: "100%"}}
             M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
-              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range selection.book.language audioPath setAudioPath}
+              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range selection.book.language sound setAudioInformation}
               listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
             --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
             fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
@@ -315,7 +329,7 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioPath setError (redirectFn selection) params.range selection.book.language setLoading, disabled: noneSelected selected} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioInformation setError (redirectFn selection) params.range selection.book.language setLoading, disabled: noneSelected selected} $ M.string "Add Images"
   where redirectFn selection sentenceId =
           runEffectFn2 props.navigation.push "WordSelection" $
             { sentenceId: sentenceId

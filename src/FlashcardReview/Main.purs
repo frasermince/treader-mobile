@@ -20,6 +20,8 @@ import Type.Proxy (Proxy(..))
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import ApolloHooks (useMutation, gql)
 import Debug.Trace (spy)
+import Effect.Console (log)
+import Effect.Uncurried (mkEffectFn1)
 
 type Props = {}
 
@@ -47,10 +49,8 @@ query =
     }
 """
 
-
-
-cardJsx setIsFlipped swipeLeft swipeRight i accum cardData = do
-  accum <> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id}
+cardJsx setIsFlipped swipeLeft swipeRight activeIndex i accum cardData = do
+  accum <> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id, activeIndex: activeIndex}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -65,6 +65,11 @@ imageBackgroundStyles = {
   height: window.height
 }
 
+swiped setIsFlipped setActiveIndex index = do
+  log "TEST"
+  setIsFlipped \_ -> false
+  setActiveIndex \_ -> spy "INDEX" index
+
 buildJsx props = React.do
   let cards = [
       {word: "etre", sentenceText: "Etre ou ne etre pas", imageUrl: ["https://google.com"]},
@@ -73,6 +78,7 @@ buildJsx props = React.do
   swipeRef <- useRef null
   result <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
   isFlipped /\ setIsFlipped <- useState false
+  activeIndex /\ setActiveIndex <- useState 0
 
   let swipeLeft = do
         result <- readRefMaybe swipeRef
@@ -88,4 +94,4 @@ buildJsx props = React.do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           whiteImageBackground {style: M.css imageBackgroundStyles} do
             M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-              cardStack {initialIndex: 1, onSwiped: setIsFlipped \_ -> false, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx setIsFlipped swipeLeft swipeRight) mempty $ spy "FLASHCARDS" flashcards
+              cardStack {onSwiped: mkEffectFn1 $ swiped setIsFlipped setActiveIndex, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ foldlWithIndexDefault (cardJsx setIsFlipped swipeLeft swipeRight activeIndex) mempty $ spy "FLASHCARDS" flashcards
