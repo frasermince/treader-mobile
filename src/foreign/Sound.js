@@ -1,30 +1,45 @@
 const Sound = require('react-native-sound')
 
-exports.createSound = function (music) {
-  Sound.setCategory("Playback");
-  return new Sound(music, '', (error) => {
-    if (error) {
-      console.warn('failed to load the sound', error)
-      return null
-    }
-  });
-}
-
-exports.play = function (sound) {
-  return function () {
-    sound.play((success) => {
-      if (!success) {
-        console.warn('playback failed due to audio decoding errors')
+exports._createSound = function (music) { // accepts a request
+  return function (onError, onSuccess) { // and callbacks
+    Sound.setCategory("Playback");
+    let sound = new Sound(music, '', (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        onError(error);
+      } else {
+        onSuccess(sound)
       }
-    })
+    });
+
+    return function (cancelError, cancelerError, cancelerSuccess) {
+      sound.stop(); // cancel the request
+      cancelerSuccess(); // invoke the success callback for the canceler
+    };
+  };
+};
+
+exports._play = function (sound) {
+  return function (onError, onSuccess) { // and callbacks
+    return sound.play(() => {
+      onSuccess(sound);
+    });
+
+    return function (cancelError, cancelerError, cancelerSuccess) {
+      cancelerSuccess(); // invoke the success callback for the canceler
+    };
   }
 }
 
-exports.stop = function (sound) {
-  return function (callback) {
-    return function () {
-      return sound.stop(callback);
-    }
+exports._stop = function (sound) {
+  return function (onError, onSuccess) { // and callbacks
+    return sound.stop(() => {
+      onSuccess(sound);
+    });
+
+    return function (cancelError, cancelerError, cancelerSuccess) {
+      cancelerSuccess(); // invoke the success callback for the canceler
+    };
   }
 }
 
