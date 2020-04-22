@@ -51,7 +51,7 @@ import Data.Either (Either(..))
 import Foreign.Object (lookup) as Object
 import FetchBlob (fetch)
 import Debug.Trace (spy)
-import Sound (play, Sound, release, stop, createSound)
+import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -79,14 +79,16 @@ data Payload = NewSentencePayload
 
 type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String, existingSentence :: Boolean, audio :: Maybe String}}, navigation :: {push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
 
-speak :: String -> String -> Maybe Sound -> (String -> Effect (Maybe Sound)) -> Effect Unit
+speak :: String -> String -> Maybe Sound -> (String -> Aff Sound) -> Effect Unit
 speak text language sound setAudioInformation = launchAff_ do
   case sound of
-       Just s -> liftEffect $ stop s (play s)
+       Just s -> do
+          stopAndPlay s
        Nothing -> do
           s <- fetchWaveNet text language setAudioInformation
-          liftEffect $ traverse_ (\s -> stop s (play s)) s
+          traverse_ play s
 
+fetchWaveNet :: String -> String -> (String -> Aff Sound) -> Aff (Maybe Sound)
 fetchWaveNet text language setAudioInformation = do
   let languageCode = fromMaybe "" $ lookup language languageList
   let payload = {
@@ -116,7 +118,7 @@ fetchWaveNet text language setAudioInformation = do
            pure Nothing
         (Just audioContent) -> do
           spy "*****CREATED" $ writeFile defaultAudioFile audioContent "base64"
-          liftEffect $ setAudioInformation defaultAudioFile
+          Just <$> (setAudioInformation defaultAudioFile)
   where getAudio result = do
           object <- J.toObject result.body
           audioJson <- Object.lookup "audioContent" object
@@ -277,11 +279,12 @@ buildJsx props = React.do
   showTranslation /\ setShowTranslation <- useState false
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
-  let setAudioInformation path = do
-        let s = createSound path
-        setAudioPath \_ -> Just path
-        setSound \_ -> Just $ s
-        pure $ Just s
+  let setAudioInformation :: String -> Aff Sound
+      setAudioInformation path = do
+        s <- createSound path
+        liftEffect $ setAudioPath \_ -> Just path
+        liftEffect $ setSound \_ -> Just $ s
+        pure $ s
 
   useEffect params.word do
     getImages setSelected params.word setImages setError
@@ -292,10 +295,11 @@ buildJsx props = React.do
           Just url -> launchAff_ do
              result <- fetch {fileCache: true} "GET" url {}
              path <- liftEffect result.path
-             liftEffect $ setAudioInformation $ spy "FETCHED PATH" $ "file://" <> path
+             setAudioInformation $ "file://" <> path
      pure $ launchAff_ do
         e <- fileExists audioPath
         if e then unlink $ fromMaybe defaultAudioFile audioPath else mempty
+        liftEffect $ traverse_ release sound
 
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected images) params.word params.existingSentence
   pure $ M.getJsx do

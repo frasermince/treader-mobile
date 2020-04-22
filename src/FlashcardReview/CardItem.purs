@@ -27,7 +27,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
 import Debug.Trace (spy)
-import Sound (play, Sound, release, stop, createSound)
+import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 
 gray = "#757E90"
 containerCardItem = {
@@ -83,33 +83,37 @@ fileExists :: Maybe String -> Aff Boolean
 fileExists (Just filePath) = exists filePath
 fileExists Nothing = pure false
 
-flipEnd setIsFlipped sound = do
-  setIsFlipped \_ -> true
-  traverse_ play sound
+flipEnd setIsFlipped sound = launchAff_ do
+  liftEffect $ setIsFlipped \_ -> true
+  traverse_ stopAndPlay sound
 
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
-  let setAudioInformation path = do
-        setAudioPath \_ -> Just path
-        setSound \_ -> Just $ createSound path
+  let setAudioInformation :: String -> Aff Sound
+      setAudioInformation path = do
+        s <- createSound path
+        liftEffect $ setAudioPath \_ -> Just path
+        liftEffect $ setSound \_ -> Just $ s
+        pure $ s
+
   useEffect (spy "ACTIVE" props.activeIndex) do
-     traverse_ (\s -> stop s mempty) sound
+     launchAff_ $ traverse_ stopAndPlay sound
      pure mempty
   useEffect (spy "PROPS" props).audioUrl do
      launchAff_ do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
         e <- exists file
         case e of
-          true -> liftEffect $ setAudioInformation $ "file://" <> file
+          true -> setAudioInformation $ "file://" <> file
           false -> do
             result <- fetch {fileCache: true, path: spy "FILE" file} "GET" props.audioUrl {}
             path <- liftEffect $ spy "PATH" result.path
-            liftEffect $ setAudioInformation $ "file://" <> path
+            setAudioInformation $ "file://" <> path
      pure $ launchAff_ do
         e <- fileExists audioPath
         if e then unlink $ fromMaybe "" audioPath else mempty
-        liftEffect $ traverse_ release sound 
+        liftEffect $ traverse_ release sound
 
 
   flipRef <- useRef null
@@ -131,7 +135,7 @@ buildJsx props = React.do
             M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 2}} do
                underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
             M.view {style: M.css {flex: 3}} do
-              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ traverse_ play sound}
+              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ launchAff_ $ traverse_ stopAndPlay sound}
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
