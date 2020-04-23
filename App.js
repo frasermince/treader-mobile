@@ -21,13 +21,15 @@ if(__DEV__) {
   import('./ReactotronConfig').then(() => console.log('Reactotron Configured'))
 }
 
-let loadingStyle = {
-  zIndex: 3,
-  position: 'absolute',
-  alignItems: 'center',
-  left: "43%",
-  top: "43%",
-  justifyContent: 'center'
+let loadingStyle = function(loading) {
+  return {
+    zIndex: 3,
+    position: 'absolute',
+    alignItems: 'center',
+    left: loading ? "43%" : -10,
+    top: loading ? "43%" : - 10,
+    justifyContent: 'center'
+  };
 }
 
 export default App = () => {
@@ -60,7 +62,7 @@ export default App = () => {
         <ApolloProvider client={client}>
           <DataStateContext value={contextValue}>
             <PaperProvider theme={{...DefaultTheme, roundness: 3, colors: {...DefaultTheme.colors, primary: "#66aab1" }}}>
-              <ActivityIndicator animating={loading} size={"large"} style={loadingStyle}/>
+              <ActivityIndicator animating={loading} size={"large"} style={loadingStyle(loading)}/>
               <Main/>
               <Snackbar
                 style={{zIndex: 25}}
