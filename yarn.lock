@@ -2817,9 +2817,9 @@
     "@types/node" "*"
 
 "@types/node@*":
-  version "13.13.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.1.tgz#1ba94c5a177a1692518bfc7b41aec0aa1a14354e"
-  integrity sha512-uysqysLJ+As9jqI5yqjwP3QJrhOcUwBjHUlUxPxjbplwKoILvXVsmYWEhfmAQlrPfbRZmhJB007o4L9sKqtHqQ==
+  version "13.13.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.2.tgz#160d82623610db590a64e8ca81784e11117e5a54"
+  integrity sha512-LB2R1Oyhpg8gu4SON/mfforE525+Hi/M1ineICEDftqNVTyFg1aRIeGuTvXAoWHc4nbrFncWtJgMmoyRvuGh7A==
 
 "@types/node@>=6":
   version "12.12.7"
@@ -12451,10 +12451,9 @@ react-native-card-flip@^1.0.6:
     prop-types "15.5.10"
     react-lifecycles-compat "^3.0.4"
 
-react-native-card-stack-swiper@^1.2.4:
+react-native-card-stack-swiper@frasermince/react-native-card-stack-swiper:
   version "1.2.4"
-  resolved "https://registry.yarnpkg.com/react-native-card-stack-swiper/-/react-native-card-stack-swiper-1.2.4.tgz#361f63b66fd9ccda165b28d66929d84ec30e8204"
-  integrity sha512-NTu7u89HWWjoadZdvnoq7oZAOFP274GH95GhCIQOTfMJAgmmsT+bYG1xpkePtvkaawUG0POvREMrcUvgmfvbBQ==
+  resolved "https://codeload.github.com/frasermince/react-native-card-stack-swiper/tar.gz/cfee4c83df6fe965ebf20e7a8bc78221ebd550b6"
   dependencies:
     prop-types "15.5.10"
     react-lifecycles-compat "^3.0.4"
@@ -14711,9 +14710,9 @@ typedarray@^0.0.6:
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
 ua-parser-js@^0.7.18:
-  version "0.7.20"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.20.tgz#7527178b82f6a62a0f243d1f94fd30e3e3c21098"
-  integrity sha512-8OaIKfzL5cpx8eCMAhhvTlft8GYF8b2eQr6JkCyVdrgjcytyOmPCXrqXFcUnhonRpLlh5yxEZVohm6mzaowUOw==
+  version "0.7.21"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.21.tgz#853cf9ce93f642f67174273cc34565ae6f308777"
+  integrity sha512-+O8/qh/Qj8CgC6eYBVBykMrNtp5Gebn4dlGD/kKXVkJNDwyrAwSIqwz8CDf+tsAIWVycKcku6gIXJ0qwx/ZXaQ==
 
 uglify-es@^3.1.9:
   version "3.3.9"

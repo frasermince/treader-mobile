@@ -64,6 +64,11 @@ parent el props kids = jsx [el $ Record.insert childrenProxy (getChildren kids) 
 child :: forall p. (Record p -> JSX) -> Record p -> Markup Unit
 child el props = jsx [el props]
 
+takesChildCallbacks :: forall a p. Lacks "children" p => ({ children :: Array (a -> JSX) | p } -> JSX) -> Record p -> Array (a -> Markup Unit) -> Markup Unit
+takesChildCallbacks el props kids = jsx [el $ Record.insert childrenProxy (childFn <$> kids) props]
+  where childFn :: (a -> Markup Unit) -> (a -> JSX)
+        childFn child = \a -> getJsx $ child a
+
 --touchableOpacity :: forall p. Lacks "children" p => Record p -> Markup JSX -> Markup JSX
 touchableOpacity = parent RN.touchableOpacity
 
@@ -89,6 +94,7 @@ imageBackground = parent RN.imageBackground
 
 string s = jsx [RN.string s]
 
+parentWithCallbacks component = takesChildCallbacks (H.element component)
 parentElement component = parent (H.element component)
 
 childElement component = child (H.element component)

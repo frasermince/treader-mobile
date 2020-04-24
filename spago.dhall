@@ -16,6 +16,7 @@ You can edit this file as you like.
     , "fixed-precision"
     , "foreign-object"
     , "formatters"
+    , "globals"
     , "graphql"
     , "psci-support"
     , "react-basic"
