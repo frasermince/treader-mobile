@@ -48,7 +48,7 @@
     "react-native": "0.61.2",
     "react-native-appstate-hook": "^1.0.3",
     "react-native-card-flip": "^1.0.6",
-    "react-native-card-stack-swiper": "^1.2.4",
+    "react-native-card-stack-swiper": "frasermince/react-native-card-stack-swiper",
     "react-native-config": "^1.0.0",
     "react-native-crypto": "^2.2.0",
     "react-native-fast-image": "^8.1.5",

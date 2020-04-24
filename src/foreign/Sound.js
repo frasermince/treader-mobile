@@ -6,7 +6,7 @@ exports._createSound = function (music) { // accepts a request
     let sound = new Sound(music, '', (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
-        onError(error);
+        onError(error.message);
       } else {
         onSuccess(sound)
       }

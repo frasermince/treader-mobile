@@ -11,13 +11,14 @@ import Markup as M
 import Data.Array (head)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (fromMaybe)
+import Effect.Console (log)
 import Image (image)
 import Data.Foldable (foldl)
 import Data.Array (length)
 import Data.Int (toNumber)
 import Dimensions (window)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
-import Data.Traversable (traverse_)
+import Data.Traversable (traverse_, traverse)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import BindThis (bindThis)
 import FlashcardBuilder.Util (clozeWord, underlineWordMarkup)
@@ -28,6 +29,8 @@ import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
 import Debug.Trace (spy)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
+import Data.String (stripPrefix, Pattern(..))
+import Global (encodeURIComponent)
 
 gray = "#757E90"
 containerCardItem = {
@@ -69,7 +72,7 @@ descriptionCardItem = {
   fontSize: 20
 }
 
-type Props = {activeIndex :: Int, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit}
+type Props = {active :: Boolean, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit, isFlipped :: Boolean}
 
 imageJsx imageCount accum imageUrl = accum <> image {style: M.css $ imageStyle $ toNumber imageCount, source: {uri: imageUrl}}
 
@@ -90,39 +93,40 @@ flipEnd setIsFlipped sound = launchAff_ do
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
+  flipRef <- useRef null
+  let flip = do
+        result <- readRefMaybe flipRef
+        traverse_ (\s -> bindThis s.flipY (spy "FLIP RESULT" s)) result
+
   let setAudioInformation :: String -> Aff Sound
       setAudioInformation path = do
         s <- createSound path
         liftEffect $ setAudioPath \_ -> Just path
         liftEffect $ setSound \_ -> Just $ s
-        pure $ s
+        pure $ spy "RESULT" s
 
-  useEffect (spy "ACTIVE" props.activeIndex) do
-     launchAff_ $ traverse_ stopAndPlay sound
+  useEffect props.active do
+     props.setIsFlipped \_ -> false
+     launchAff_ $ traverse_ stop sound
      pure mempty
-  useEffect (spy "PROPS" props).audioUrl do
+  useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
-        e <- exists file
-        case e of
-          true -> setAudioInformation $ "file://" <> file
+        e <- exists $ spy "EXIST CHECK" file
+        case spy "EXISTS" e of
+          true -> traverse_ setAudioInformation (encodeURIComponent file)
           false -> do
             result <- fetch {fileCache: true, path: spy "FILE" file} "GET" props.audioUrl {}
             path <- liftEffect $ spy "PATH" result.path
-            setAudioInformation $ "file://" <> path
+            traverse_ setAudioInformation (encodeURIComponent path)
      pure $ launchAff_ do
         e <- fileExists audioPath
         if e then unlink $ fromMaybe "" audioPath else mempty
+        traverse_ stop sound
         liftEffect $ traverse_ release sound
-
-
-  flipRef <- useRef null
-  let flip = do
-        result <- readRefMaybe flipRef
-        traverse_ (\s -> bindThis s.flipY s) result
-
+  
   pure $ M.getJsx do
-     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound} do
+     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound, key: props.active} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
             M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 4}} do
