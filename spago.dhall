@@ -19,6 +19,7 @@ You can edit this file as you like.
     , "globals"
     , "graphql"
     , "psci-support"
+    , "random"
     , "react-basic"
     , "react-basic-hooks"
     , "react-basic-native"

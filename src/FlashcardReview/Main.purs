@@ -22,10 +22,12 @@ import ApolloHooks (useMutation, gql)
 import Debug.Trace (spy)
 import Effect.Console (log)
 import Effect.Uncurried (mkEffectFn1)
+import ComponentTypes (Flashcard)
+import Ebisu (lowestThree)
+import Data.Array.NonEmpty (fromArray)
 
 type Props = {}
 
-type Flashcard = {word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int}
 type Query = {flashcards :: Array Flashcard}
 
 query =
@@ -43,6 +45,7 @@ query =
           id
           audioUrl
           text
+          hoursPassed
           translation
         }
       }
@@ -50,7 +53,8 @@ query =
 """
 
 cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
-  \active -> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, isFlipped: isFlipped, imageUrl: cardData.imageUrl, word: cardData.word, sentence: cardData.sentence.text, offset: cardData.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: cardData.sentence.audioUrl, sentenceId: cardData.sentence.id, active: active}
+  \active -> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, isFlipped: isFlipped, imageUrl: flashcard.imageUrl, word: flashcard.word, sentence: flashcard.sentence.text, offset: flashcard.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: flashcard.sentence.audioUrl, sentenceId: flashcard.sentence.id, active: active}
+  where flashcard = cardData.x
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -85,10 +89,10 @@ buildJsx props = React.do
         result <- readRefMaybe swipeRef
         traverse_ (\s -> s.swipeRight) result
 
-  case result.state of
+  case _.flashcards <$> result.state >>= fromArray of
        Nothing -> mempty
-       Just {flashcards: flashcards} -> pure $ M.getJsx do
+       Just flashcards -> pure $ M.getJsx do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           whiteImageBackground {style: M.css imageBackgroundStyles} do
             M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-              spy "STACK" cardStack {onSwiped: mkEffectFn1 $ swiped setIsFlipped, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" flashcards
+              spy "STACK" cardStack {onSwiped: mkEffectFn1 $ swiped setIsFlipped, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" lowestThree flashcards
