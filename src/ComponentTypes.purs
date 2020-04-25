@@ -15,4 +15,4 @@ type FlashcardExistence = {with :: Array FlashcardOffset, without :: Array Flash
 type Sentence
   = {text :: String, translation :: String, flashcardExistence :: FlashcardExistence, audioUrl :: String}
 
-type Flashcard = {word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String, lastReviewed :: Number}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int}
+type Flashcard = {word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String, hoursPassed :: Number}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int}

@@ -17,6 +17,8 @@ import Data.Eq (class EqRecord)
 import Effect.Uncurried (runEffectFn1)
 import Data.Nullable (toMaybe, Nullable)
 import Debug.Trace (spy)
+import Data.String (stripPrefix, Pattern(..))
+import Data.Maybe (fromMaybe)
 
 type Book
   = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
@@ -89,3 +91,5 @@ fetchData (Data d) = Just d
 fetchData Loading = Nothing
 
 fetchData (Error e) = Nothing
+
+stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
