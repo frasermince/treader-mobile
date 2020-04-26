@@ -10,7 +10,7 @@ import Data.Traversable (traverse_)
 import Effect (Effect)
 import StackSwiper (cardStack, card)
 import Markup as M
-import Data.Array (mapWithIndex)
+import Data.Array (mapWithIndex, (!!), snoc)
 import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Data.FoldableWithIndex (foldlWithIndexDefault)
@@ -19,7 +19,7 @@ import WhiteImageBackground (whiteImageBackground)
 import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Exception (message)
 import Type.Proxy (Proxy(..))
-import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
 import ApolloHooks (useMutation, gql)
 import Debug.Trace (spy)
 import Effect.Console (log)
@@ -28,7 +28,6 @@ import ComponentTypes (Flashcard)
 import Ebisu (lowestThree, randomLow, updateRecall)
 import Data.Either (Either(..))
 import Data.Array.NonEmpty (fromArray, toArray)
-import Data.Array (snoc)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Effect.Uncurried (runEffectFn1, EffectFn1)
@@ -40,14 +39,20 @@ type Query = {flashcards :: Array Flashcard}
 mutation = gql """
   mutation flashcardMutation($input: UpdateFlashcardInput!) {
     updateFlashcard(input: $input) {
-      flashcard {
+      flashcards {
         id
+        imageUrl
         a
         b
         t
+        startOffset
+        word
         sentence {
           id
-          lastReviewed
+          audioUrl
+          text
+          hoursPassed
+          translation
         }
       }
     }
@@ -59,6 +64,7 @@ query =
     """
     query getFlashcards {
       flashcards {
+        id
         imageUrl
         a
         b
@@ -96,20 +102,19 @@ imageBackgroundStyles = {
 swiped setIsFlipped index = do
   log "TEST"
 
-handleSwipe result mutate flashcard setError setCards = launchAff_ do
+handleSwipe mutate setError setCards Nothing result = mempty
+handleSwipe mutate setError setCards (Just {x: flashcard, y: prediction}) result = launchAff_ do
   let flashcardEbisu = flashcard.a /\ flashcard.b /\ flashcard.t
-  let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.hoursPassed
+  let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.sentence.hoursPassed
   result <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t}}}
-  case result of
+  case spy "MUT RESULT" result of
        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
        Right resp -> do
-          addCard $ fromArray resp.updateFlashcard.cards
-
+          addCard $ fromArray (spy "UPDATE" resp).updateFlashcard.flashcards
   where addCard (Just cards) = do
-          newCard <- liftEffect $ randomLow cards 
-          setCards \cards -> snoc cards newCard
+          newCard <- liftEffect $ randomLow cards
+          liftEffect $ setCards \cards -> snoc cards newCard
         addCard Nothing = mempty
-
 
 buildJsx props = React.do
   swipeRef <- useRef null
@@ -128,7 +133,8 @@ buildJsx props = React.do
         result <- readRefMaybe swipeRef
         traverse_ (\s -> s.swipeRight) result
 
-  useEffect flashcardsResult.state $ do
+  let afterSwipe = handleSwipe mutate setError setCards
+  useEffect (spy "STATE" $ isJust flashcardsResult.state) $ do
     case (_.flashcards <$> flashcardsResult.state) >>= fromArray of
          Nothing -> mempty
          Just flashcards -> setCards \_ -> lowestThree flashcards
@@ -138,4 +144,4 @@ buildJsx props = React.do
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       whiteImageBackground {style: M.css imageBackgroundStyles} do
         M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-          spy "STACK" cardStack {onSwiped: mkEffectFn1 $ swiped setIsFlipped, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
+          spy "STACK" cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! i) false, onSwipedRight: mkEffectFn1 \i -> afterSwipe (spy "CARD AT INDEX" $ cards !! i) true, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards

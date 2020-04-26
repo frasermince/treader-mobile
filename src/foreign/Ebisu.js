@@ -6,23 +6,33 @@ exports._predictRecall = function(model) {
     return ebisu.predictRecall(model, elapsed);
   }
 }
-exports._updateRecall = ebisu.updateRecall;
+exports._updateRecall = function(model) {
+  return function(result) {
+    return function(elapsed) {
+      return ebisu.updateRecall(model, result, elapsed);
+    }
+  }
+}
 
-exports.binLowest = function(it, binMaxs, f) {
-    binMaxs = binMaxs.slice().sort((a, b) => a - b);
-    if (binMaxs[binMaxs.length - 1] !== Infinity) {
-        binMaxs.push(Infinity);
+exports.binLowest = function(it) {
+  return function(binMaxs) {
+    return function(f) {
+      binMaxs = binMaxs.slice().sort((a, b) => a - b);
+      if (binMaxs[binMaxs.length - 1] !== Infinity) {
+          binMaxs.push(Infinity);
+      }
+      const hits = Array.from(Array(binMaxs.length), _ => []);
+      let hitsIdx = binMaxs.length - 1;
+      for (const x of it) {
+          const y = f(x);
+          if (y < binMaxs[hitsIdx]) {
+              hitsIdx = binMaxs.findIndex(max => y < max);
+              hits[hitsIdx].push(x);
+          }
+      }
+      return hits[hitsIdx];
     }
-    const hits = Array.from(Array(binMaxs.length), _ => []);
-    let hitsIdx = binMaxs.length - 1;
-    for (const x of it) {
-        const y = f(x);
-        if (y < binMaxs[hitsIdx]) {
-            hitsIdx = binMaxs.findIndex(max => y < max);
-            hits[hitsIdx].push(x);
-        }
-    }
-    return hits[hitsIdx];
+  }
 }
 exports.partialSort = function(it) {
   return function(K) {

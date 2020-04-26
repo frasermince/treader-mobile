@@ -32,15 +32,15 @@ foreign import binLowest :: forall a b . NonEmptyArray a -> Array Number -> (a -
 
 foreign import partialSort :: forall a b . NonEmptyArray a -> Int -> (a -> b) -> NonEmptyArray {x :: a, y :: b}
 
-randomLow :: NonEmptyArray Flashcard -> Effect Flashcard
+randomLow :: NonEmptyArray Flashcard -> Effect {x :: Flashcard, y :: Number}
 randomLow flashcards = randomLowest binnedLowest
   where binnedLowest :: NonEmptyArray {x :: Flashcard, y :: Number}
         binnedLowest = binLowest (sortedItems flashcards) [1e-3, 1e-2, 1e-1, 5e-1] (\e -> e.y)
         randomLowest l = do
           index <- randomInt 0 (length l - 1)
           case l !! index of
-               Just value -> pure value.x
-               Nothing -> pure $ (head l).x
+               Just value -> pure value
+               Nothing -> pure $ (head l)
 
 lowestThree :: NonEmptyArray Flashcard -> Array {x :: Flashcard, y :: Number}
 lowestThree flashcards = take 3 $ spy "FLASHCARDS" $ sortedItems flashcards
