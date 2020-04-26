@@ -47,11 +47,11 @@ mutation = gql """
         t
         startOffset
         word
+        hoursPassed
         sentence {
           id
           audioUrl
           text
-          hoursPassed
           translation
         }
       }
@@ -71,11 +71,11 @@ query =
         t
         startOffset
         word
+        hoursPassed
         sentence {
           id
           audioUrl
           text
-          hoursPassed
           translation
         }
       }
@@ -105,7 +105,7 @@ swiped setIsFlipped index = do
 handleSwipe mutate setError setCards Nothing result = mempty
 handleSwipe mutate setError setCards (Just {x: flashcard, y: prediction}) result = launchAff_ do
   let flashcardEbisu = flashcard.a /\ flashcard.b /\ flashcard.t
-  let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.sentence.hoursPassed
+  let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.hoursPassed
   result <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t}}}
   case spy "MUT RESULT" result of
        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error

@@ -47,5 +47,5 @@ lowestThree flashcards = take 3 $ spy "FLASHCARDS" $ sortedItems flashcards
 
 sortedItems :: NonEmptyArray Flashcard -> NonEmptyArray {x :: Flashcard, y :: Number}
 sortedItems flashcards = partialSort (spy "SORTED" flashcards) numberOfItems sortFn
-  where sortFn flashcard = predictRecall (flashcard.a /\ flashcard.b /\ flashcard.t) $ spy "LAST REVIEWED" flashcard.sentence.hoursPassed
+  where sortFn flashcard = predictRecall (flashcard.a /\ flashcard.b /\ flashcard.t) $ spy "LAST REVIEWED" flashcard.hoursPassed
         numberOfItems = min 30 (length flashcards)
