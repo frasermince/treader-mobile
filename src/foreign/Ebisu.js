@@ -9,7 +9,7 @@ exports._predictRecall = function(model) {
 exports._updateRecall = function(model) {
   return function(result) {
     return function(elapsed) {
-      return ebisu.updateRecall(model, result, elapsed);
+      return ebisu.updateRecall(model, result, elapsed + .000001);
     }
   }
 }
