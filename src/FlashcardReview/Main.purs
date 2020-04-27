@@ -104,13 +104,12 @@ swiped setIsFlipped index = do
 
 handleSwipe mutate setError setCards Nothing result = mempty
 handleSwipe mutate setError setCards (Just {x: flashcard, y: prediction}) result = launchAff_ do
-  let flashcardEbisu = flashcard.a /\ flashcard.b /\ flashcard.t
+  let flashcardEbisu = spy "EBISU" $ flashcard.a /\ flashcard.b /\ flashcard.t
   let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.hoursPassed
-  result <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t}}}
+  result <- try $ mutate {variables: {input: spy "PAYLOAD" {flashcardId: flashcard.id, a: a, b: b, t: t}}}
   case spy "MUT RESULT" result of
        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-       Right resp -> do
-          addCard $ fromArray (spy "UPDATE" resp).updateFlashcard.flashcards
+       Right resp -> addCard $ fromArray (spy "UPDATE" resp).updateFlashcard.flashcards
   where addCard (Just cards) = do
           newCard <- liftEffect $ randomLow cards
           liftEffect $ setCards \cards -> snoc cards newCard
