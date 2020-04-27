@@ -96,41 +96,48 @@ buildJsx props = React.do
   flipRef <- useRef null
   let flip = do
         result <- readRefMaybe flipRef
-        traverse_ (\s -> bindThis s.flipY (spy "FLIP RESULT" s)) result
+        traverse_ (\s -> bindThis s.flipY s) result
 
   let setAudioInformation :: String -> Aff Sound
       setAudioInformation path = do
         s <- createSound path
         liftEffect $ setAudioPath \_ -> Just path
         liftEffect $ setSound \_ -> Just $ s
-        pure $ spy "RESULT" s
+        pure $ s
 
-  useEffect props.active do
-     props.setIsFlipped \_ -> false
-     launchAff_ $ traverse_ stop sound
-     pure mempty
+  useEffect (props.active /\ sound) do
+     if not props.active then
+        props.setIsFlipped \_ -> false
+     else mempty
+     pure $ launchAff_ do
+        traverse_ stop $ sound
+
+  useEffect audioPath do
+     pure unit
+     pure $ launchAff_ do
+        liftEffect $ traverse_ release sound
+        e <- fileExists audioPath
+        if e then unlink $ fromMaybe "" audioPath else mempty
+
+
   useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
-        e <- exists $ spy "EXIST CHECK" file
-        case spy "EXISTS" e of
+        e <- exists file
+        case e of
           true -> traverse_ setAudioInformation (encodeURIComponent file)
           false -> do
-            result <- fetch {fileCache: true, path: spy "FILE" file} "GET" props.audioUrl {}
-            path <- liftEffect $ spy "PATH" result.path
+            result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
+            path <- liftEffect result.path
             traverse_ setAudioInformation (encodeURIComponent path)
-     pure $ launchAff_ do
-        e <- fileExists audioPath
-        if e then unlink $ fromMaybe "" audioPath else mempty
-        traverse_ stop sound
-        liftEffect $ traverse_ release sound
-  
+     pure mempty
+
   pure $ M.getJsx do
-     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound, key: props.active} do
+     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound , key: props.active} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
             M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 4}} do
-               clozeWord (spy "SENTENCE" props.sentence) props.offset props.word $ M.css descriptionCardItem
+               clozeWord props.sentence props.offset props.word $ M.css descriptionCardItem
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
