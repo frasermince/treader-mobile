@@ -104,16 +104,14 @@ buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
   client <- useApolloClient
   menuVisible /\ setMenuVisible <- useState false
-  let
-    menuButton = M.getJsx $ iconButton { onPress: capture_ $ setMenuVisible $ \_ -> props.shown, size: 28, icon: "settings" }
   useEffect props.shown do
     launchAff_ $ runAnimation props.shown fade
     pure mempty
   pure $ M.getJsx
     $ view { style: headerStyles fade } do
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
-          M.childElement icon { name: "navicon", size: 34 }
+          M.childElement icon { name: "chevron-left", size: 34 }
         M.text { style: M.css styles.title } do
           M.string $ fromMaybe "Loading" props.title
-        menu { visible: menuVisible, onDismiss: capture_ $ setMenuVisible $ \_ -> false, anchor: menuButton } do
-          menuItem { onPress: props.onRightButtonPressed client, title: "Sign out" }
+        M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
+          M.childElement icon { name: "navicon", size: 34 }

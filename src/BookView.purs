@@ -22,7 +22,7 @@ import Data.Int (fromString, floor)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Nullable (Nullable, toMaybe)
 import AsyncStorage (clear, getItem, removeItem)
-import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, EffectFn2, runEffectFn2)
 import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
 import Data.Either (either)
@@ -42,14 +42,14 @@ barStyles showBars =
   }
 
 type JSProps
-  = { route :: Nullable { params :: Nullable { slug :: Nullable String } } }
+  = { route :: Nullable { params :: Nullable { slug :: Nullable String } }, navigation :: { navigate :: EffectFn2 String {} Unit }}
 
 type Props
-  = {  route :: { params :: { slug :: Maybe String } } }
+  = {  route :: { params :: { slug :: Maybe String } }, navigation :: { navigate :: EffectFn2 String {} Unit }}
 
 convertProps props =
-  { route:
-      { params: { slug: slug} }
+  { route: { params: { slug: slug} },
+    navigation: props.navigation
   }
   where slug = do
           r <- toMaybe props.route
@@ -117,7 +117,7 @@ buildJsx jsProps = React.do
           M.childElement TopBar.reactComponent
             { title: title
             , shown: showBars
-            , onLeftButtonPressed: capture_ $ setShowNav \_ -> true
+            , onLeftButtonPressed: capture_ $ runEffectFn2 props.navigation.navigate "BookIndex" {}
             , onRightButtonPressed:
                 \client ->
                   capture_
