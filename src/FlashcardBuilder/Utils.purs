@@ -37,6 +37,6 @@ applyToWord :: (String -> Markup Unit) -> String -> Int -> String -> CSS -> Mark
 applyToWord fn sentence 0 w style = beginningTextResult fn word after style
   where {before: word, after: after} = splitAt (length w) (trim sentence)
 applyToWord fn sentence offset w style = textResult fn before word after style
-  where {before: before, after: a} = splitAt (offset + 1) (trim sentence)
+  where {before: before, after: a} = splitAt (offset) (trim sentence)
         {before: word, after: after} = splitAt (length w) a
 
