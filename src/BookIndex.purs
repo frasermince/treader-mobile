@@ -5,7 +5,7 @@ import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks as React
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\))
-import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Effect.Aff (launchAff_)
 import QueryHooks (useUserBooks, Book, User, useData)
 import Paper (textInput, surface, button, listSection, listItem, listIcon)
@@ -14,7 +14,6 @@ import Data.Maybe (Maybe(..), isJust)
 import Record (merge)
 import Data.Foldable (foldl)
 import Record.Unsafe.Union (unsafeUnion)
-import Effect.Uncurried (runEffectFn2, EffectFn2)
 import FS (readDirectory, File, bookDir, exists)
 import React.Basic.Native.Events as RNE
 import Effect.Class (liftEffect)
@@ -28,7 +27,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "SignIn") buildJsx
+        (component "BookIndex") buildJsx
 
 buildJsx props = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))

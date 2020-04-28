@@ -1,7 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
+import { reactComponent as HomeScreen} from "../output/Home";
 import { reactComponent as BookScreen} from "../output/BookView";
-import { reactComponent as IndexScreen} from "../output/BookIndex";
+import { reactComponent as BookIndexScreen} from "../output/BookIndex";
 import { reactComponent as AccountScreen} from "../output/Account";
 import { reactComponent as DailySelections} from "../output/FlashcardBuilder.DailySelections";
 import { reactComponent as SentenceChoice} from "../output/FlashcardBuilder.SentenceChoice";
@@ -14,6 +15,15 @@ import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 
+BookNavigator = () => {
+  const Stack = createStackNavigator();
+  return (
+      <Stack.Navigator headerMode="none">
+        <Stack.Screen name="BookIndex" component={BookIndexScreen} />
+        <Stack.Screen name="Read" component={BookScreen} />
+      </Stack.Navigator>
+  )
+}
 FlashcardNavigator = () => {
   const Stack = createStackNavigator();
   return (
@@ -35,10 +45,10 @@ export default TabNavigator = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator barStyle={{backgroundColor: "black"}}>
-        <Tab.Screen name="Home" component={IndexScreen} options={{tabBarIcon:  homeIcon}} />
-        <Tab.Screen name="Flashcards" component={FlashcardNavigator} options={{tabBarIcon: flashcardIcon}} />
+        <Tab.Screen name="Home" component={HomeScreen} options={{tabBarIcon:  homeIcon}} />
+        <Tab.Screen name="Read" component={BookNavigator} options={{tabBarIcon:  bookIcon}} />
         <Tab.Screen name="Review" component={Review} options={{tabBarIcon: reviewIcon}} />
-        <Tab.Screen name="Read" component={BookScreen} options={{tabBarIcon:  bookIcon}} />
+        <Tab.Screen name="Create" component={FlashcardNavigator} options={{tabBarIcon: flashcardIcon}} />
         <Tab.Screen name="Account" component={AccountScreen} options={{tabBarIcon:  accountIcon}} />
       </Tab.Navigator>
     </NavigationContainer>
