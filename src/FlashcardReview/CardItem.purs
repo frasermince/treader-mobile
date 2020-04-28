@@ -40,6 +40,7 @@ containerCardItem = {
   margin: 10,
   shadowOpacity: 0.05,
   shadowRadius: 10,
+  width: window.width * 0.91,
   height: window.height * 0.75,
   shadowColor: "black",
   shadowOffset: { height: 0, width: 0 },

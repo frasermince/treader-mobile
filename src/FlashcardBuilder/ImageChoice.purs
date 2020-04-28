@@ -318,14 +318,14 @@ buildJsx props = React.do
            headline {} $ M.string params.word
            M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
          M.view {style: M.css {flex: 6}} do
-           M.view {style: M.css {flex: 4}} do
+           M.view {style: M.css {flex: 1}} do
             divider {style: M.css {height: 1, width: "100%"}}
             M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak params.range selection.book.language sound setAudioInformation}
               listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
             --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
             fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
-           M.view {style: M.css {flex: 3, justifyContent: "flex-end", zIndex: 2}} do
+           M.view {style: M.css {flex: 1, justifyContent: "flex-end", zIndex: 2}} do
             M.flatList {
               data: images,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,

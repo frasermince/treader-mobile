@@ -23,7 +23,7 @@ buildJsx props = React.do
   pure $ M.getJsx $ M.flatList {
     data: props.words,
     renderItem: mkEffectFn1 $ wordElement props.redirect,
-    style: M.css {minWidth: "100%"},
+    style: M.css {minWidth: "95%"},
     "ListHeaderComponent": props.header,
-    contentContainerStyle: M.css {minWidth: "100%", margin: 10}, numColumns: 2.0
+    contentContainerStyle: M.css {minWidth: "95%", margin: 10}, numColumns: 2.0
   }
