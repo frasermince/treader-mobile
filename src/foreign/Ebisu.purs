@@ -4,7 +4,7 @@ import Data.Tuple.Native (T3, t3, prj)
 import React.Basic.Hooks ((/\), type(/\))
 import Data.Typelevel.Num.Reps (d0, d1, d2)
 import ComponentTypes (Flashcard)
-import Data.Array.NonEmpty (length, take, (!!), head, NonEmptyArray)
+import Data.Array.NonEmpty (length, take, (!!), head, NonEmptyArray, toArray)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Random (randomInt)
@@ -42,8 +42,8 @@ randomLow flashcards = randomLowest binnedLowest
                Just value -> pure value
                Nothing -> pure $ (head l)
 
-lowestThree :: NonEmptyArray Flashcard -> Array {x :: Flashcard, y :: Number}
-lowestThree flashcards = take 3 $ spy "FLASHCARDS" $ sortedItems flashcards
+lowest :: NonEmptyArray Flashcard -> Array {x :: Flashcard, y :: Number}
+lowest flashcards = toArray $ spy "FLASHCARDS" $ sortedItems flashcards
 
 sortedItems :: NonEmptyArray Flashcard -> NonEmptyArray {x :: Flashcard, y :: Number}
 sortedItems flashcards = partialSort (spy "SORTED" flashcards) numberOfItems sortFn
