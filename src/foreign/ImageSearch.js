@@ -10,7 +10,7 @@ var Config = require("react-native-config").default;
  *
  */
 
-let getImageSearchResults = function(searchTerm, start, num) {
+let getImageSearchResults = function(searchTerm, start, num, language) {
   start = start < 0 || start > 90 || typeof start === "undefined" ? 0 : start;
   num = num < 1 || num > 10 || typeof num === "undefined" ? 10 : num;
 
@@ -22,6 +22,9 @@ let getImageSearchResults = function(searchTerm, start, num) {
   parameters += "&searchType=image";
   parameters += start ? "&start=" + start : "";
   parameters += "&num=" + num;
+  if (language) {
+    parameters += "&lr=lang" + language;
+  }
   parameters += "&imgSize=" + "large";
   parameters += "&fields=" + "items";
 
@@ -59,8 +62,10 @@ let getImageSearchResults = function(searchTerm, start, num) {
 exports._imageSearch = function(keyword) {
   return function (low) {
     return function (high) {
-      return function () {
-        return getImageSearchResults(keyword, low, high);
+      return function (language) {
+        return function () {
+          return getImageSearchResults(keyword, low, high, language);
+        }
       }
     }
   }
