@@ -16,6 +16,7 @@ import React.Basic.Native.Events as RNE
 import Debug.Trace
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
 import ComponentTypes (Selection)
+import Navigation (useFocusEffect)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String { selection :: Selection } Unit } }
@@ -54,6 +55,9 @@ selectionMarkup redirect selection = pure $ element _listItem {title: selection.
 
 buildJsx props = React.do
   result <- useData (Proxy :: Proxy Query) query {fetchPolicy: "cache-and-network"}
+  useFocusEffect unit do
+     result.refetch {}
+     pure mempty
   case result.state of
        Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Once you have read and selected words they will show up here"
        Just r -> pure $ M.getJsx do
