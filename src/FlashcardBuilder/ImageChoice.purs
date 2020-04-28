@@ -140,10 +140,10 @@ changeField setField =
   RNE.handler text \t ->
     setField \_ -> t
 
-getImages setSelected keyword setImages setError = launchAff_ do
+getImages setSelected keyword language setImages setError = launchAff_ do
   liftEffect $ setSelected \_ -> replicate 8 false
   liftEffect $ setImages \_ -> []
-  result <- try $ imageSearch keyword 0 8
+  result <- try $ imageSearch keyword 0 8 language
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ message error
     Right images -> liftEffect $ setImages \_ -> images
@@ -233,7 +233,7 @@ saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ se
 
 searchFromDialog setShowSearch setSelected search setImages setError = do
   setShowSearch \_ -> false
-  getImages setSelected search setImages setError
+  getImages setSelected search Nothing setImages setError
 
 flashcardMutation =
   gql
@@ -287,7 +287,7 @@ buildJsx props = React.do
         pure $ s
 
   useEffect params.word do
-    getImages setSelected params.word setImages setError
+    getImages setSelected params.word (Just selection.book.language) setImages setError
     pure mempty
   useEffect params.audio do
      case params.audio of
