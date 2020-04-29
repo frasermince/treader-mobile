@@ -153,7 +153,10 @@ buildJsx props = React.do
 
   let afterSwipe = handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
   pure $ M.getJsx do
-    M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-      whiteImageBackground {style: M.css imageBackgroundStyles} do
-        M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-          cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cardList !! i) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cardList !! i) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cardList
+     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
+      case cardList of
+            [] -> M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
+              M.text {style: M.css {}} $ M.string "Create cards to review them here"
+            cards -> whiteImageBackground {style: M.css imageBackgroundStyles} do
+                      M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
+                        cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! i) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! i) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
