@@ -28,7 +28,7 @@ css :: forall css. { | css } -> CSS
 css = unsafeCoerce
 
 type Props
-  = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: Maybe Client -> EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: Maybe String }
+  = { shown :: Boolean, onLeftButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, onRightButtonPressed :: EffectFn1 (NativeSyntheticEvent RN.NativeTouchEvent) Unit, title :: Maybe String }
 
 headerStyles fade =
   { backgroundColor: "white"
@@ -113,5 +113,5 @@ buildJsx props = React.do
           M.childElement icon { name: "chevron-left", size: 34 }
         M.text { style: M.css styles.title } do
           M.string $ fromMaybe "Loading" props.title
-        M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
+        M.touchableOpacity { style: M.css styles.backButton, onPress: props.onRightButtonPressed} do
           M.childElement icon { name: "navicon", size: 34 }

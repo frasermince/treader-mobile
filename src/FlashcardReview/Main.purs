@@ -32,6 +32,7 @@ import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Effect.Uncurried (runEffectFn1, EffectFn1)
 import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference)
+import Navigation (useFocusEffect)
 
 type Props = {}
 
@@ -125,6 +126,10 @@ buildJsx props = React.do
   swipeRef <- useRef null
   { setLoading, setError } <- useContext dataStateContext
   flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
+
+  useFocusEffect unit do
+     flashcardsResult.refetch {}
+     pure mempty
 
   mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   cardList /\ setCardList <- useState ([] :: Array {x :: Flashcard, y :: Number})

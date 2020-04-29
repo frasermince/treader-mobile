@@ -118,13 +118,8 @@ buildJsx jsProps = React.do
             { title: title
             , shown: showBars
             , onLeftButtonPressed: capture_ $ runEffectFn2 props.navigation.navigate "BookIndex" {}
-            , onRightButtonPressed:
-                \client ->
-                  capture_
-                    $ launchAff_ do
-                        _ <- removeItem "treader-session"
-                        liftEffect $ traverse_ _.resetStore client
-            } --, onLeftButtonPressed: liftEffect}
+            , onRightButtonPressed: capture_ $ setShowNav \_ -> true
+            }
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { bottom: 0 }
           } do
