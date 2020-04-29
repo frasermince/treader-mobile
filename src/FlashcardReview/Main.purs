@@ -101,9 +101,6 @@ imageBackgroundStyles = {
   height: window.height
 }
 
-swiped setIsFlipped index = do
-  log "TEST"
-
 handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
 handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else idsNeedingReview
@@ -126,10 +123,6 @@ buildJsx props = React.do
   swipeRef <- useRef null
   { setLoading, setError } <- useContext dataStateContext
   flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
-
-  useFocusEffect unit do
-     flashcardsResult.refetch {}
-     pure mempty
 
   mutate /\ d <- useMutation mutation { errorPolicy: "all" }
   cardList /\ setCardList <- useState ([] :: Array {x :: Flashcard, y :: Number})

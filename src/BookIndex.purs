@@ -43,7 +43,7 @@ buildJsx props = React.do
     Nothing -> pure mempty
     Just d -> dom d files
   where
-  redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
+  redirect slug = runEffectFn2 props.navigation.navigate "Review" { slug: slug }
 
   bookIcon :: forall p. Record p -> JSX
   bookIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "book" }
