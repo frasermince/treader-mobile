@@ -5,6 +5,7 @@ import Paper (textInput, surface, button, title, divider, listItem, paragraph, h
 import Effect (Effect)
 import Record.Unsafe.Union (unsafeUnion)
 import ImageSearch (imageSearch, Image)
+import Subscribe as Subscribe
 import ApolloHooks (useMutation, gql)
 import Markup as M
 import React.Basic.Hooks as React
@@ -52,6 +53,7 @@ import Foreign.Object (lookup) as Object
 import FetchBlob (fetch)
 import Debug.Trace (spy)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
+import Blur (blurView)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -78,6 +80,27 @@ data Payload = NewSentencePayload
   }}}
 
 type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String, existingSentence :: Boolean, audio :: Maybe String}}, navigation :: {push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
+
+blurTextStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%"
+}
+
+blurStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center"
+  }
 
 speak :: String -> String -> Maybe Sound -> (String -> Aff Sound) -> Effect Unit
 speak text language sound setAudioInformation = launchAff_ do
@@ -211,7 +234,7 @@ makePayload selection range rangeTranslation rangeOffset imageUrl word true = Ex
   }
   where a /\ b /\ t = Ebisu.defaultModel 24.0
 
-saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioInformation setError redirect text language setLoading = launchAff_ do
+saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioInformation setError redirect text language setLoading setShouldBlur = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
   e <- fileExists audioPath
   if e then mempty else do
@@ -221,15 +244,20 @@ saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath s
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-    Right resp -> liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
+    Right resp -> case (spy "IS PERMITTED" resp).createFlashcardWithSentence.isPermitted of
+                       false -> liftEffect $ setShouldBlur \_ -> true
+                       true -> liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
-saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading = launchAff_ do
+saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading setShouldBlur = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
   result <- try $ mutate payload
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-    Right resp -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
+    Right resp -> case (spy "IS PERMITTED" resp).createFlashcard.isPermitted of
+                       false -> liftEffect $ setShouldBlur \_ -> true
+                       true -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
+
 
 searchFromDialog setShowSearch setSelected search setImages setError = do
   setShowSearch \_ -> false
@@ -241,6 +269,7 @@ flashcardMutation =
 mutation flashcardMutation($input: LoginInput!) {
   createFlashcard(input: $input) {
     flashcard {sentenceId}
+    isPermitted
   }
 }
   """
@@ -251,6 +280,7 @@ withSentenceMutation =
 mutation flashcardMutation($input: LoginInput!) {
   createFlashcardWithSentence(input: $input) {
     flashcard {sentenceId}
+    isPermitted
   }
 }
   """
@@ -266,12 +296,23 @@ fileExists (Just filePath) = exists filePath
 fileExists Nothing = pure false
 
 defaultAudioFile = audioDir <> "/speech.mp3"
+
+unpermittedBlur setModalVisible =
+    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
+      M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
+        M.text {style: M.css {}} $ M.string "You have reached your limit on creating flashcards for the day. Press to subscribe and create unlimited flashcards."
+  where blurPress = RNE.capture_ do
+          setModalVisible \_ -> true
+
+
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   mutateWithSentence /\ d <- useMutation withSentenceMutation { errorPolicy: "all" }
   mutate /\ d <- useMutation flashcardMutation { errorPolicy: "all" }
   let params = props.route.params
   let selection = params.selection
+  shouldBlur /\ setShouldBlur <- useState false
+  modalVisible /\ setModalVisible <- useState false
   selected /\ setSelected <- useState $ replicate 8 false
   search /\ setSearch <- useState params.word
   images /\ setImages <- useState ([] :: Array Image)
@@ -303,6 +344,7 @@ buildJsx props = React.do
 
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected images) params.word params.existingSentence
   pure $ M.getJsx do
+    portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
     portal {} do
       keyboardAwareDialog {visible: showSearch, onDismiss: setShowSearch \_ -> false} do
         dialogTitle {} $ M.string "Search Google For Images"
@@ -333,7 +375,9 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioInformation setError (redirectFn selection) params.range selection.book.language setLoading, disabled: noneSelected selected} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioInformation setError (redirectFn selection) params.range selection.book.language setLoading setShouldBlur, disabled: noneSelected selected} $ M.string "Add Images"
+      if shouldBlur then unpermittedBlur setModalVisible else mempty
+
   where redirectFn selection sentenceId =
           runEffectFn2 props.navigation.push "WordSelection" $
             { sentenceId: sentenceId

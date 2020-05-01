@@ -90,6 +90,7 @@ buildJsx props = React.do
                   M.view {style: slideStyle} do
                      subheading {style: textStyle} $ M.string "Translate Unlimited Words"
                   M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Upload Your Own Books"
+                  M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Create Unlimited Flashcards"
 
             M.view {style: priceSectionStyle} do
               subheading {} $ M.string "Upgrade to Premium for"
