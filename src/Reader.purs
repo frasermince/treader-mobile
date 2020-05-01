@@ -106,19 +106,20 @@ query =
 locationChange :: Maybe String -> ((VisibleLocation -> VisibleLocation) -> Effect Unit) -> (Tuple (Maybe LastAdvanced) ((Maybe LastAdvanced -> Maybe LastAdvanced) -> Effect Unit)) -> ((Int -> Int) -> Effect Unit) -> EffectFn1 VisibleLocation Unit
 locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn1 e
   where
-  shouldIncrement :: Maybe LastAdvanced -> DateTime -> CFI -> Boolean
-  shouldIncrement lastAdvanced now cfi = fromMaybe true do
-     last <- lastAdvanced
-     let isThirtySecondsApart = (spy "APART" $ diff now last.time :: Milliseconds) > Milliseconds 20000.0
-     let isAdvancing = spy "IS GREATER" $ (compare cfi last.cfi) == GT
-     pure $ isAdvancing && isThirtySecondsApart
+  shouldIncrement :: LastAdvanced -> DateTime -> CFI -> Boolean
+  shouldIncrement lastAdvanced now cfi = isAdvancing && isThirtySecondsApart
+    where isThirtySecondsApart = (spy "APART" $ diff now lastAdvanced.time :: Milliseconds) > Milliseconds 20000.0
+          isAdvancing = spy "IS GREATER" $ (compare cfi lastAdvanced.cfi) == GT
 
   incrementPages :: Maybe LastAdvanced -> DateTime -> CFI -> Aff Unit
-  incrementPages lastAdvanced now cfi
+  incrementPages Nothing now cfi =
+    liftEffect $ setPageLastAdvanced \_ -> Just $ {time: spy "ADVANCED" now, cfi: cfi}
+
+  incrementPages (Just lastAdvanced) now cfi
     | shouldIncrement lastAdvanced now cfi = do
         liftEffect $ setPagesRead \p -> p + 1
         liftEffect $ setPageLastAdvanced \_ -> Just $ {time: spy "ADVANCED" now, cfi: cfi}
-    | otherwise = liftEffect $ setPageLastAdvanced \_ -> (_ {cfi = cfi}) <$> lastAdvanced
+    | otherwise = liftEffect $ setPageLastAdvanced \_ -> Just $ lastAdvanced {cfi = cfi}
   e :: VisibleLocation -> Effect Unit
   e event =
     launchAff_ do
