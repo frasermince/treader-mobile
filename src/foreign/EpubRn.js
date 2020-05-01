@@ -1,4 +1,15 @@
 var epubRn = require("epubjs-rn");
+var epubjs = require("epubjs");
+
+exports.toCfi = function(cfi) {
+  return new epubjs.EpubCFI(cfi)
+}
+
+exports._compare = function(first) {
+  return function(second) {
+    return first.compare(first, second);
+  }
+}
 
 exports._createStreamer = function() {
   return new epubRn.Streamer();

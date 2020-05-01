@@ -9,9 +9,12 @@ import Control.Promise (Promise)
 import Effect (Effect)
 import Effect.Uncurried (runEffectFn1, EffectFn1, EffectFn2, runEffectFn2)
 import Data.Function.Uncurried (Fn0, runFn0)
+import Data.Ordering (Ordering(..))
 
 type Streamer
   = {}
+
+type CFI = {}
 
 foreign import epub :: forall props. ReactComponent props
 
@@ -22,6 +25,17 @@ foreign import _startStream :: Streamer -> Effect (Promise String)
 foreign import _streamGet :: Streamer -> String -> Effect (Promise String)
 
 foreign import _killStream :: EffectFn1 Streamer Unit
+
+foreign import toCfi :: String -> CFI
+
+foreign import _compare :: CFI -> CFI -> Int
+
+compare :: CFI -> CFI -> Ordering
+compare first second = case _compare first second of
+  -1 -> LT
+  0 -> EQ
+  1 -> GT
+  otherwise -> EQ
 
 createStreamer :: Streamer
 createStreamer = runFn0 _createStreamer

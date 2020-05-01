@@ -18,7 +18,7 @@ import Navigation (useFocusEffect)
 type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 type Query
-  = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, id :: String} }
+  = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String} }
 query =
   gql
     """
@@ -27,6 +27,7 @@ query getUser {
     id
     dailyReviewedCards
     dailyCreatedCards
+    dailyReadPages
   }
 }
 """
@@ -59,7 +60,7 @@ buildJsx props = React.do
           surface { style: M.css { flex: 1 } } do
               title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
               listSection {} do
-                listItem {title: RN.string "Read 10 Pages", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon 0 10, right: ratioDone "0" "10"}
+                listItem {title: RN.string "Read 10 Pages", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages 10, right: ratioDone (show u.currentUser.dailyReadPages) "10"}
                 divider {style: M.css {height: 1, width: "100%"}}
                 listItem {title: RN.string "Create 10 Flashcards", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards 10, right: ratioDone (show u.currentUser.dailyCreatedCards) "10"}
                 divider {style: M.css {height: 1, width: "100%"}}

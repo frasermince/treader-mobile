@@ -1,16 +1,18 @@
 module Reader where
 
 import Prelude
+import Context (dataStateContext)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
 import React.Basic.Native as RN
 import React.Basic.Hooks as React
-import QueryHooks (useData, UseData)
+import QueryHooks (useData, UseData, stripGraphqlError)
+import Effect.Exception (message)
 import Type.Proxy (Proxy(..))
-import EpubRn (epub, createStreamer, startStream, streamGet, killStream)
+import EpubRn (epub, createStreamer, startStream, streamGet, killStream, CFI, compare, toCfi)
 import Effect.Uncurried (mkEffectFn1)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
 import Data.Either (Either(..))
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
@@ -21,7 +23,7 @@ import Data.Newtype (class Newtype)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
-import Data.Traversable (traverse_)
+import Data.Traversable (traverse_, traverse)
 import ApolloHooks (useMutation, gql)
 import EpubUtil (mkStateChangeListeners, bridgeFile, HighlightedContent, epubjs)
 import Data.Symbol (SProxy(..))
@@ -37,8 +39,12 @@ import Navigation (useFocusEffect)
 import Subscribe as Subscribe
 import Paper (portal)
 import ComponentTypes
+import Data.DateTime (DateTime, diff)
+import Data.Time.Duration (fromDuration)
+import Effect.Now (nowDateTime)
 
 
+type LastAdvanced = {time :: DateTime, cfi :: CFI}
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
 
@@ -97,11 +103,27 @@ query =
   }
 """
 
-locationChange title setVisibleLocation = mkEffectFn1 e
+locationChange :: Maybe String -> ((VisibleLocation -> VisibleLocation) -> Effect Unit) -> (Tuple (Maybe LastAdvanced) ((Maybe LastAdvanced -> Maybe LastAdvanced) -> Effect Unit)) -> ((Int -> Int) -> Effect Unit) -> EffectFn1 VisibleLocation Unit
+locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn1 e
   where
+  shouldIncrement :: Maybe LastAdvanced -> DateTime -> CFI -> Boolean
+  shouldIncrement lastAdvanced now cfi = fromMaybe true do
+     last <- lastAdvanced
+     let isThirtySecondsApart = (spy "APART" $ diff now last.time :: Milliseconds) > Milliseconds 20000.0
+     let isAdvancing = spy "IS GREATER" $ (compare cfi last.cfi) == GT
+     pure $ isAdvancing && isThirtySecondsApart
+
+  incrementPages :: Maybe LastAdvanced -> DateTime -> CFI -> Aff Unit
+  incrementPages lastAdvanced now cfi
+    | shouldIncrement lastAdvanced now cfi = do
+        liftEffect $ setPagesRead \p -> p + 1
+        liftEffect $ setPageLastAdvanced \_ -> Just $ {time: spy "ADVANCED" now, cfi: cfi}
+    | otherwise = liftEffect $ setPageLastAdvanced \_ -> (_ {cfi = cfi}) <$> lastAdvanced
   e :: VisibleLocation -> Effect Unit
   e event =
     launchAff_ do
+      now <- liftEffect nowDateTime
+      incrementPages pageLastAdvanced now (toCfi (spy "EVENT" event).start.cfi)
       traverse_ (\t -> setItem t event.start.cfi) title
       liftEffect $ setVisibleLocation \_ -> event
 
@@ -192,6 +214,14 @@ useStreamer setLoaded toggleBars book =
     src <- streamGet streamer url
     liftEffect $ setSrc $ \_ -> src
 
+pageMutation = gql """
+mutation pageCountMutation($input: UpdatePageCountInput!) {
+  updatePageCount(input: $input) {
+    result
+  }
+}
+"""
+
 mutation =
   gql
     """
@@ -203,7 +233,7 @@ mutation =
   }
 """
 
-useRenditionData showBars setShowBars visibleLocation bookId = React.do
+useRenditionData showBars setShowBars visibleLocation bookId addToPages = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
@@ -221,7 +251,8 @@ useRenditionData showBars setShowBars visibleLocation bookId = React.do
           result <- readRefMaybe ref
           traverse_ (\s -> s.clearSelected) result
           setHighlightedContent \_ -> Nothing
-          setShowBars \_ -> false
+          setShowBars \_ -> false,
+        onBackground: addToPages
       }
   useEffect context
     $ do
@@ -370,12 +401,18 @@ getBookId result = do
   r <- result
   pure $ r.bookId
 buildJsx props = React.do
+
+  { setLoading, setError } <- useContext dataStateContext
   loaded /\ setLoaded <- useState false
   flow /\ setFlow <- useState "paginated"
+  pageLastAdvanced <- useState (Nothing :: Maybe LastAdvanced)
+  pagesRead /\ setPagesRead <- useState 0
   highlightVerbs /\ setHighlightVerbs <- useState $ true
   highlightNouns /\ setHighlightNouns <- useState $ true
   highlightAdjectives /\ setHighlightAdjectives <- useState $ true
+  mutationFn /\ d <- useMutation pageMutation { errorPolicy: "all" }
   modalVisible /\ setModalVisible <- useState false
+
   useEffect unit
     $ do
         launchAff_ do
@@ -384,8 +421,26 @@ buildJsx props = React.do
           liftEffect $ setHighlightNouns \_ -> noun
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
+
   streamResult <- useStreamer setLoaded props.toggleBars $ props.slug
-  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation (getBookId streamResult)
+
+  let addToPages = launchAff_ do
+        liftEffect $ log $ "PAGES READ: " <> show pagesRead
+        let mutate bookId
+              | pagesRead > 0 = do
+                  result <- try $ (spy "MUTATION FN" $ mutationFn) {variables: {input: {bookId: bookId, pageCount: pagesRead}}}
+                  case result of
+                    Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+                    Right resp -> do
+                      liftEffect $ setPagesRead \_ -> 0
+              | otherwise = mempty
+        traverse_ mutate $ getBookId streamResult
+
+  useFocusEffect pagesRead do
+     pure $ unit
+     pure $ addToPages
+
+  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation (getBookId streamResult) addToPages
   useEffect props.slug do
      setLoaded \_ -> false
      snd stateChangeListeners.highlightedContent $ \_ -> Nothing
@@ -418,7 +473,7 @@ buildJsx props = React.do
                 , src: src
                 , flow: flow
                 , location: props.location
-                , onLocationChange: locationChange props.title props.setVisibleLocation
+                , onLocationChange: locationChange props.title props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
