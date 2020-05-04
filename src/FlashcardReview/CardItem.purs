@@ -68,12 +68,20 @@ promptStyle = {
   flex: 1
 }
 
+translationCardItem = {
+  textAlign: "center",
+  marginRight: 5,
+  marginLeft: 5,
+  flex: 2,
+  fontSize: 20
+}
+
 descriptionCardItem = {
   textAlign: "center",
   fontSize: 20
 }
 
-type Props = {active :: Boolean, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit, isFlipped :: Boolean}
+type Props = {active :: Boolean, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit, isFlipped :: Boolean, translation :: String}
 
 imageJsx imageCount accum imageUrl = accum <> image {style: M.css $ imageStyle $ toNumber imageCount, source: {uri: imageUrl}}
 
@@ -94,6 +102,7 @@ flipEnd setIsFlipped sound = launchAff_ do
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
+  showTranslation /\ setShowTranslation <- useState false
   flipRef <- useRef null
   let flip = do
         result <- readRefMaybe flipRef
@@ -132,6 +141,7 @@ buildJsx props = React.do
             path <- liftEffect result.path
             traverse_ setAudioInformation (encodeURIComponent path)
      pure mempty
+  let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 
   pure $ M.getJsx do
      card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound , key: props.active} do
@@ -144,8 +154,11 @@ buildJsx props = React.do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css promptStyle} $ M.string props.word
-            M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 2}} do
-               underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
+            iconButton {style: M.css {position: "absolute", top: 7, right: 0},icon: "google-translate", size: 20, onPress: toggleTranslation}
+            if showTranslation
+              then M.text {style: M.css translationCardItem, onPress: toggleTranslation} $ M.string props.translation
+              else M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 2}, onPress: toggleTranslation} do
+                 underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
             M.view {style: M.css {flex: 3}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ launchAff_ $ traverse_ stopAndPlay sound}
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
