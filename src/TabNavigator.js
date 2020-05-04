@@ -31,7 +31,7 @@ BookNavigator = () => {
   return (
       <Stack.Navigator headerMode="none">
         <Stack.Screen name="BookIndex" component={BookIndexScreen} />
-        <Stack.Screen name="Read" component={BookScreen} />
+        <Stack.Screen name="Read" component={BookScreen} options={{gestureEnabled: false}} />
       </Stack.Navigator>
   )
 }
