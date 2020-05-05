@@ -107,8 +107,8 @@ import tokenizer from 'sbd';
       while (i < children.length) {
         range.selectNode(children[i]);
         rect = range.getBoundingClientRect();
-        if (rect.left <= e.pageX && rect.right >= e.pageX &&
-          rect.top <= e.pageY && rect.bottom >= e.pageY) {
+        if (rect.left <= e.changedTouches[0].pageX && rect.right >= e.changedTouches[0].pageX &&
+          rect.top <= e.changedTouches[0].pageY && rect.bottom >= e.changedTouches[0].pageY) {
           target = children[i];
           if (target.nodeType !== 3 && target.tagName == "SPAN") {
             target = target.childNodes[0];

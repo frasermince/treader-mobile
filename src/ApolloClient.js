@@ -9,6 +9,7 @@ import env from '../env'
 
 const authLink = setContext(async function(_, { headers }) {
   const token = await AsyncStorage.getItem('treader-session');
+  console.log("TOKEN", token);
   // return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -24,6 +25,7 @@ export default client = async function() {
     cache,
     storage: AsyncStorage,
   });
+  console.log("HOST", Config.GRAPHQL_HOST)
   return new ApolloClient({
     cache: cache,
     link: authLink.concat(createLink(

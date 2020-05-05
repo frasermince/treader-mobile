@@ -53,8 +53,8 @@ reactComponent =
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
-  queryResult <- useUserBooks {}
-  pure $ M.getJsx $ traverse_ (authOrApp (dismiss mutationFn)) queryResult.state
+  queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
+  pure $ M.getJsx $ traverse_ (authOrApp (dismiss mutationFn)) (spy "RESULT" queryResult).state
 
 authOrApp :: Effect Unit -> User -> M.Markup Unit
 authOrApp onDismiss d
