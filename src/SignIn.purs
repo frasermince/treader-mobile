@@ -17,7 +17,7 @@ import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, launchAff_, try)
 import Data.Either (Either(..))
-import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Data.Traversable (traverse_)
 import Effect.Exception (message)
 import Data.String (stripPrefix, Pattern(..))
@@ -26,7 +26,7 @@ import Keyboard (dismiss)
 import Linking (openUrl)
 
 type Props
-  = {}
+  = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 mutation :: DocumentNode
 mutation =
@@ -65,6 +65,7 @@ buildJsx props = React.do
             textInput { label: "Email", onChangeText: changeField setEmail, value: email, autoCapitalize: "none" }
             textInput { label: "Password", onChangeText: changeField setPassword, value: password, secureTextEntry: true, autoCapitalize: "none" }
             button { mode: "contained", onPress: RNE.capture_ (press mutate email password client setError) } $ M.string "Login"
+          M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "ResetPassword" {}} $ M.string "Forgot Password"
     where
     stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
