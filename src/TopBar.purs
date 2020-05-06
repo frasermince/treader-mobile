@@ -74,11 +74,7 @@ styles =
         { ios: 84
         , android: 74
         }
-      , fontFamily:
-          Platform.select
-            { ios: "Baskerville"
-            , android: "serif"
-            }
+      , fontFamily: "Baskerville"
       }
   , backButton:
       { width: 34

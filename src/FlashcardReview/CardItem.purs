@@ -27,7 +27,6 @@ import Effect.Aff (Aff, launchAff_, try)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
-import Debug.Trace (spy)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Data.String (stripPrefix, Pattern(..))
 import Global (encodeURIComponent)
@@ -136,11 +135,11 @@ buildJsx props = React.do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
         e <- exists file
         case e of
-          true -> traverse_ setAudioInformation (encodeURIComponent file)
+          true -> setAudioInformation file
           false -> do
             result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
-            path <- liftEffect result.path
-            traverse_ setAudioInformation (encodeURIComponent path)
+            path <- liftEffect $ result.path
+            setAudioInformation (path)
      pure mempty
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 

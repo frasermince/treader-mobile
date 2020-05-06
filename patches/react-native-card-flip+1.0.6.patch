@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-card-flip/CardFlip.js b/node_modules/react-native-card-flip/CardFlip.js
+index 22f53e6..c265906 100644
+--- a/node_modules/react-native-card-flip/CardFlip.js
++++ b/node_modules/react-native-card-flip/CardFlip.js
+@@ -295,7 +295,7 @@ class CardFlip extends Component<Props> {
+ 
+     return (
+       <Animated.View style={[this.props.style, scaling]}>
+-        <Animated.View style={[styles.cardContainer, cardATransform]}>
++        <Animated.View style={[cardATransform]}>
+           {sides[0]}
+         </Animated.View>
+         <Animated.View style={[styles.cardContainer, cardBTransform]}>
