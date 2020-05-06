@@ -52,6 +52,7 @@ headerStyles fade =
   , shadowOpacity: 0.75
   , shadowRadius: 3
   , shadowOffset: { height: 5, width: 10 }
+  , elevation: 3
   }
   where
   zIndex :: Int
@@ -64,10 +65,15 @@ headerStyles fade =
 styles =
   { title:
       { textAlign: "center"
+      , paddingTop: Platform.select { android: 20, ios: 30 }
       , fontSize: 22
       , fontWeight: "400"
       , flex: 8
       , color: "#000"
+      , height: Platform.select
+        { ios: 84
+        , android: 74
+        }
       , fontFamily:
           Platform.select
             { ios: "Baskerville"
@@ -111,7 +117,7 @@ buildJsx props = React.do
     $ view { style: headerStyles fade } do
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
           M.childElement icon { name: "chevron-left", size: 34 }
-        M.text { style: M.css styles.title } do
+        M.text { numberOfLines: 1.0, style: M.css styles.title } do
           M.string $ fromMaybe "Loading" props.title
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onRightButtonPressed} do
           M.childElement icon { name: "navicon", size: 34 }

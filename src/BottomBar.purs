@@ -38,6 +38,7 @@ footerStyles fade =
   , flexDirection: "row"
   , opacity: fade
   , zIndex: zIndex
+  , elevation: 3
   , shadowOpacity: 0.75
   , shadowRadius: 3
   , shadowOffset: { height: 5, width: 10 }
