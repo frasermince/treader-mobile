@@ -120,6 +120,7 @@ buildJsx props = React.do
         props.setIsFlipped \_ -> false
      else mempty
      pure $ launchAff_ do
+        liftEffect $ setShowTranslation \_ -> false
         traverse_ stop $ sound
 
   useEffect audioPath do

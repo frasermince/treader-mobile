@@ -21,7 +21,7 @@ ReviewNavigator = () => {
   return (
       <Stack.Navigator headerMode="none">
         <Stack.Screen name="ReviewEntry" component={ReviewEntryScreen} />
-        <Stack.Screen name="Review" component={ReviewScreen} />
+        <Stack.Screen name="Review" component={ReviewScreen} options={{gestureEnabled: false}}/>
       </Stack.Navigator>
   )
 

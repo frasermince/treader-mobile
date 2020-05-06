@@ -71,4 +71,4 @@ buildJsx props = React.do
         result <- try $ mutate $ { variables: { input: { email } } }
         case result of
           Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-          Right resp -> mempty
+          Right resp -> liftEffect $ runEffectFn1 setError "Check your email for a reset password link"
