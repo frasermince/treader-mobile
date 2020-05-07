@@ -240,11 +240,12 @@ saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath s
   if e then mempty else do
      _ <- fetchWaveNet text language setAudioInformation
      pure unit
-  result <- try $ mutateWithSentence $ payload $ absintheFile {uri: fromMaybe defaultAudioFile audioPath, name: "speech.mp3", type: "application/mpeg"}
+  let completedPayload = payload $ absintheFile {uri: "file://" <> fromMaybe defaultAudioFile audioPath, name: "speech.mp3", type: "application/mpeg"}
+  result <- try $ mutateWithSentence $ completedPayload
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-    Right resp -> case (spy "IS PERMITTED" resp).createFlashcardWithSentence.isPermitted of
+    Right resp -> case resp.createFlashcardWithSentence.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
                        true -> liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
@@ -254,7 +255,7 @@ saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ se
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-    Right resp -> case (spy "IS PERMITTED" resp).createFlashcard.isPermitted of
+    Right resp -> case resp.createFlashcard.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
                        true -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
 

@@ -12,8 +12,6 @@ import Config from "react-native-config"
 import StoryBook from './storybook';
 import { ActivityIndicator, Colors } from 'react-native-paper';
 
-
-
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
 //
