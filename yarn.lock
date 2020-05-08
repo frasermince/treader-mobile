@@ -12438,6 +12438,11 @@ react-lifecycles-compat@^3.0.4:
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
+react-native-app-tour@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/react-native-app-tour/-/react-native-app-tour-1.0.3.tgz#c2d7f150cb2b65b456f373e6bed52c3ab17d35b5"
+  integrity sha512-8UT7uSMg+k94mYAuJw1G6SS9jlX5Aar5DBk+hSSMRI5oxU5+Q/894mkL5vluZof4EnLGFcYwxo4J6WCVcUgCGw==
+
 react-native-appstate-hook@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/react-native-appstate-hook/-/react-native-appstate-hook-1.0.3.tgz#4f4f86e63127e7b06e53ccc286ec9a6e545d9d59"
