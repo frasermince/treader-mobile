@@ -15,6 +15,7 @@ exports._modal = paper.Modal
 exports._portal = paper.Portal
 exports._subheading = paper.Subheading
 exports._headline = paper.Headline
+exports._caption = paper.Caption
 exports._paragraph = paper.Paragraph
 exports._badge = paper.Badge
 exports._fab = paper.FAB

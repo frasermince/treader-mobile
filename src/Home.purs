@@ -17,6 +17,7 @@ import Navigation (useFocusEffect)
 
 type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
+chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
   = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String} }
 query =
@@ -46,7 +47,7 @@ buildJsx props = React.do
   let redirectBook = runEffectFn2 props.navigation.navigate "Read" {}
   let redirectCreate = runEffectFn2 props.navigation.navigate "Create" {}
   let redirectReview = runEffectFn2 props.navigation.navigate "Review" {}
-  let ratioDone numerator denominator p = M.getJsx $ M.text {style: M.css {marginTop: 8}} $ M.string $ numerator <> "/" <> denominator
+  let ratioDone numerator denominator = numerator <> "/" <> denominator
   user <- useData (Proxy :: Proxy Query) query {fetchPolicy: "cache-and-network"}
   useFocusEffect unit do
      user.refetch {}
@@ -60,10 +61,10 @@ buildJsx props = React.do
           surface { style: M.css { flex: 1 } } do
               title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
               listSection {} do
-                listItem {title: RN.string "Read 10 Pages", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages 10, right: ratioDone (show u.currentUser.dailyReadPages) "10"}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) "10") <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages 10, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string "Create 10 Flashcards", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards 10, right: ratioDone (show u.currentUser.dailyCreatedCards) "10"}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) "10") <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards 10, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string "Review 30 Flashcards", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedCards 30, right: ratioDone (show u.currentUser.dailyReviewedCards) "30"}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedCards) "30") <> " Flashcards Reviewed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedCards 30, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
 

@@ -39,7 +39,7 @@ FlashcardNavigator = () => {
   const Stack = createStackNavigator();
   return (
       <Stack.Navigator>
-        <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Create From Recently Selected"}} />
+        <Stack.Screen name="WordList" component={DailySelections} options={{headerTitle: "Flashcard Creation"}} />
         <Stack.Screen name="SentenceChoice" component={SentenceChoice} options={{headerTitle: "Choose Sentence"}} />
         <Stack.Screen name="ImageChoice" component={ImageChoice} options={{headerTitle: "Choose Images"}} />
         <Stack.Screen name="WordSelection" component={WordSelection} options={{headerTitle: "Choose More Words", headerLeft: null}} />
