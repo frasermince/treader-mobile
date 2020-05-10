@@ -30,11 +30,12 @@ import Data.Either (Either(..))
 import Data.Array.NonEmpty (fromArray, toArray)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
-import Effect.Uncurried (runEffectFn1, EffectFn1)
-import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
+import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty)
 import Navigation (useFocusEffect)
 
-type Props = {}
+type Props
+  = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 type Query = {flashcards :: Array Flashcard}
 
@@ -101,8 +102,9 @@ imageBackgroundStyles = {
   height: window.height
 }
 
-handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
-handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
+handleSwipe redirect mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
+
+handleSwipe redirect mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
@@ -112,12 +114,15 @@ handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview ids
   result <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t, returnedFlashcardIds: toUnfoldable $ difference reviewWithoutCurrent stackWithoutCurrent :: Array String}}}
   case result of
        Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-       Right resp -> addCard $ fromArray resp.updateFlashcard.flashcards
-  where addCard (Just cards) = do
+       Right resp -> addCard (fromArray resp.updateFlashcard.flashcards) stackWithoutCurrent
+  where addCard (Just cards) stack = do
           newCard <- liftEffect $ randomLow cards
           liftEffect $ setIdsInStack \s -> insert newCard.x.id s
           liftEffect $ setCardList \cards -> snoc cards newCard
-        addCard Nothing = mempty
+        addCard Nothing stack
+          | isEmpty stack = liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
+          | otherwise = mempty
+
 
 buildJsx props = React.do
   swipeRef <- useRef null
@@ -149,7 +154,7 @@ buildJsx props = React.do
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = handleSwipe mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe = handleSwipe props.navigation.navigate mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       case cardList of

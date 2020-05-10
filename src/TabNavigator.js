@@ -9,6 +9,7 @@ import { reactComponent as SentenceChoice} from "../output/FlashcardBuilder.Sent
 import { reactComponent as ImageChoice} from "../output/FlashcardBuilder.ImageChoice";
 import { reactComponent as ReviewScreen} from "../output/FlashcardReview.Main";
 import { reactComponent as ReviewEntryScreen} from "../output/FlashcardReview.Index";
+import { reactComponent as ReviewCompleteScreen} from "../output/FlashcardReview.Complete";
 //import Review from "./Tinder/Review"
 import { reactComponent as WordSelection} from "../output/FlashcardBuilder.WordSelection";
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -22,6 +23,7 @@ ReviewNavigator = () => {
       <Stack.Navigator headerMode="none">
         <Stack.Screen name="ReviewEntry" component={ReviewEntryScreen} />
         <Stack.Screen name="Review" component={ReviewScreen} options={{gestureEnabled: false}}/>
+        <Stack.Screen name="ReviewComplete" component={ReviewCompleteScreen} options={{gestureEnabled: false}}/>
       </Stack.Navigator>
   )
 
