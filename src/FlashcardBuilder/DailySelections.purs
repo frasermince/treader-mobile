@@ -67,11 +67,11 @@ buildJsx props = React.do
      result.refetch {}
      pure mempty
   case result.state of
-       Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Once you have read and selected sentences they will show up here"
+       Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Words selected while reading will appear here"
        Just r -> pure $ M.getJsx do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface {style: M.css { flex: 1 }} do
-            M.view {style: M.css {alignItems: "center"}} do
+            M.view {style: M.css {alignItems: "center", marginTop: 10}} do
               caption {style: M.css {}} $ M.string "Words selected while reading will appear here"
             flatList {data: (spy "DATA" r).dailySelections, renderItem: mkEffectFn1 $ selectionMarkup redirect, style: M.css {flex: 1}, onRefresh: result.refetch {}, refreshing: result.networkStatus == 1, "ListEmptyComponent": emptyView}
   where redirect selection = runEffectFn2 props.navigation.navigate "SentenceChoice" { selection: selection }
