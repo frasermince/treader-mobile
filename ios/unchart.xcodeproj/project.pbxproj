@@ -11,7 +11,7 @@
 		13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		18956FDFEB8F9568BDEADB45 /* libPods-Unchart.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FE0F665A6BE72D58087CF5A /* libPods-Unchart.a */; };
+		1A3FBBF162837D5555A0885E /* libPods-UnchartTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A9F4F0E447DB62CB2F39BEF /* libPods-UnchartTests.a */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -22,7 +22,7 @@
 		520DD4E3241C1F6100ECC744 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */; };
 		52E52DB324161D7B0039D82B /* UnchartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E52DB224161D7B0039D82B /* UnchartTests.swift */; };
 		52F5443F241ACC9400158BF4 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52F5443E241ACC9400158BF4 /* StoreKit.framework */; };
-		5D02D28980D09CE6E702BC67 /* libPods-UnchartTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */; };
+		58675CB8D478D1D0A06584B5 /* libPods-Unchart.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A004A0CFD49E05748CFD757A /* libPods-Unchart.a */; };
 		A396CD8F75732BC1490B0115 /* libPods-Unchart-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E5EA7B76E1DBA34E36C3BC72 /* libPods-Unchart-tvOSTests.a */; };
 		E0CCCAD3ED1C7BDF83E74C6F /* libPods-Unchart-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */; };
 /* End PBXBuildFile section */
@@ -48,7 +48,6 @@
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* UnchartTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UnchartTests.m; sourceTree = "<group>"; };
-		0FE0F665A6BE72D58087CF5A /* libPods-Unchart.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unchart.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		10A10035E1AA07DA31F96DD2 /* Pods-Unchart-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-Unchart-tvOSTests/Pods-Unchart-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
 		1336266CCDE3F89A239D6887 /* Pods-Unchart-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-Unchart-tvOS/Pods-Unchart-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Unchart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Unchart.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -61,7 +60,6 @@
 		24186A8997925397B6D891EA /* Pods-Unchart.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart.debug.xcconfig"; path = "Target Support Files/Pods-Unchart/Pods-Unchart.debug.xcconfig"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* Unchart-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Unchart-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* Unchart-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Unchart-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-UnchartTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		520DD4DF241C1F6000ECC744 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5236238223665C35009EA758 /* react-native-vector-icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "react-native-vector-icons"; path = "../node_modules/react-native-vector-icons"; sourceTree = "<group>"; };
 		5236238523665D7C009EA758 /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
@@ -86,8 +84,10 @@
 		52E52DB224161D7B0039D82B /* UnchartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnchartTests.swift; sourceTree = "<group>"; };
 		52E52DB424161D7B0039D82B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		52F5443E241ACC9400158BF4 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		5A9F4F0E447DB62CB2F39BEF /* libPods-UnchartTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-UnchartTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unchart-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D7CB7EA4E733760664BFD6A /* Pods-Unchart-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart-tvOS.release.xcconfig"; path = "Target Support Files/Pods-Unchart-tvOS/Pods-Unchart-tvOS.release.xcconfig"; sourceTree = "<group>"; };
+		A004A0CFD49E05748CFD757A /* libPods-Unchart.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unchart.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABCCB3740193F3EF1BC4F192 /* Pods-UnchartTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnchartTests.release.xcconfig"; path = "Target Support Files/Pods-UnchartTests/Pods-UnchartTests.release.xcconfig"; sourceTree = "<group>"; };
 		C368F15E3CC5D6A74782AA43 /* Pods-Unchart-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-Unchart-tvOSTests/Pods-Unchart-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		D6782936862EC0348E7DDC38 /* Pods-Unchart.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unchart.release.xcconfig"; path = "Target Support Files/Pods-Unchart/Pods-Unchart.release.xcconfig"; sourceTree = "<group>"; };
@@ -102,8 +102,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18956FDFEB8F9568BDEADB45 /* libPods-Unchart.a in Frameworks */,
 				52F5443F241ACC9400158BF4 /* StoreKit.framework in Frameworks */,
+				58675CB8D478D1D0A06584B5 /* libPods-Unchart.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,7 +127,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D02D28980D09CE6E702BC67 /* libPods-UnchartTests.a in Frameworks */,
+				1A3FBBF162837D5555A0885E /* libPods-UnchartTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,10 +173,10 @@
 				52F5443E241ACC9400158BF4 /* StoreKit.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				0FE0F665A6BE72D58087CF5A /* libPods-Unchart.a */,
 				5CF6315DC7DAAEC3E7533B58 /* libPods-Unchart-tvOS.a */,
 				E5EA7B76E1DBA34E36C3BC72 /* libPods-Unchart-tvOSTests.a */,
-				37B15E4A03E978DE0A91E73A /* libPods-UnchartTests.a */,
+				A004A0CFD49E05748CFD757A /* libPods-Unchart.a */,
+				5A9F4F0E447DB62CB2F39BEF /* libPods-UnchartTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -279,7 +279,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				98126D6B38525C2DA7F30C53 /* [CP] Copy Pods Resources */,
+				FA5B54D1484275DC93093F3F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -557,7 +557,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		98126D6B38525C2DA7F30C53 /* [CP] Copy Pods Resources */ = {
+		FA5B54D1484275DC93093F3F /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -713,12 +713,12 @@
 			baseConfigurationReference = 24186A8997925397B6D891EA /* Pods-Unchart.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -735,11 +735,11 @@
 			baseConfigurationReference = D6782936862EC0348E7DDC38 /* Pods-Unchart.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G95K8LU6GG;
 				INFOPLIST_FILE = Unchart/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.3.6;
+				MARKETING_VERSION = 1.4.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
