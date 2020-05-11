@@ -61,3 +61,5 @@ buck-out/
 output/
 .spago/
 .psc-dependencies-cache
+android/api-playstore.json
+android/app/google-services.json

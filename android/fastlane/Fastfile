@@ -23,8 +23,15 @@ platform :android do
 
   desc "Submit a new Beta Build to Crashlytics Beta"
   lane :beta do
+    increment_version_code(
+        gradle_file_path: “app/build.gradle”
+    )
     gradle(task: "clean assembleRelease")
-    upload_to_play_store(track: 'beta')
+    firebase_app_distribution(
+        app: "1:1084080431155:android:be8c1ffa97d346c9a78346",
+        testers: "fraser@unchart.io, francisco.rdz.guerrero@gmail.com",
+        release_notes: "First release"
+    )
     # sh "your_script.sh"
     # You can also use other beta testing services here
   end
