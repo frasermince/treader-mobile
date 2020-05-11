@@ -80,7 +80,7 @@ buildJsx props = React.do
         if length selection.phrase /= length selection.sentence
           then sentenceListItem selection.phrase selection.phraseOffset selection.word phraseTranslation (redirect wordTranslation) numberOne else mempty
         divider {style: M.css {height: 1, width: "100%"}}
-        sentenceListItem selection.sentence selection.sentenceOffset selection.word sentenceTranslation (redirect wordTranslation) numberTwo
+        sentenceListItem selection.sentence selection.sentenceOffset selection.word sentenceTranslation (redirect wordTranslation) (if length selection.phrase /= length selection.sentence then numberTwo else numberOne)
         divider {style: M.css {height: 1, width: "100%"}}
   where redirectFn selection wordTranslation range rangeTranslation rangeOffset =
           runEffectFn2 props.navigation.navigate "ImageChoice" $
