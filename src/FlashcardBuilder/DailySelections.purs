@@ -73,5 +73,5 @@ buildJsx props = React.do
           surface {style: M.css { flex: 1 }} do
             M.view {style: M.css {alignItems: "center", marginTop: 10}} do
               caption {style: M.css {}} $ M.string "Words selected while reading will appear here"
-            flatList {data: (spy "DATA" r).dailySelections, renderItem: mkEffectFn1 $ selectionMarkup redirect, style: M.css {flex: 1}, onRefresh: result.refetch {}, refreshing: result.networkStatus == 1, "ListEmptyComponent": emptyView}
+            flatList {data: (spy "DATA" r).dailySelections, renderItem: mkEffectFn1 $ selectionMarkup redirect, style: M.css {flex: 1}, onRefresh: result.refetch {}, refreshing: result.networkStatus == 1}
   where redirect selection = runEffectFn2 props.navigation.navigate "SentenceChoice" { selection: selection }
