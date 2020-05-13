@@ -7,7 +7,7 @@ type NullableContext = {sentence :: Nullable String, phrase :: Nullable String, 
 type Context = {sentence :: Maybe String, phrase :: Maybe String, surrounding :: Maybe String, sentenceOffset :: Maybe Int, phraseOffset :: Maybe Int, wordLength :: Int}
 type Translation = {text :: String, isPermitted :: Boolean}
 
-type Selection = {id :: Int, word :: String, sentence :: String, phrase :: String, sentenceOffset :: Int, phraseOffset :: Int, wordLength :: Int, book :: {language :: String, id :: Int}}
+type Selection = {id :: Int, word :: String, sentence :: String, phrase :: String, sentenceOffset :: Int, phraseOffset :: Int, wordLength :: Int, book :: {language :: String, id :: Int}, wordTranslation :: String, sentenceTranslation :: String, phraseTranslation :: String}
 
 type FlashcardOffset = {word :: String, offset :: Int}
 type FlashcardOffsetTranslation = {word :: String, offset :: Int, translation :: String}
