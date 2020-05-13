@@ -3,8 +3,9 @@ import Prelude
 import React.Basic.Hooks as React
 import QueryHooks (useData, UseData)
 import Record.Unsafe.Union (unsafeUnion)
+import MaterialIcon (icon)
 import Type.Proxy (Proxy(..))
-import Paper (textInput, surface, button, title, caption, divider)
+import Paper (textInput, surface, button, title, caption, divider, headline, subheading)
 import Markup as M
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
@@ -67,7 +68,14 @@ buildJsx props = React.do
      result.refetch {}
      pure mempty
   case result.state of
-       Nothing -> pure $ M.getJsx $ M.text {} $ M.string "Words selected while reading will appear here"
+       Nothing -> pure $ M.getJsx do
+          surface {style: M.css { flex: 1 }} do
+            M.view {style: M.css {alignItems: "center", height: "100%", marginTop: "55%", marginLeft: "10%", marginRight: "10%", textAlign: "center"}} do
+              headline {style: M.css {marginBottom: 20, fontSize: 28}} $ M.string "Well this is empty..."
+              subheading {style: M.css {textAlign: "center", lineHeight: 36, fontSize: 20, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", flexShrink: 1}} $ do
+                 M.text {style: M.css {}} $ M.string "Create flashcards from what you read. Tap on the  "
+                 icon { name: "book", size: 32, style: M.css { marginTop: 10} }
+                 M.text {style: M.css {}} $ M.string "  icon and as you read words will show up here"
        Just r -> pure $ M.getJsx do
         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
           surface {style: M.css { flex: 1 }} do
