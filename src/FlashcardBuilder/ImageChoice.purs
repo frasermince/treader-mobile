@@ -55,6 +55,7 @@ import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Blur (blurView)
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
+import Data.Nullable (null)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -234,7 +235,7 @@ searchFromDialog setShowSearch setSelected search refetch setError language = do
   setShowSearch \_ -> false
   setSelected \_ -> replicate 8 false
   log $ "HERE: " <> search
-  refetch {keyword: search, start: 0, num: 8, language: "lang_" <> language}
+  refetch {keyword: search, start: 0, num: 8, language: null}
 
 type Query
   = { imageSearch :: Array {thumbnailLink :: String, contextLink :: String} }
