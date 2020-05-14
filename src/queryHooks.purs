@@ -19,6 +19,7 @@ import Data.Nullable (toMaybe, Nullable)
 import Debug.Trace (spy)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
+import Prim.Row (class Union)
 
 type Book
   = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
@@ -56,11 +57,11 @@ useUserBooks opts = useData (Proxy :: Proxy User) userBooksQuery opts
 newtype UseData (d :: Type) hooks
   = UseData (UseEffect (QueryState d) (UseContext Context (UseEffect Unit hooks)))
 
-type DataResult r = {state :: Maybe r, refetch :: {} -> Effect Unit, networkStatus :: Int}
+type DataResult r s = {state :: Maybe r, refetch :: Record s -> Effect Unit, networkStatus :: Int}
 derive instance ntUseData :: Newtype (UseData d hooks) _
 
 class Queryable (recordType :: # Type) where
-  useData :: forall opts. Proxy (Record recordType) -> DocumentNode -> Record opts -> Hook (UseData (Record recordType)) (DataResult (Record recordType))
+  useData :: forall opts refetch . Proxy (Record recordType) -> DocumentNode -> Record opts -> Hook (UseData (Record recordType)) (DataResult (Record recordType) refetch)
 
 instance recordQueryable :: (RowToList a list, EqRecord list a) => Queryable (a) where
   useData _ query options =

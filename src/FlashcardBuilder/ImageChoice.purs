@@ -51,9 +51,10 @@ import Data.Argonaut.Decode (decodeJson)
 import Data.Either (Either(..))
 import Foreign.Object (lookup) as Object
 import FetchBlob (fetch)
-import Debug.Trace (spy)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Blur (blurView)
+import QueryHooks (useData, UseData)
+import Type.Proxy (Proxy(..))
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -140,7 +141,7 @@ fetchWaveNet text language setAudioInformation = do
            liftEffect $ log $ "JSON decode error"
            pure Nothing
         (Just audioContent) -> do
-          spy "*****CREATED" $ writeFile defaultAudioFile audioContent "base64"
+          writeFile defaultAudioFile audioContent "base64"
           Just <$> (setAudioInformation defaultAudioFile)
   where getAudio result = do
           object <- J.toObject result.body
@@ -163,17 +164,9 @@ changeField setField =
   RNE.handler text \t ->
     setField \_ -> t
 
-getImages setSelected keyword language setImages setError = launchAff_ do
-  liftEffect $ setSelected \_ -> replicate 8 false
-  liftEffect $ setImages \_ -> []
-  result <- try $ imageSearch keyword 0 8 language
-  case result of
-    Left error -> liftEffect $ runEffectFn1 setError $ message error
-    Right images -> liftEffect $ setImages \_ -> images
-
 selectedImages selectedIndices images =
   foldlWithIndexDefault foldFn [] images
-  where foldFn index accum image = if isSelected selectedIndices index then image.image.thumbnailLink : accum else accum
+  where foldFn index accum image = if isSelected selectedIndices index then image.thumbnailLink : accum else accum
 
 isSelected selected index = fromMaybe false $ selected !! index
 reactComponent :: ReactComponent Props
@@ -191,7 +184,7 @@ selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
     if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 10, top: 2, right: 10, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
-    image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.image.thumbnailLink}}
+    image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.thumbnailLink}}
 
 stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
@@ -260,9 +253,24 @@ saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ se
                        true -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
 
 
-searchFromDialog setShowSearch setSelected search setImages setError = do
+searchFromDialog setShowSearch setSelected search refetch setError language = do
   setShowSearch \_ -> false
-  getImages setSelected search Nothing setImages setError
+  setSelected \_ -> replicate 8 false
+  log $ "HERE: " <> search
+  refetch {keyword: search, start: 0, num: 8, language: "lang_" <> language}
+
+type Query
+  = { imageSearch :: Array {thumbnailLink :: String, contextLink :: String} }
+
+imageQuery =
+  gql """
+  query imageQuery($keyword: String, $language: String, $start: Int, $num: Int) {
+    imageSearch(keyword: $keyword, language: $language, start: $start, num: $num) {
+      thumbnailLink
+      contextLink
+    }
+  }
+  """
 
 flashcardMutation =
   gql
@@ -312,11 +320,14 @@ buildJsx props = React.do
   mutate /\ d <- useMutation flashcardMutation { errorPolicy: "all" }
   let params = props.route.params
   let selection = params.selection
+  imagesResult <- useData (Proxy :: Proxy Query) imageQuery {variables: {keyword: params.word, start: 0, num: 8, language: "lang_" <> selection.book.language}, fetchPolicy: "cache-and-network"}
+  let images result = fromMaybe [] do
+        i <- result.state
+        pure $ i.imageSearch
   shouldBlur /\ setShouldBlur <- useState false
   modalVisible /\ setModalVisible <- useState false
   selected /\ setSelected <- useState $ replicate 8 false
   search /\ setSearch <- useState params.word
-  images /\ setImages <- useState ([] :: Array Image)
   showSearch /\ setShowSearch <- useState false
   showTranslation /\ setShowTranslation <- useState false
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
@@ -328,9 +339,6 @@ buildJsx props = React.do
         liftEffect $ setSound \_ -> Just $ s
         pure $ s
 
-  useEffect params.word do
-    getImages setSelected params.word (Just selection.book.language) setImages setError
-    pure mempty
   useEffect params.audio do
      case params.audio of
           Nothing -> mempty
@@ -343,7 +351,7 @@ buildJsx props = React.do
         if e then unlink $ fromMaybe defaultAudioFile audioPath else mempty
         liftEffect $ traverse_ release sound
 
-  let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected images) params.word params.existingSentence
+  let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected $ images imagesResult) params.word params.existingSentence
   pure $ M.getJsx do
     portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
     portal {} do
@@ -353,7 +361,7 @@ buildJsx props = React.do
             textInput { placeholder: "Search", onChangeText: changeField setSearch, value: search }
         dialogActions {} do
             button {onPress: RNE.capture_ $ setShowSearch \_ -> false} $ M.string "Cancel"
-            button {onPress: RNE.capture_ $ searchFromDialog setShowSearch setSelected search setImages setError} $ M.string "Search"
+            button {onPress: RNE.capture_ $ searchFromDialog setShowSearch setSelected search imagesResult.refetch setError selection.book.language} $ M.string "Search"
 
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
@@ -370,9 +378,9 @@ buildJsx props = React.do
             fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
            M.view {style: M.css {flex: 1, justifyContent: "flex-end", zIndex: 2}} do
             M.flatList {
-              data: images,
+              data: images imagesResult,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,
-              keyExtractor: mkEffectFn2 \i n -> pure i.link,
+              keyExtractor: mkEffectFn2 \i n -> pure i.contextLink,
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
