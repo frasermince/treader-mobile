@@ -14,6 +14,7 @@ import Data.Array (mapWithIndex, (!!), snoc, take)
 import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Data.FoldableWithIndex (foldlWithIndexDefault)
+import Data.Foldable (foldl)
 import Dimensions (window)
 import WhiteImageBackground (whiteImageBackground)
 import QueryHooks (useData, UseData, stripGraphqlError)
@@ -25,14 +26,17 @@ import Debug.Trace (spy)
 import Effect.Console (log)
 import Effect.Uncurried (mkEffectFn1)
 import ComponentTypes (Flashcard)
-import Ebisu (lowest, randomLow, updateRecall)
+import Ebisu (lowest, randomLow, updateRecall, nRandom)
 import Data.Either (Either(..))
 import Data.Array.NonEmpty (fromArray, toArray)
+import Data.Array as Array
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty)
 import Navigation (useFocusEffect)
+import Data.Map (Map, update, lookup)
+import Data.Map as Map
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit } }
@@ -102,23 +106,30 @@ imageBackgroundStyles = {
   height: window.height
 }
 
-handleSwipe redirect mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
+handleSwipe redirect mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
 
-handleSwipe redirect mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
+handleSwipe redirect mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
   liftEffect $ setIdsInStack \_ -> stackWithoutCurrent
+  liftEffect $ if result then mempty else setTimesIncorrect (\incorrectMap -> incrementIncorrect flashcard incorrectMap)
   let flashcardEbisu = flashcard.a /\ flashcard.b /\ flashcard.t
-  let (a /\ b /\ t) = updateRecall flashcardEbisu result flashcard.hoursPassed
-  result <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t, returnedFlashcardIds: toUnfoldable $ difference reviewWithoutCurrent stackWithoutCurrent :: Array String}}}
-  case result of
-       Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-       Right resp -> addCard (fromArray resp.updateFlashcard.flashcards) stackWithoutCurrent
-  where addCard (Just cards) stack = do
+  let (a /\ b /\ t) = if not result && threeIncorrect flashcard timesIncorrect
+    then flashcardEbisu
+    else updateRecall flashcardEbisu result flashcard.hoursPassed
+  responseOrError <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t, returnedFlashcardIds: toUnfoldable $ difference reviewWithoutCurrent stackWithoutCurrent :: Array String}}}
+  case responseOrError of
+      Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+      Right resp -> addCard (fromArray resp.updateFlashcard.flashcards) stackWithoutCurrent
+  where incrementIncorrect flashcard incorrectMap = update (\value -> Just $ value + 1) flashcard.id incorrectMap
+        threeIncorrect flashcard timesIncorrect = fromMaybe false do
+          incorrectForFlashcard <- lookup flashcard.id timesIncorrect
+          pure $ incorrectForFlashcard >= 3
+        addCard (Just cards) stack = do
           newCard <- liftEffect $ randomLow cards
-          liftEffect $ setIdsInStack \s -> insert newCard.x.id s
-          liftEffect $ setCardList \cards -> snoc cards newCard
+          traverse_ (\n -> liftEffect $ setIdsInStack \s -> insert n.x.id s) newCard
+          traverse_ (\n -> liftEffect $ setCardList \cards -> snoc cards n) newCard
         addCard Nothing stack
           | isEmpty stack = liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
@@ -133,6 +144,7 @@ buildJsx props = React.do
   cardList /\ setCardList <- useState ([] :: Array {x :: Flashcard, y :: Number})
   idsNeedingReview /\ setIdsNeedingReview <- useState (empty :: Set String)
   isFlipped /\ setIsFlipped <- useState false
+  timesIncorrect /\ setTimesIncorrect <- useState (Map.empty :: Map String Int)
   idsInStack /\ setIdsInStack <- useState (empty :: Set String)
 
   let swipeLeft = do
@@ -147,19 +159,23 @@ buildJsx props = React.do
     case (_.flashcards <$> flashcardsResult.state) >>= fromArray of
          Nothing -> mempty
          Just flashcards -> do
-          let l = lowest flashcards
-          let firstThree = take 3 $ l
-          setIdsNeedingReview \_ -> fromFoldable $ map (\e -> e.x.id) l
+          flashcardsToReview <- nRandom 30 flashcards
+          let flashcardArray = Array.fromFoldable flashcardsToReview
+          let firstThree = spy "FIRST THREE" $ take 3 $ flashcardArray
+          setIdsNeedingReview \_ -> fromFoldable $ map (\e -> e.x.id) flashcardArray
+          setTimesIncorrect \_ -> foldl (\accum e -> Map.insert e.x.id 0 accum) Map.empty flashcardArray
           setIdsInStack \_ -> fromFoldable $ map (\e -> e.x.id) firstThree
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = handleSwipe props.navigation.navigate mutate setError setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe = handleSwipe props.navigation.navigate mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let cardsMarkup [] (Just d) =
+        M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
+          M.text {style: M.css {}} $ M.string "Create cards to review them here"
+      cardsMarkup [] Nothing = mempty
+      cardsMarkup cards state = whiteImageBackground {style: M.css imageBackgroundStyles} do
+          M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
+            cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! i) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! i) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-      case cardList of
-            [] -> M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
-              M.text {style: M.css {}} $ M.string "Create cards to review them here"
-            cards -> whiteImageBackground {style: M.css imageBackgroundStyles} do
-                      M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-                        cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! i) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! i) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
+        cardsMarkup cardList flashcardsResult.state

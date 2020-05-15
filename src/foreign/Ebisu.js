@@ -30,7 +30,7 @@ exports.binLowest = function(it) {
               hits[hitsIdx].push(x);
           }
       }
-      return hits[hitsIdx];
+      return hits;
     }
   }
 }
