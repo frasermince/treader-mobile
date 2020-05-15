@@ -69,7 +69,8 @@ buildJsx props = React.do
      result.refetch {}
      pure mempty
   case result.state of
-       Nothing -> pure $ M.getJsx do
+       Nothing -> mempty
+       (Just {dailySelections: []}) -> pure $ M.getJsx do
           surface {style: M.css { flex: 1 }} do
             M.view {style: M.css {alignItems: "center", height: "100%", marginTop: "55%", marginLeft: "10%", marginRight: "10%", textAlign: "center"}} do
               headline {style: M.css {marginBottom: 20, fontSize: 28}} $ M.string "Well this is empty..."
