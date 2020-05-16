@@ -136,7 +136,7 @@ buildJsx props = React.do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
         result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
         path <- liftEffect result.path
-        setAudioInformation $ path
+        traverse_ setAudioInformation $ encodeURIComponent path
      pure mempty
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 
