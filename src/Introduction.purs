@@ -57,17 +57,17 @@ buildJsx props = React.do
   pure $ M.getJsx $ M.view {style: surfaceStyle} do
     swiper {style: M.css {}, horizontal: true, showButtons: true, loop: false, ref: ref} do
       M.view {style: slideStyle} do
-        slide "Welcome to Unchart. Here you will read in books in order to assist you in learning a language" ref
+        slide "Welcome to Unchart. Unchart allows you to fully utilize one of your best resources for language learning, novels. This is done using a three step process" ref
       M.view {style: slideStyle} do
-        slide "While reading you will see words highlighted different colors. We use advanced machine learning to predict what part of speech each word is. Nouns will be colored orange, verbs will be colored green, and adjectives will be colored red." ref
+        slide "First you read books, this is a highly effective way to gain grammar and we make it as simple as possible." ref
 
       M.view {style: slideStyle} do
-        slide "Tapping on a word will bring up translations and word information. Here you can see verb tense as well as gender" ref
+        slide "Second you use the words you just read to create visual flashcards. Creating the flashcards yourself makes them memorable and pairing the words with images allows you to avoid translating." ref
       M.view {style: slideStyle} do
-        slide "In the bottom box you will see longer sections of the text. Click on these at any point to get phrase and sentence translations." ref
+        slide "Third you review the flashcards you have created. We use a spaced repetition system so you avoid reviewing a flashcard until it is needed! This increases the amount of words you can memorize." ref
 
       M.view {style: slideStyle} do
-        subheading {style: textStyle} $ M.string "To progress in learning with this method you should commit to regular practice"
+        subheading {style: textStyle} $ M.string "Committing to learning daily can get you to your goals in no time"
         button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ proceed mutationFn} $ M.string "Proceed"
 
 mainButtonStyle = M.css
