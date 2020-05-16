@@ -1,6 +1,7 @@
 module FlashcardReview.CardItem where
 
 import Prelude
+import Platform as Platform
 import React.Basic.Hooks as React
 import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
@@ -133,13 +134,9 @@ buildJsx props = React.do
   useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
-        e <- exists file
-        case e of
-          true -> setAudioInformation file
-          false -> do
-            result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
-            path <- liftEffect $ result.path
-            setAudioInformation (path)
+        result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
+        path <- liftEffect result.path
+        setAudioInformation $ path
      pure mempty
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 
