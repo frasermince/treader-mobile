@@ -30,7 +30,7 @@ import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Data.String (stripPrefix, Pattern(..))
-import Global (encodeURIComponent)
+import Global (encodeURIComponent, decodeURIComponent)
 
 gray = "#757E90"
 containerCardItem = {
@@ -127,8 +127,9 @@ buildJsx props = React.do
      pure unit
      pure $ launchAff_ do
         liftEffect $ traverse_ release sound
-        e <- fileExists audioPath
-        if e then unlink $ fromMaybe "" audioPath else mempty
+        let decodedPath = audioPath >>= decodeURIComponent
+        e <- fileExists $ decodedPath
+        if e then unlink $ fromMaybe "" decodedPath else mempty
 
 
   useEffect (props.audioUrl /\ props.index) do
