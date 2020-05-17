@@ -47,41 +47,49 @@ next ref = do
 
 proceed mutationFn = launchAff_ $ mutationFn {variables: {input: {iosVersion: "1.3.4"}}}
 
-slide text ref = do
-  subheading {style: textStyle} $ M.string text
-  button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
+slide heading text buttonText onPress = do
+  M.view {style: M.css {flex: 8}} do
+    M.view {style: textContainerStyle} do
+      title {} $ M.string heading
+      subheading {style: textStyle} $ M.string text
+  M.view {style: M.css {flex: 1, alignItems: "center"}} do
+     button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ onPress } $ M.string buttonText
+
+initialSlide heading text ref = slide heading text "Next" (next ref)
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   ref <- useRef null
   pure $ M.getJsx $ M.view {style: surfaceStyle} do
-    swiper {style: M.css {}, horizontal: true, showButtons: true, loop: false, ref: ref} do
+    swiper {style: M.css {height: "100%"}, horizontal: true, showButtons: true, loop: false, ref: ref} do
       M.view {style: slideStyle} do
-        slide "Welcome to Unchart. Unchart allows you to fully utilize one of your best resources for language learning, novels. This is done using a three step process" ref
-      M.view {style: slideStyle} do
-        slide "First you read books, this is a highly effective way to gain grammar and we make it as simple as possible." ref
+         initialSlide "Welcome to Unchart." "Unchart allows you to fully utilize one of your best resources for language learning, novels. This is done using a three step process" ref
 
       M.view {style: slideStyle} do
-        slide "Second you use the words you just read to create visual flashcards. Creating the flashcards yourself makes them memorable and pairing the words with images allows you to avoid translating." ref
-      M.view {style: slideStyle} do
-        slide "Third you review the flashcards you have created. We use a spaced repetition system so you avoid reviewing a flashcard until it is needed! This increases the amount of words you can memorize." ref
+         initialSlide "1. Read Books" "This is a highly effective way to gain grammar and vocabulary and we make it as simple as possible." ref
 
       M.view {style: slideStyle} do
-        subheading {style: textStyle} $ M.string "Committing to learning daily can get you to your goals in no time"
-        button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ proceed mutationFn} $ M.string "Proceed"
+         initialSlide "2. Flashcard Creation" "You use the words you just read to create visual flashcards. Creating the flashcards yourself makes them memorable and pairing the words with images allows you to avoid translating." ref
+
+      M.view {style: slideStyle} do
+         initialSlide "3. Review your flashcards" "We use a spaced repetition system so you avoid reviewing a flashcard until it is needed! This increases the amount of words you can memorize." ref
+
+      M.view {style: slideStyle} do
+         slide "Commit" "Committing to learning daily can get you to your goals in no time" "Proceed" $ proceed mutationFn
 
 mainButtonStyle = M.css
   {
     marginBottom: 15,
     width: 300,
     height: 40,
+    justifyContent: "flex-end",
     textSize: 50
   }
 
 slideStyle = M.css
   {
-    justifyContent: "center",
-    alignItems: "center",
+    marginLeft: 10,
+    marginRight: 10,
     height: "100%"
   }
 surfaceStyle = M.css
@@ -92,6 +100,13 @@ surfaceStyle = M.css
     alignItems: "center",
     width: "100%",
     flex: 1
+  }
+
+textContainerStyle = M.css
+  {
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center"
   }
 
 textStyle = M.css
