@@ -17,13 +17,10 @@ import ApolloHooks (useMutation, gql, DocumentNode)
 import Record.Unsafe.Union (unsafeUnion)
 import Effect.Aff (Aff, launchAff_, try)
 import Data.Interpolate (i)
-import Data.Maybe (Maybe(..), isNothing)
+import Data.Maybe (Maybe(..), isNothing, fromMaybe)
+import Data.Array ((!!))
 
 type Props = {}
-radio Nothing choice p = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
-radio (Just selected) choice p 
-  | selected == choice = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-marked" }
-  | otherwise = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
 
 mutation :: DocumentNode
 mutation =
@@ -48,6 +45,20 @@ reactComponent =
     $ do
         component "Introduction" $ buildJsx
 
+radio Nothing choice p = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
+radio (Just selected) choice p
+  | selected == choice = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-marked" }
+  | otherwise = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
+
+neededWordsIcon number p = M.getJsx $ M.text {style: M.css {marginTop: 12}} $ M.string $ "~" <> show number <> " words"
+
+daysToGoal created Nothing p = mempty
+daysToGoal created (Just level) p = M.getJsx $ M.text {style: M.css {marginTop: 12}} $ M.string $ show (level.wordsNeeded / created) <> " days\n Until " <> level.name
+
+previous ref = do
+  result <- readRefMaybe ref
+  traverse_ (\s -> runEffectFn1 s.scrollBy (-1)) result
+
 next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
@@ -65,8 +76,29 @@ initialSlide heading text ref = slide "Next" (next ref) do
           title {} $ M.string heading
           subheading {style: textStyle} $ M.string text
 
-commitmentChoice :: Int -> Int -> Int -> Int -> Int -> Maybe Int -> ((Maybe Int -> Maybe Int) -> Effect Unit) -> M.Markup Unit
-commitmentChoice minutes pages created sessions choice selected setSelection = do 
+goalChoice :: Int -> Maybe Int -> ((Maybe Int -> Maybe Int) -> Effect Unit) -> M.Markup Unit
+goalChoice choice selection setSelection = do
+  M.view {style: M.css {alignItems: "center", width: "100%"}} do
+    divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+    listItem {
+      style: M.css {color: "black", width: "100%"},
+      descriptionNumberOfLines: 4,
+      title: level.name,
+      description: selectedDescription,
+      onPress: RNE.capture_ $ setSelection \_ -> Just choice,
+      left: radio selection choice,
+      right: neededWordsIcon $ level.wordsNeeded
+    }
+  where level = fromMaybe {name: "", description: "", wordsNeeded: 0} $ levels !! choice
+        isSelected = fromMaybe false do
+          s <- selection
+          pure $ choice == s
+        selectedDescription
+          | isSelected = level.description
+          | otherwise = ""
+
+dailyCommitmentChoice :: Int -> Int -> Int -> Int -> Int -> Maybe Int -> Maybe Int -> ((Maybe Int -> Maybe Int) -> Effect Unit) -> M.Markup Unit
+dailyCommitmentChoice minutes pages created sessions choice selection goalSelected setSelection = do
   M.view {style: M.css {alignItems: "center", width: "100%"}} do
     divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
     listItem {
@@ -75,16 +107,21 @@ commitmentChoice minutes pages created sessions choice selected setSelection = d
       title: title,
       description: description,
       onPress: RNE.capture_ $ setSelection \_ -> Just choice,
-      left: radio selected choice
+      left: radio selection choice,
+      right: daysToGoal created levelSelected
     }
     where description :: String
           description = i "Read " pages " pages a day \nCreate " created " flashcards\nComplete " sessions " review sessions"
           title = M.getJsx $ M.text {style: M.css {fontWeight: "bold"}} $ M.string $ i "~" minutes " minutes a day"
+          levelSelected = do
+             g <- goalSelected
+             levels !! g
 
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
-  selection /\ setSelection <- useState (Nothing :: Maybe Int)
+  dailySelection /\ setDailySelection <- useState (Nothing :: Maybe Int)
+  goalSelection /\ setGoalSelection <- useState (Nothing :: Maybe Int)
   ref <- useRef null
   pure $ M.getJsx $ M.view {style: surfaceStyle} do
     swiper {style: M.css {height: "100%"}, horizontal: true, showButtons: true, loop: false, ref: ref} do
@@ -104,21 +141,57 @@ buildJsx props = React.do
           M.view {style: M.css {flex: 8}} do
             M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
               M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
-                title {style: M.css {marginBottom: 20}} $ M.string "Choose your commitment"
-                subheading {style: textStyle} $ M.string "Progressing in language learning requires regular practice. Choose your daily goal to get started!"
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Long Term Goal"
+                subheading {style: textStyle} $ M.string "Language learning can be broken down into levels of fluency. It's important to choose a managable but exciting goal to work towards."
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
-                  commitmentChoice 30 4 10 2 0 selection setSelection
-                  commitmentChoice 45 8 20 3 1 selection setSelection
-                  commitmentChoice 60 10 30 4 2 selection setSelection
+                  goalChoice 0 goalSelection setGoalSelection
+                  goalChoice 1 goalSelection setGoalSelection
+                  goalChoice 2 goalSelection setGoalSelection
+                  goalChoice 3 goalSelection setGoalSelection
+                  goalChoice 4 goalSelection setGoalSelection
+                  goalChoice 5 goalSelection setGoalSelection
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center"}} do
-            button { disabled: isNothing selection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ proceed mutationFn } $ M.string "Get started"
+            button { disabled: isNothing goalSelection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
 
+      M.view {style: slideStyle} do
+          M.view {style: M.css {flex: 5}} do
+            M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
+              M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose your daily commitment"
+                subheading {style: textStyle} $ M.string "Progressing in language learning requires regular practice. Choose your daily goal to get started!"
+              M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
+                  dailyCommitmentChoice 30 4 10 2 0 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 45 8 20 3 1 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 60 10 30 4 2 dailySelection goalSelection setDailySelection
+                  divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+          M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between"}} do
+            button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
+            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn } $ M.string "Get started"
+
+
+levels =
+  [ {name: "A1", wordsNeeded: 500, description: "Introduce yourself to others and ask and answer simple questions"}
+  , {name: "A2", wordsNeeded: 1000, description: "Communicate in simple and routine tasks"}
+  , {name: "B1", wordsNeeded: 2000, description: "Deal with most situations likely to arise while travelling"}
+  , {name: "B2", wordsNeeded: 4000, description: "Interact with a degree of fluency and spontaneity"}
+  , {name: "C1", wordsNeeded: 8000, description: "Express yourself spontaneously without much searching for expressions"}
+  , {name: "C2", wordsNeeded: 16000, description: "Express yourself spontaneously, fluently and precisely, differentiating finer shades of meaning"}
+  ]
 
 mainButtonStyle = M.css
   {
-    marginBottom: 15,
     width: 300,
+    marginBottom: 15,
+    height: 40,
+    justifyContent: "flex-end",
+    textSize: 50
+  }
+
+endButtonStyle = M.css
+  {
+    flex: 1,
+    marginBottom: 15,
     height: 40,
     justifyContent: "flex-end",
     textSize: 50
