@@ -18,6 +18,7 @@ You can edit this file as you like.
     , "formatters"
     , "globals"
     , "graphql"
+    , "interpolate"
     , "ordered-collections"
     , "psci-support"
     , "random"
