@@ -52,7 +52,7 @@ headerStyles fade =
   , shadowOpacity: 0.75
   , shadowRadius: 3
   , shadowOffset: { height: 5, width: 10 }
-  , elevation: 3
+  , elevation: zIndex
   }
   where
   zIndex :: Int

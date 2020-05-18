@@ -108,7 +108,7 @@ styles fade =
   , marginTop: 0
   , zIndex: zIndex
   , shadowOpacity: 0.75
-  , elevation: 3
+  , elevation: zIndex
   , shadowRadius: 3
   , shadowOffset: { height: 5, width: 10 }
   }
