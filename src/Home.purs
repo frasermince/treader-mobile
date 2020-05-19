@@ -19,14 +19,14 @@ type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
-  = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
+  = { currentUser :: {dailyReviewedSessions :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
 query =
   gql
     """
 query getUser {
   currentUser {
     id
-    dailyReviewedCards
+    dailyReviewedSessions
     dailyCreatedCards
     dailyReadPages
     dailyGoal {
@@ -70,6 +70,6 @@ buildJsx props = React.do
                 divider {style: M.css {height: 1, width: "100%"}}
                 listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) (show u.currentUser.dailyGoal.created)) <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards u.currentUser.dailyGoal.created, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedCards) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedCards u.currentUser.dailyGoal.reviewSessions, right: chevron}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
 
