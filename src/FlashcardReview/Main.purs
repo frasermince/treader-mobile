@@ -66,6 +66,14 @@ mutation = gql """
   }
 """
 
+mutationForIncrement = gql """
+  mutation updateDailySessions {
+    updateDailySessions {
+      result
+    }
+  }
+"""
+
 query =
   gql
     """
@@ -106,9 +114,9 @@ imageBackgroundStyles = {
   height: window.height
 }
 
-handleSwipe redirect mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
+handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
 
-handleSwipe redirect mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
+handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
@@ -131,7 +139,9 @@ handleSwipe redirect mutate setError setTimesIncorrect timesIncorrect setCardLis
           traverse_ (\n -> liftEffect $ setIdsInStack \s -> insert n.x.id s) newCard
           traverse_ (\n -> liftEffect $ setCardList \cards -> snoc cards n) newCard
         addCard Nothing stack
-          | isEmpty stack = liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
+          | isEmpty stack = do
+              _ <- incrementSessionsMutation {}
+              liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
 
 
@@ -140,7 +150,8 @@ buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
 
-  mutate /\ d <- useMutation mutation { errorPolicy: "all" }
+  mutate /\ d1 <- useMutation mutation { errorPolicy: "all" }
+  incrementMutation /\ d2 <- useMutation mutationForIncrement { errorPolicy: "all" }
   cardList /\ setCardList <- useState ([] :: Array {x :: Flashcard, y :: Number})
   idsNeedingReview /\ setIdsNeedingReview <- useState (empty :: Set String)
   isFlipped /\ setIsFlipped <- useState false
@@ -168,7 +179,7 @@ buildJsx props = React.do
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = handleSwipe props.navigation.navigate mutate setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe = handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
   let cardsMarkup [] (Just d) =
         M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
           M.text {style: M.css {}} $ M.string "Create cards to review them here"

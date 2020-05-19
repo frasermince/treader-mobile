@@ -19,7 +19,7 @@ type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
-  = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String} }
+  = { currentUser :: {dailyReviewedCards :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
 query =
   gql
     """
@@ -29,6 +29,11 @@ query getUser {
     dailyReviewedCards
     dailyCreatedCards
     dailyReadPages
+    dailyGoal {
+      created
+      pages
+      reviewSessions
+    }
   }
 }
 """
@@ -61,10 +66,10 @@ buildJsx props = React.do
           surface { style: M.css { flex: 1 } } do
               title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
               listSection {} do
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) "10") <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages 10, right: chevron}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) (show u.currentUser.dailyGoal.pages)) <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages u.currentUser.dailyGoal.pages, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) "10") <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards 10, right: chevron}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) (show u.currentUser.dailyGoal.created)) <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards u.currentUser.dailyGoal.created, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedCards) "30") <> " Flashcards Reviewed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedCards 30, right: chevron}
+                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedCards) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedCards u.currentUser.dailyGoal.reviewSessions, right: chevron}
                 divider {style: M.css {height: 1, width: "100%"}}
 

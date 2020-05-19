@@ -26,13 +26,10 @@ mutation :: DocumentNode
 mutation =
   gql
     """
-mutation updateCurrentUser($input: UserInput!) {
-  update_user(input: $input) {
+mutation createGoals($input: CreateGoalsInput!) {
+  createGoals(input: $input) {
     user {
       id
-      isSubscribed
-      isPermitted
-      showPayment
       iosVersion
     }
   }
@@ -63,7 +60,8 @@ next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
 
-proceed mutationFn = launchAff_ $ mutationFn {variables: {input: {iosVersion: "1.3.4"}}}
+proceed mutationFn (Just dailyGoalId) (Just levelGoal) = launchAff_ $ mutationFn {variables: {input: {iosVersion: "1.4.3", dailyGoalId, levelGoal}}}
+proceed mutationFn _ _ = mempty
 
 slide buttonText onPress textComponent = do
   textComponent
@@ -161,13 +159,13 @@ buildJsx props = React.do
                 title {style: M.css {marginBottom: 20}} $ M.string "Choose your daily commitment"
                 subheading {style: textStyle} $ M.string "Progressing in language learning requires regular practice. Choose your daily goal to get started!"
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
-                  dailyCommitmentChoice 30 4 10 2 0 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 45 8 20 3 1 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 60 10 30 4 2 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 30 4 10 2 1 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 45 8 20 3 2 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 60 10 30 4 3 dailySelection goalSelection setDailySelection
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between"}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
-            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn } $ M.string "Get started"
+            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection} $ M.string "Get started"
 
 
 levels =
