@@ -19,6 +19,7 @@ import Effect.Aff (Aff, launchAff_, try)
 import Data.Interpolate (i)
 import Data.Maybe (Maybe(..), isNothing, fromMaybe)
 import Data.Array ((!!))
+import FirebaseMessaging (requestPermission)
 
 type Props = {}
 
@@ -60,7 +61,9 @@ next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
 
-proceed mutationFn (Just dailyGoalId) (Just levelGoal) = launchAff_ $ mutationFn {variables: {input: {iosVersion: "1.4.3", dailyGoalId, levelGoal}}}
+proceed mutationFn (Just dailyGoalId) (Just levelGoal) = launchAff_ do
+  requestPermission
+  mutationFn {variables: {input: {iosVersion: "1.4.3", dailyGoalId, levelGoal}}}
 proceed mutationFn _ _ = mempty
 
 slide buttonText onPress textComponent = do
