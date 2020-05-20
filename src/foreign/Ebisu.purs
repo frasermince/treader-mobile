@@ -45,13 +45,13 @@ binnedLowest flashcards = fromMaybe bins $ fromArray $ foldl (\accum bin -> if n
 randomLow :: NonEmptyArray Flashcard -> Effect (Maybe {x :: Flashcard, y :: Number})
 randomLow flashcards = randomLowest $ binnedLowest flashcards
   where randomLowest l = do
-          let lowestBin = fromMaybe [] $ l !! (NonEmpty.length l - 1)
+          let lowestBin = fromMaybe [] $ l !! 0
           index <- randomInt 0 (Array.length lowestBin - 1)
           pure $ Array.index lowestBin index
 
 nRandom :: Int -> NonEmptyArray Flashcard -> Effect (List {x :: Flashcard, y :: Number})
 nRandom n flashcards = do
-    randomValues <- applyN getRandom n (pure {bins: binnedLowest flashcards, result: mempty})
+    randomValues <- applyN getRandom (min n (NonEmpty.length flashcards)) (pure {bins: binnedLowest flashcards, result: mempty})
     pure $ randomValues.result
 
   where getRandom previousPayload = do
@@ -62,15 +62,15 @@ nRandom n flashcards = do
                Nothing -> pure $ {bins: newBins, result: previousResults}
 
         takeRandomLowest l = do
-          let lowestBin = fromMaybe [] $ l !! (NonEmpty.length l - 1)
+          let lowestBin = fromMaybe [] $ l !! 0
           index <- randomInt 0 (Array.length lowestBin - 1)
           let newBins = do
                 newLowest <- Array.deleteAt index lowestBin
                 if null newLowest
                   then do
-                     maybeEmpty <- NonEmpty.deleteAt (NonEmpty.length l - 1) l
+                     maybeEmpty <- NonEmpty.deleteAt 0 l
                      fromArray maybeEmpty
-                  else updateAt (NonEmpty.length l - 1) newLowest l
+                  else updateAt 0 newLowest l
           pure $ spy "RESULT" {result: Array.index lowestBin index, bins: fromMaybe l newBins}
 
 lowest :: NonEmptyArray Flashcard -> Array {x :: Flashcard, y :: Number}
@@ -79,4 +79,4 @@ lowest flashcards = toArray $ spy "SORTED FLASHCARDS" $ sortedItems flashcards
 sortedItems :: NonEmptyArray Flashcard -> NonEmptyArray {x :: Flashcard, y :: Number}
 sortedItems flashcards = partialSort (spy "SORTED" flashcards) numberOfItems sortFn
   where sortFn flashcard = predictRecall (flashcard.a /\ flashcard.b /\ flashcard.t) $ spy "LAST REVIEWED" flashcard.hoursPassed
-        numberOfItems = min 30000 (NonEmpty.length flashcards)
+        numberOfItems = min 30 (NonEmpty.length flashcards)
