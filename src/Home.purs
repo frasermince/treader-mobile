@@ -14,6 +14,8 @@ import Data.Maybe (Maybe(..))
 import ApolloHooks (useMutation, gql)
 import Type.Proxy (Proxy(..))
 import Navigation (useFocusEffect)
+import FirebaseMessaging (requestPermission)
+import Effect.Aff (Aff, launchAff_, try)
 
 type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
@@ -54,6 +56,10 @@ buildJsx props = React.do
   let redirectReview = runEffectFn2 props.navigation.navigate "Review" {}
   let ratioDone numerator denominator = numerator <> "/" <> denominator
   user <- useData (Proxy :: Proxy Query) query {fetchPolicy: "cache-and-network"}
+  useEffect unit do
+    launchAff_ requestPermission
+    pure mempty
+
   useFocusEffect unit do
      user.refetch {}
      pure mempty
