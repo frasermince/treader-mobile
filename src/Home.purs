@@ -40,6 +40,12 @@ query getUser {
 }
 """
 
+topMetric title content =
+  M.view {style: M.css {flex: 1}} do
+    M.text {style: M.css {textAlign: "center", fontWeight: "bold"}} $ M.string title
+    M.text {style: M.css {textAlign: "center"}} $ M.string content
+
+
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
@@ -67,15 +73,21 @@ buildJsx props = React.do
   case user.state of
     Nothing -> mempty
     Just u ->
-      pure $ M.getJsx
-        $ M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-          surface { style: M.css { flex: 1 } } do
-              title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
-              listSection {} do
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) (show u.currentUser.dailyGoal.pages)) <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages u.currentUser.dailyGoal.pages, right: chevron}
-                divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) (show u.currentUser.dailyGoal.created)) <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards u.currentUser.dailyGoal.created, right: chevron}
-                divider {style: M.css {height: 1, width: "100%"}}
-                listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
-                divider {style: M.css {height: 1, width: "100%"}}
+      pure $ M.getJsx do
+         surface { style: M.css { flex: 1 } } do
+           M.safeAreaView { style: M.css { flex: 1 } } do
+              M.view {style: M.css { flex: 1, flexDirection: "row", paddingTop: 20 }} do
+                topMetric "Level" "A1"
+                topMetric "Words Until A2" "500"
+                topMetric "Streak" "5 days"
+
+              M.view {style: M.css {flex: 12}} do
+                title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
+                listSection {} do
+                  listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) (show u.currentUser.dailyGoal.pages)) <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages u.currentUser.dailyGoal.pages, right: chevron}
+                  divider {style: M.css {height: 1, width: "100%"}}
+                  listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) (show u.currentUser.dailyGoal.created)) <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards u.currentUser.dailyGoal.created, right: chevron}
+                  divider {style: M.css {height: 1, width: "100%"}}
+                  listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
+                  divider {style: M.css {height: 1, width: "100%"}}
 
