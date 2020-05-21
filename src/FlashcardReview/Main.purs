@@ -148,7 +148,7 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
 buildJsx props = React.do
   swipeRef <- useRef null
   { setLoading, setError } <- useContext dataStateContext
-  flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
+  flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "network-only" }
 
   mutate /\ d1 <- useMutation mutation { errorPolicy: "all" }
   incrementMutation /\ d2 <- useMutation mutationForIncrement { errorPolicy: "all" }
