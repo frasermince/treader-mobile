@@ -28,8 +28,8 @@ platform :android do
     )
     gradle(task: "clean assembleRelease")
     firebase_app_distribution(
-        app: "1:1084080431155:android:be8c1ffa97d346c9a78346",
-        testers: "fraser@unchart.io, francisco.rdz.guerrero@gmail.com",
+        app: "1:422319423639:android:7bb37a2de78d081faae9d2",
+        testers: "fraser@unchart.io, francisco.rdz.guerrero@gmail.com, rtfabian@liberty.edu",
         release_notes: "First release"
     )
     # sh "your_script.sh"

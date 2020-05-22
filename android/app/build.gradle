@@ -129,13 +129,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
+    dexOptions {
+       javaMaxHeapSize "3g"
+    }
     defaultConfig {
         applicationId "com.unchart"
         minSdkVersion rootProject.ext.minSdkVersion
         multiDexEnabled true
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
+        versionCode 22
         versionName "1.0"
     }
     splits {
