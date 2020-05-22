@@ -10,18 +10,21 @@ import Markup as M
 import Paper (textInput, surface, button, listSection, listItem, listIcon, divider, title)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Record.Unsafe.Union (unsafeUnion)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Array (findIndex, (!!))
 import ApolloHooks (useMutation, gql)
 import Type.Proxy (Proxy(..))
 import Navigation (useFocusEffect)
 import FirebaseMessaging (requestPermission)
 import Effect.Aff (Aff, launchAff_, try)
+import Data.Interpolate (i)
+import CefrLevels (levels)
 
 type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
-  = { currentUser :: {dailyReviewedSessions :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
+  = { currentUser :: {dailyReviewedSessions :: Int, flashcardCount :: Int, currentStreak :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
 query =
   gql
     """
@@ -31,6 +34,8 @@ query getUser {
     dailyReviewedSessions
     dailyCreatedCards
     dailyReadPages
+    flashcardCount
+    currentStreak
     dailyGoal {
       created
       pages
@@ -56,6 +61,23 @@ checkEmptyIcon total goal p
   | total >= goal = element listIcon $ unsafeUnion p { color: "#000", icon: "checkbox-marked-outline" }
   | otherwise = element listIcon $ unsafeUnion p { color: "#000", icon: "checkbox-blank-outline" }
 
+currentLevelName flashcardCount = fromMaybe "A0" do
+  levelIndex <- currentLevelIndex flashcardCount
+  level <- levels !! levelIndex
+  pure $ level.name
+
+currentLevelIndex flashcardCount = do
+  levelIndex <- nextLevelIndex flashcardCount
+  if levelIndex == 0 then Nothing else Just $ levelIndex - 1
+
+nextLevelInfo flashcardCount = fromMaybe {wordsUntil: 0, nextLevelName: "A0"} do
+  index <- nextLevelIndex flashcardCount
+  nextLevel <- levels !! index
+  pure $ {wordsUntil: nextLevel.wordsNeeded - flashcardCount, nextLevelName: nextLevel.name}
+
+nextLevelIndex flashcardCount = findIndex moreThanCreated levels
+  where moreThanCreated elem = elem.wordsNeeded > flashcardCount
+
 buildJsx props = React.do
   let redirectBook = runEffectFn2 props.navigation.navigate "Read" {}
   let redirectCreate = runEffectFn2 props.navigation.navigate "Create" {}
@@ -77,12 +99,12 @@ buildJsx props = React.do
          surface { style: M.css { flex: 1 } } do
            M.safeAreaView { style: M.css { flex: 1 } } do
               M.view {style: M.css { flex: 1, flexDirection: "row", paddingTop: 20 }} do
-                topMetric "Level" "A1"
-                topMetric "Words Until A2" "500"
-                topMetric "Streak" "5 days"
+                let nextLevel = nextLevelInfo u.currentUser.flashcardCount
+                topMetric "Level" $ currentLevelName u.currentUser.flashcardCount
+                topMetric (i "Words Until " nextLevel.nextLevelName) (show nextLevel.wordsUntil)
+                topMetric "Streak" $ i u.currentUser.currentStreak " days"
 
               M.view {style: M.css {flex: 12}} do
-                title { style: M.css {textAlign: "center"}} $ M.string "Daily Goals"
                 listSection {} do
                   listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReadPages) (show u.currentUser.dailyGoal.pages)) <> " Pages Read", onPress: RNE.capture_ redirectBook, left: checkEmptyIcon u.currentUser.dailyReadPages u.currentUser.dailyGoal.pages, right: chevron}
                   divider {style: M.css {height: 1, width: "100%"}}
