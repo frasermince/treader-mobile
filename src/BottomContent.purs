@@ -18,7 +18,7 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Paper (surface)
+import Paper (surface, switch)
 import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
@@ -40,6 +40,9 @@ import Navigation (useNavigation)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Traversable (traverse_)
 import ComponentTypes
+import TabView (sceneMap, tabView, tabBar)
+import Record.Unsafe.Union (unsafeUnion)
+import Debug.Trace (spy)
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -55,6 +58,72 @@ mutation =
     }
   }
 """
+
+switchRowStyle = M.css {flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "50%"}
+colorToggles props = React.do
+  pure $ M.getJsx $ do
+     M.view {style: switchRowStyle } do
+       M.text {style: M.css {marginLeft: 20}} $ M.string "Nouns"
+       switch {style: M.css {}, value: props.highlightNouns, onValueChange: props.setHighlightNouns \n -> not n, color: "orange"}
+     M.view {style: switchRowStyle } do
+       M.text {style: M.css {marginLeft: 20}} $ M.string "Verbs"
+       switch {style: M.css {}, value: props.highlightVerbs, onValueChange: props.setHighlightVerbs \n -> not n, color: "green"}
+     M.view {style: switchRowStyle } do
+       M.text {style: M.css {marginLeft: 20}} $ M.string "Adjectives"
+       switch {style: M.css {}, value: props.highlightAdjectives, onValueChange: props.setHighlightAdjectives \n -> not n, color: "red"}
+
+wordColors :: ReactComponent Props
+wordColors = unsafePerformEffect
+    $ do
+        (component "WordColors") colorToggles
+
+definitionJsx props = mempty
+
+definition :: ReactComponent Props
+definition = unsafePerformEffect
+    $ do
+        (component "Definition") definitionJsx
+
+
+tabs :: ReactComponent Props
+tabs = unsafePerformEffect
+    $ do
+        (component "BottomTabs") buildTabs
+
+
+buildTabs props = React.do
+  index /\ setIndex <- useState 0
+  fade /\ setFade <- useState $ value 1
+  placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
+  useEffect props.wordPlacement do
+     launchAff_ $ do
+        runAnimation visible fade
+        liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
+        if visible then pure unit else do
+          liftEffect $ props.setTranslation \_ -> Nothing
+          liftEffect $ props.setMorphology \_ -> Nothing
+     pure mempty
+
+  let renderTabBar = \props -> M.getJsx do
+        tabBar $ unsafeUnion props {
+            style: M.css {backgroundColor: "white", color: "black"},
+            indicatorStyle: M.css {backgroundColor: "#66aab1" },
+            activeColor: "black",
+            inactiveColor: "black"
+          }
+  let routes = [{key: "wordInformation", title: "Main"}, {key: "wordColors", title: "Color Key"}, {key: "definition", title: "Definition"}]
+  let renderScene = sceneMap {wordInformation: reactComponent}
+  let renderScene = \{route} ->
+                    case route.key of
+                         "wordInformation" -> element reactComponent props
+                         "wordColors" -> element wordColors props
+                         "definition" -> element definition props
+                         otherwise -> element reactComponent props
+  pure $ M.getJsx
+    $ container fade window.height placementForAnimation do
+       tabView {renderTabBar, style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
+  where visible = isJust props.wordPlacement
+
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -72,7 +141,13 @@ type Props
     setMorphology :: (Maybe (Object String) -> Maybe (Object String)) -> Effect Unit,
     setTranslation :: (Maybe Translation -> Maybe Translation) -> Effect Unit,
     setModalVisible :: (Boolean -> Boolean) -> Effect Unit,
-    removeContent :: Effect Unit
+    removeContent :: Effect Unit,
+    setHighlightVerbs :: (Boolean -> Boolean) -> Effect Unit,
+    setHighlightNouns :: (Boolean -> Boolean) -> Effect Unit,
+    setHighlightAdjectives :: (Boolean -> Boolean) -> Effect Unit,
+    highlightVerbs :: Boolean,
+    highlightNouns :: Boolean,
+    highlightAdjectives :: Boolean
     }
 
 blurTextStyle = {
@@ -149,28 +224,19 @@ container fade height wordPlacement children = surface {style: M.css $ merge (st
 buildJsx props = React.do
   navigation <- useNavigation
   mutationFn /\ result <- useMutation mutation {}
-  fade /\ setFade <- useState $ value 1
   ref <- useRef null
-  placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
-
   useEffect props.wordPlacement do
      result <- readRefMaybe ref
      traverse_ (\s -> scrollTo (getNode s) 0) result
-     launchAff_ $ do
-        runAnimation visible fade
-        liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
-        if visible then pure unit else do
-          liftEffect $ props.setTranslation \_ -> Nothing
-          liftEffect $ props.setMorphology \_ -> Nothing
      pure mempty
-  pure $ M.getJsx
-    $ container fade window.height placementForAnimation do
-       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20, paddingTop: 20 }, contentContainerStyle: M.css {flexGrow: 1}, showsVerticalScrollIndicator: false } do
-          translationMarker <> fromMaybe translationPlaceholder translationText
-          M.view {style: M.css {paddingBottom: 40}} do
-            tappableTranslations mutationFn
-            maybeDataMap props.morphology
-       if shouldBlur props.translation then unpermittedBlur props else mempty
+
+  pure $ M.getJsx do
+      scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20, paddingTop: 20 }, contentContainerStyle: M.css {flexGrow: 1}, showsVerticalScrollIndicator: false } do
+        translationMarker <> fromMaybe translationPlaceholder translationText
+        M.view {style: M.css {paddingBottom: 40}} do
+          tappableTranslations mutationFn
+          maybeDataMap props.morphology
+      if shouldBlur props.translation then unpermittedBlur props else mempty
   where
   displaySentence = fromMaybe false do
      context <- props.context
@@ -218,7 +284,6 @@ buildJsx props = React.do
        then M.childElement TranslatableOnPress.reactComponent {snippet: sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
        else mempty
 
-  visible = isJust props.wordPlacement
 
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
 

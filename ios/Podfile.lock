@@ -361,11 +361,11 @@ PODS:
     - RNFBApp
   - RNFS (2.16.2):
     - React
-  - RNGestureHandler (1.6.0):
+  - RNGestureHandler (1.6.1):
     - React
   - RNIap (4.4.2):
     - React
-  - RNReanimated (1.7.0):
+  - RNReanimated (1.9.0):
     - React
   - RNScreens (2.7.0):
     - React
@@ -632,9 +632,9 @@ SPEC CHECKSUMS:
   RNFBInAppMessaging: 4d1a34412791d9ad7a19c4ae0337ec29168ea23d
   RNFBMessaging: 0d9f1fff6359f97fac479aeae62ba79d2f069178
   RNFS: 0d4191b1052bef9ce70deff00a5b4169c62bbd9b
-  RNGestureHandler: dde546180bf24af0b5f737c8ad04b6f3fa51609a
+  RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNIap: 4a353600facc146dfc771250b2382f2c25aa22ee
-  RNReanimated: 031fe8d9ea93c2bd689a40f05320ef9d96f74d7f
+  RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
   RNScreens: cf198f915f8a2bf163de94ca9f5bfc8d326c3706
   RNSound: da030221e6ac7e8290c6b43f2b5f2133a8e225b0
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
@@ -647,4 +647,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3bdaac784e3c6e5545f72ec1f1697d36d69174a4
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.0

@@ -20,6 +20,7 @@ exports._paragraph = paper.Paragraph
 exports._badge = paper.Badge
 exports._fab = paper.FAB
 exports._dialog = paper.Dialog
+exports._switch = paper.Switch
 exports._dialogTitle = paper.Dialog.Title
 exports._dialogContent = paper.Dialog.Content
 exports._dialogActions = paper.Dialog.Actions

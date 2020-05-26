@@ -39,12 +39,15 @@ foreign import _dialogTitle :: forall props. ReactComponent props
 foreign import _dialogContent :: forall props. ReactComponent props
 foreign import _dialogActions :: forall props. ReactComponent props
 foreign import _searchbar :: forall props. ReactComponent props
+foreign import _switch :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
   forall props opts.
   ReactComponent props -> Record opts -> ReactComponent props
 
 textInput = childElement _textInput
+
+switch = childElement _switch
 
 surface = parentElement _surface
 

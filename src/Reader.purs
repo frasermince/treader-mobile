@@ -477,7 +477,7 @@ buildJsx props = React.do
                 , onLocationChange: locationChange props.title props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
-                , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
+                , themes: { highlighted: merge (spy "THEME" $ setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
                 , loaded: loaded
@@ -486,7 +486,7 @@ buildJsx props = React.do
                 , origin: origin
                 , onError: error
                 }
-            M.childElement BottomContent.reactComponent
+            M.childElement BottomContent.tabs
               { translation: (fst stateChangeListeners.translation)
               , morphology: (fst stateChangeListeners.morphology)
               , wordPlacement: _.fromTop <$> (fst stateChangeListeners.highlightedContent)
@@ -496,4 +496,10 @@ buildJsx props = React.do
               , setMorphology: (snd stateChangeListeners.morphology)
               , setTranslation: (snd stateChangeListeners.translation)
               , setModalVisible: setModalVisible
+              , highlightVerbs
+              , highlightNouns
+              , highlightAdjectives
+              , setHighlightVerbs
+              , setHighlightNouns
+              , setHighlightAdjectives
               }
