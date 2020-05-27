@@ -382,20 +382,20 @@ setTheme highlightVerbs highlightNouns highlightAdjectives = build (adjectives $
   setVerbs true theme = theme
 
   setVerbs false theme =
-    defaultTheme
+    theme
       >>> modify verbKey (\_ -> colors.none)
       >>> modify auxKey (\_ -> colors.none)
 
   setNouns true theme = theme
 
   setNouns false theme =
-    defaultTheme
+    theme
       >>> modify nounKey (\_ -> colors.none)
 
   setAdjectives true theme = theme
 
   setAdjectives false theme =
-    defaultTheme
+    theme
       >>> modify adjKey (\_ -> colors.none)
 
 getBookId result = do
@@ -477,7 +477,7 @@ buildJsx props = React.do
                 , onLocationChange: locationChange props.title props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
-                , themes: { highlighted: merge (spy "THEME" $ setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
+                , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
                 , theme: "highlighted"
                 , onPress: press props.toggleBars stateChangeListeners
                 , loaded: loaded

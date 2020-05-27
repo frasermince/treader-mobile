@@ -112,7 +112,7 @@ buildTabs props = React.do
             activeColor: "black",
             inactiveColor: "black"
           }
-  let routes = [{key: "wordInformation", title: "Main"}, {key: "wordColors", title: "Color Key"}, {key: "definition", title: "Definition"}]
+  let routes = [{key: "wordInformation", title: "Main"}, {key: "definition", title: "Definition"}, {key: "wordColors", title: "Color Key"}]
   let renderScene = sceneMap {wordInformation: reactComponent}
   let renderScene = \{route} ->
                     case route.key of
