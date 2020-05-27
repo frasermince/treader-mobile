@@ -6271,7 +6271,7 @@ envinfo@^7.3.1:
 
 epubjs-rn@frasermince/epubjs-rn:
   version "0.1.5"
-  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/383ca936927a46610f648688c179ae58768a97ba"
+  resolved "https://codeload.github.com/frasermince/epubjs-rn/tar.gz/f0cc14ab7e7cafe61112f309ac5e8c1332b07bbb"
   dependencies:
     "@babel/polyfill" "^7.4.4"
     "@lightbase/react-native-orientation" "^3.2.6"

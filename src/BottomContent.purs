@@ -59,18 +59,19 @@ mutation =
   }
 """
 
-switchRowStyle = M.css {flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "50%"}
+switchRowStyle = M.css {flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "85%"}
 colorToggles props = React.do
   pure $ M.getJsx $ do
-     M.view {style: switchRowStyle } do
-       M.text {style: M.css {marginLeft: 20}} $ M.string "Nouns"
-       switch {style: M.css {}, value: props.highlightNouns, onValueChange: props.setHighlightNouns \n -> not n, color: "orange"}
-     M.view {style: switchRowStyle } do
-       M.text {style: M.css {marginLeft: 20}} $ M.string "Verbs"
-       switch {style: M.css {}, value: props.highlightVerbs, onValueChange: props.setHighlightVerbs \n -> not n, color: "green"}
-     M.view {style: switchRowStyle } do
-       M.text {style: M.css {marginLeft: 20}} $ M.string "Adjectives"
-       switch {style: M.css {}, value: props.highlightAdjectives, onValueChange: props.setHighlightAdjectives \n -> not n, color: "red"}
+     M.view {style: M.css {height: "50%", marginLeft: "5%"}} do
+      M.view {style: switchRowStyle } do
+        M.text {style: M.css {marginLeft: 10}} $ M.string "Nouns"
+        switch {style: M.css {}, value: props.highlightNouns, onValueChange: props.setHighlightNouns \n -> not n, color: "orange"}
+      M.view {style: switchRowStyle } do
+        M.text {style: M.css {marginLeft: 10}} $ M.string "Verbs"
+        switch {style: M.css {}, value: props.highlightVerbs, onValueChange: props.setHighlightVerbs \n -> not n, color: "green"}
+      M.view {style: switchRowStyle } do
+        M.text {style: M.css {marginLeft: 10}} $ M.string "Adjectives"
+        switch {style: M.css {}, value: props.highlightAdjectives, onValueChange: props.setHighlightAdjectives \n -> not n, color: "red"}
 
 wordColors :: ReactComponent Props
 wordColors = unsafePerformEffect
@@ -172,7 +173,7 @@ blurStyle = {
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
-    height: 250
+    height: 350
   , right: 0
   , left: 0
   , position: "absolute"
@@ -216,7 +217,7 @@ unpermittedBlur props =
           props.setModalVisible \_ -> true
 
 container fade height (Just wordPlacement) children
-  | (floor height) - (floor wordPlacement) < 450 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
+  | (floor height) - (floor wordPlacement) < 550 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
   | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
 container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
