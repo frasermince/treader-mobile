@@ -144,7 +144,6 @@ buildTabs props = React.do
             inactiveColor: "black"
           }
   let routes = [{key: "wordInformation", title: "Main"}, {key: "definition", title: "Wiktionary"}, {key: "wordColors", title: "Color Key"}]
-  let renderScene = sceneMap {wordInformation: reactComponent}
   let renderScene = \{route} ->
                     case route.key of
                          "wordInformation" -> element reactComponent props
@@ -205,7 +204,7 @@ blurStyle = {
 styles fade =
   { --backgroundColor: "#cdcdcd",
   --paddingTop: 0,
-    height: 350
+    height: "45%"
   , right: 0
   , left: 0
   , position: "absolute"
