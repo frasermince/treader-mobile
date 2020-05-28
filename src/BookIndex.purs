@@ -8,7 +8,7 @@ import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, use
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Effect.Aff (launchAff_)
 import QueryHooks (useUserBooks, Book, User, useData)
-import Paper (textInput, surface, button, listSection, listItem, listIcon)
+import Paper (textInput, surface, button, listSection, listItem, listIcon, fab, portal, modal, title)
 import Markup as M
 import Data.Maybe (Maybe(..), isJust)
 import Record (merge)
@@ -19,9 +19,17 @@ import React.Basic.Native.Events as RNE
 import Effect.Class (liftEffect)
 import Data.Foldable (find)
 import Navigation (useFocusEffect)
+import Linking (openUrl)
+import Subscribe as Subscribe
+import Data.Interpolate (i)
+import Effect (Effect)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit } }
+
+
+actionBySubscription true _ setUploadVisible = setUploadVisible \_ -> true
+actionBySubscription false setModalVisible _ = setModalVisible \_ -> true
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -31,6 +39,9 @@ reactComponent =
 
 buildJsx props = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))
+
+  modalVisible /\ setModalVisible <- useState false
+  uploadVisible /\ setUploadVisible <- useState false
   useFocusEffect unit do
     launchAff_
       $ do
@@ -41,7 +52,16 @@ buildJsx props = React.do
   queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
   case queryResult.state of
     Nothing -> pure mempty
-    Just d -> dom d files
+    Just d -> pure $ M.getJsx
+      do
+        portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
+        M.childElement uploadModal {uploadVisible, setUploadVisible}
+        surface { style: M.css { flex: 1 } } do
+          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
+              M.scrollView {style: M.css { flex: 1}} do
+                listSection {} do
+                  foldl (item files) mempty d.currentUser.books
+              fab {icon: "plus", small: true, style: M.css {width: 40, position: "absolute", right: 5, bottom: 5}, onPress: RNE.capture_ $ actionBySubscription d.currentUser.isSubscribed setModalVisible setUploadVisible}
   where
   redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
 
@@ -67,10 +87,67 @@ buildJsx props = React.do
             }
         )
 
-  dom d files = React.do
-    pure $ M.getJsx
-      $ surface { style: M.css { flex: 1 } } do
-         M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-            M.scrollView {style: M.css { flex: 1}} do
-              listSection {} do
-                foldl (item files) mempty d.currentUser.books
+type UploadProps = {setUploadVisible :: (Boolean -> Boolean) -> Effect Unit, uploadVisible :: Boolean}
+uploadModal :: ReactComponent UploadProps
+uploadModal =
+  unsafePerformEffect
+    $ do
+        (component "UploadModal") uploadModalDom
+
+uploadModalDom props = React.do
+  pure $ M.getJsx $
+    portal {} $ modal {visible: props.uploadVisible, contentContainerStyle: modalStyle, onDismiss: props.setUploadVisible \_ -> false} do
+      M.view {style: surfaceStyle} do
+        title {} $ M.string "Upload"
+        numberedItem "Click on the link below to be redirected to the web interface." 1
+        numberedItem "Login to your account and you will see a button for book uploads," 2
+        numberedItem "Click the button and choose a DRM free epub file." 3
+        numberedItem "After uploading it may take a couple of hours to see your book." 4
+        button {style: mainButtonStyle, onPress: RNE.capture_ $ openUrl "https:/app.unchart.io", mode: "contained"} $ M.string "Continue"
+      M.view {style: bottomViewStyle} $ mempty
+
+numberedItem text number = listItem
+  { title: RN.string text
+  , left: numberIcon number
+  , style: M.css {width: "100%"}
+  , titleNumberOfLines: 3
+  }
+
+numberIcon :: forall p. Int -> Record p -> JSX
+numberIcon number p = element listIcon $ unsafeUnion p { color: "#000", icon: "numeric-" <> show number <> "-box"}
+
+mainButtonStyle = M.css
+  {
+    marginBottom: 15,
+    width: 300,
+    height: 40,
+    textSize: 50,
+    position: "absolute",
+    bottom: 5
+  }
+
+surfaceStyle = M.css
+  {
+    borderRadius: 10,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    flex: 4
+  }
+
+modalStyle = M.css
+  {
+    paddingTop: 0,
+    marginTop: 0,
+    paddingLeft: "4%",
+    width: "95%",
+    height: "100%"
+  }
+
+bottomViewStyle = M.css
+  {
+    marginTop: 20,
+    alignItems: "center",
+    flex: 1
+  }
