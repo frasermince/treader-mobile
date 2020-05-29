@@ -98,18 +98,21 @@ uploadModalDom props = React.do
   pure $ M.getJsx $
     portal {} $ modal {visible: props.uploadVisible, contentContainerStyle: modalStyle, onDismiss: props.setUploadVisible \_ -> false} do
       M.view {style: surfaceStyle} do
-        title {} $ M.string "Upload"
-        numberedItem "Click on the link below to be redirected to the web interface." 1
-        numberedItem "Login to your account and you will see a button for book uploads." 2
-        numberedItem "Click the button and choose a DRM free epub file." 3
-        numberedItem "After uploading it may take a couple of hours to see your book." 4
-        button {style: mainButtonStyle, onPress: RNE.capture_ $ openUrl "https:/app.unchart.io", mode: "contained"} $ M.string "Continue"
+        M.view {style: M.css {flex: 6, width: "100%", alignItems: "center"}} do
+          title {} $ M.string "Upload"
+          numberedItem "Click on the button below to be redirected to the web interface." 1
+          numberedItem "Login to your account and you will see a button for book uploads." 2
+          numberedItem "Click the button and choose a DRM free epub file." 3
+          numberedItem "After uploading it may take a couple of hours to see your book." 4
+        M.view {style: M.css {flex: 1, width: "100%", alignItems: "center"}} do
+          button {style: mainButtonStyle, onPress: RNE.capture_ $ openUrl "https:/app.unchart.io", mode: "contained"} $ M.string "Continue"
+          M.text {style: M.css {textAlign: "center"}, onPress: RNE.capture_ $ props.setUploadVisible \_ -> false} $ M.string "Close"
       M.view {style: bottomViewStyle} $ mempty
 
 numberedItem text number = listItem
   { title: RN.string text
   , left: numberIcon number
-  , style: M.css {width: "100%"}
+  , style: M.css {width: "95%", marginRight: 20, marginLeft: 20}
   , titleNumberOfLines: 3
   }
 
@@ -121,16 +124,14 @@ mainButtonStyle = M.css
     marginBottom: 15,
     width: 300,
     height: 40,
-    textSize: 50,
-    position: "absolute",
-    bottom: 5
+    textSize: 50
   }
 
 surfaceStyle = M.css
   {
+    paddingTop: 20,
     borderRadius: 10,
     backgroundColor: "white",
-    justifyContent: "center",
     alignItems: "center",
     width: "100%",
     flex: 4
