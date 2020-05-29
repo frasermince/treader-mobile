@@ -42,6 +42,7 @@ import ComponentTypes
 import Data.DateTime (DateTime, diff)
 import Data.Time.Duration (fromDuration)
 import Effect.Now (nowDateTime)
+import QueryHooks (useData, UseData, stripGraphqlError)
 
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
@@ -234,7 +235,7 @@ mutation =
   }
 """
 
-useRenditionData showBars setShowBars visibleLocation bookId addToPages = React.do
+useRenditionData showBars setShowBars visibleLocation bookId addToPages setError = React.do
   mutationFn /\ result <- useMutation mutation {}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
@@ -291,9 +292,9 @@ useRenditionData showBars setShowBars visibleLocation bookId addToPages = React.
   makePayload _ _ _ _ = Nothing
   mutateAndChangeState mutationFn (Just payload) setShowBars setTranslation setSelected = do
     liftEffect $ setSelected \_ -> true
-    result <- try $ mutationFn payload
+    result <- try $ mutationFn $ spy "PAYLOAD" payload
     case result of
-      Left err -> pure unit
+      Left err -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message err
       Right r -> do
         liftEffect $ setShowBars \_ -> false
         liftEffect $ setTranslation \_ -> Just {text: r.translateWithContext.translation, isPermitted: r.translateWithContext.is_permitted}
@@ -441,7 +442,7 @@ buildJsx props = React.do
      pure $ unit
      pure $ addToPages
 
-  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation (getBookId streamResult) addToPages
+  ref /\ stateChangeListeners <- useRenditionData props.showBars props.setShowBars props.visibleLocation (getBookId streamResult) addToPages setError
   useEffect props.slug do
      setLoaded \_ -> false
      snd stateChangeListeners.highlightedContent $ \_ -> Nothing

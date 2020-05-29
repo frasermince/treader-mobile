@@ -22,6 +22,7 @@ import Effect.Exception (message)
 import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
+import QueryHooks (useData, UseData, stripGraphqlError)
 
 mutation :: DocumentNode
 mutation = gql """
@@ -67,8 +68,6 @@ buildJsx props = React.do
             button { mode: "contained", onPress: RNE.capture_ (press mutate email firstName lastName password client setError) } $ M.string "Register"
           M.text {style: M.css {textAlign: "center", marginTop: 10}, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Login" {}} $ M.string "Login"
     where
-    stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
-
     press mutate email firstName lastName password client setError =
       launchAff_ do
         result <- try $ mutate $ ({variables: { input: { firstName: firstName, lastName: lastName, email: email, password: password}}})
