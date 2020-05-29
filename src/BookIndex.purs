@@ -100,7 +100,7 @@ uploadModalDom props = React.do
       M.view {style: surfaceStyle} do
         title {} $ M.string "Upload"
         numberedItem "Click on the link below to be redirected to the web interface." 1
-        numberedItem "Login to your account and you will see a button for book uploads," 2
+        numberedItem "Login to your account and you will see a button for book uploads." 2
         numberedItem "Click the button and choose a DRM free epub file." 3
         numberedItem "After uploading it may take a couple of hours to see your book." 4
         button {style: mainButtonStyle, onPress: RNE.capture_ $ openUrl "https:/app.unchart.io", mode: "contained"} $ M.string "Continue"
