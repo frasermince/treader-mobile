@@ -128,6 +128,7 @@ buildTabs props = React.do
   fade /\ setFade <- useState $ value 1
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
   useEffect props.wordPlacement do
+     setIndex \_ -> 0
      launchAff_ $ do
         runAnimation visible fade
         liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
