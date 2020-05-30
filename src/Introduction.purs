@@ -164,8 +164,8 @@ buildJsx props = React.do
                 subheading {style: textStyle} $ M.string "Progressing in language learning requires regular practice. Choose your daily goal to get started!"
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
                   dailyCommitmentChoice 30 4 10 2 1 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 45 8 20 3 2 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 60 10 30 4 3 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 45 6 20 3 2 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 60 8 30 4 3 dailySelection goalSelection setDailySelection
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between"}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
