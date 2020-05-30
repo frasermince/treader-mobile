@@ -33,7 +33,7 @@ import ApolloHooks (useMutation, gql)
 import React.Basic.Native.Events (capture_)
 import Foreign.Object (Object)
 import TranslatableOnPress as TranslatableOnPress
-import Data.String (length, stripSuffix, stripPrefix, Pattern(..))
+import Data.String (length, stripSuffix, stripPrefix, Pattern(..), toLower)
 import Blur (blurView)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Navigation (useNavigation)
@@ -42,12 +42,12 @@ import Data.Traversable (traverse_)
 import ComponentTypes
 import TabView (sceneMap, tabView, tabBar)
 import Record.Unsafe.Union (unsafeUnion)
-import Debug.Trace (spy)
 import Wiktionary (getDefinition, WiktionaryResult)
 import Effect.Console (log)
 import HTMLView (htmlView)
 import Data.Foldable (foldl)
 import Data.Interpolate (i)
+import Icon (icon)
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -101,10 +101,10 @@ definitionJsx props = React.do
           htmlView {value: d, onLinkPress: mkEffectFn1 \url -> (setTerm \_ -> wordFromUrl url), stylesheet: {h4: {textAlign: "center"}}}
        Nothing -> pure mempty
 
-  where wiktionary (Just text) (Just language) (Just locale) = spy "HERE" getDefinition text locale language
+  where wiktionary (Just text) (Just language) (Just locale) = getDefinition (toLower text) locale language
         wiktionary _ _ _ = pure []
         wordFromUrl url = do
-           prefixless <- stripPrefix (Pattern "/wiki/") $ spy "URL" url
+           prefixless <- stripPrefix (Pattern "/wiki/") $ url
            stripSuffix (Pattern "#French") prefixless
         dictHtml :: WiktionaryResult -> String
         dictHtml d = foldl foldDefinitions "" d
@@ -116,34 +116,44 @@ definition = unsafePerformEffect
     $ do
         (component "Definition") definitionJsx
 
+renderTabBar :: Effect Unit -> Boolean -> ReactComponent {}
+renderTabBar removeContent isTop = unsafePerformEffect
+    $ do
+        (component "RenderTabBar") $ renderTabBarJsx removeContent isTop
+
+renderTabBarJsx removeContent isTop props = React.do
+  pure $ M.getJsx do
+     M.view {style: M.css {flexDirection: "row"}} do
+      tabBar $ unsafeUnion props {
+        style: M.css {backgroundColor: "white", color: "black", flex: 11},
+        indicatorStyle: M.css {backgroundColor: "#66aab1" },
+        activeColor: "black",
+        inactiveColor: "black"
+      }
+      M.touchableOpacity {style: M.css {flex: 1}, onPress: RNE.capture_ removeContent} do
+        M.childElement icon { name: if isTop then "chevron-up" else "chevron-down", size: 34, style: M.css {paddingTop: 10, flex: 1}}
+
+
 
 tabs :: ReactComponent Props
 tabs = unsafePerformEffect
     $ do
         (component "BottomTabs") buildTabs
 
-
 buildTabs props = React.do
   index /\ setIndex <- useState 0
   fade /\ setFade <- useState $ value 1
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
   useEffect props.wordPlacement do
-     setIndex \_ -> 0
      launchAff_ $ do
         runAnimation visible fade
+        liftEffect $ setIndex \_ -> 0
         liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
         if visible then pure unit else do
           liftEffect $ props.setTranslation \_ -> Nothing
           liftEffect $ props.setMorphology \_ -> Nothing
      pure mempty
 
-  let renderTabBar = \props -> M.getJsx do
-        tabBar $ unsafeUnion props {
-            style: M.css {backgroundColor: "white", color: "black"},
-            indicatorStyle: M.css {backgroundColor: "#66aab1" },
-            activeColor: "black",
-            inactiveColor: "black"
-          }
   let routes = [{key: "wordInformation", title: "Main"}, {key: "definition", title: "Wiktionary"}, {key: "wordColors", title: "Color Key"}]
   let renderScene = \{route} ->
                     case route.key of
@@ -153,7 +163,7 @@ buildTabs props = React.do
                          otherwise -> element reactComponent props
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
-       tabView {renderTabBar, style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
+       tabView {renderTabBar: renderTabBar props.removeContent (isTop window.height placementForAnimation), style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
   where visible = isJust props.wordPlacement
 
 
@@ -237,7 +247,7 @@ titleStyles =
 
 runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 
-runAnimation false fade = timing fade { toValue: 0, duration: 20 }
+runAnimation false fade = timing fade { toValue: 0, duration: 0 }
 
 shouldBlur translation = not $ fromMaybe true (_.isPermitted <$> translation)
 unpermittedBlur props =
@@ -248,11 +258,12 @@ unpermittedBlur props =
           props.removeContent
           props.setModalVisible \_ -> true
 
-container fade height (Just wordPlacement) children
-  | (floor height) - (floor wordPlacement) < 500 = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
-  | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
+isTop height (Just wordPlacement) = (floor height) - (floor wordPlacement) < 540
+isTop height Nothing = false
 
-container fade height wordPlacement children = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
+container fade height wordPlacement children
+  | isTop height wordPlacement = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
+  | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
 buildJsx props = React.do
   navigation <- useNavigation
