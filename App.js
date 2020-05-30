@@ -12,6 +12,12 @@ import Config from "react-native-config"
 import StoryBook from './storybook';
 import { ActivityIndicator, Colors } from 'react-native-paper';
 
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://fd265e734f824cf7a420135e99130131@o400439.ingest.sentry.io/5258935',
+});
+
 // Implementation of HomeScreen, OtherScreen, SignInScreen, AuthLoadingScreen
 // goes here.
 //

@@ -369,6 +369,9 @@ PODS:
     - React
   - RNScreens (2.7.0):
     - React
+  - RNSentry (1.4.1):
+    - React
+    - Sentry (~> 5.1.0)
   - RNSound (0.11.0):
     - React
     - RNSound/Core (= 0.11.0)
@@ -389,6 +392,9 @@ PODS:
   - SDWebImageWebPCoder (0.4.1):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.5)
+  - Sentry (5.1.0):
+    - Sentry/Core (= 5.1.0)
+  - Sentry/Core (5.1.0)
   - SSZipArchive (2.2.2)
   - TextToSpeech (2.0.0):
     - React
@@ -443,6 +449,7 @@ DEPENDENCIES:
   - RNIap (from `../node_modules/react-native-iap`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSound (from `../node_modules/react-native-sound`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNZipArchive (from `../node_modules/react-native-zip-archive`)
@@ -471,6 +478,7 @@ SPEC REPOS:
     - Protobuf
     - SDWebImage
     - SDWebImageWebPCoder
+    - Sentry
     - SSZipArchive
 
 EXTERNAL SOURCES:
@@ -562,6 +570,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNSound:
     :path: "../node_modules/react-native-sound"
   RNVectorIcons:
@@ -636,11 +646,13 @@ SPEC CHECKSUMS:
   RNIap: 4a353600facc146dfc771250b2382f2c25aa22ee
   RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
   RNScreens: cf198f915f8a2bf163de94ca9f5bfc8d326c3706
+  RNSentry: df6946b5fe880a9097f6994c9028f939710b3000
   RNSound: da030221e6ac7e8290c6b43f2b5f2133a8e225b0
   RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
   RNZipArchive: be636657a6630e9771d4a3223dc8fd0bd0137b55
   SDWebImage: 84000f962cbfa70c07f19d2234cbfcf5d779b5dc
   SDWebImageWebPCoder: 36f8f47bd9879a8aea6044765c1351120fd8e3a8
+  Sentry: 01008d590825eb1c02a796cbdced2cd3625f61e4
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   TextToSpeech: 4e2fc50c7495416c6da5a1662ad3f750c58d3c85
   Yoga: 14927e37bd25376d216b150ab2a561773d57911f
