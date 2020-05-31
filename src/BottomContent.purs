@@ -25,7 +25,7 @@ import Foreign.Object (lookup, Object, fold)
 import Morphology (valueNames)
 import EpubUtil (HighlightedContent)
 import Dimensions (window)
-import Data.Int (floor)
+import Data.Int (floor, toNumber)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
 import Control.Alt ((<|>))
 import Data.Either (Either(..))
@@ -130,7 +130,7 @@ renderTabBarJsx removeContent isTop props = React.do
         activeColor: "black",
         inactiveColor: "black"
       }
-      M.touchableOpacity {style: M.css {flex: 1}, onPress: RNE.capture_ removeContent} do
+      M.touchableOpacity {style: M.css {flex: 1, elevation: 4, backgroundColor: "white", shadowColor: "black", shadowOpacity: 0.1}, onPress: RNE.capture_ removeContent} do
         M.childElement icon { name: if isTop then "chevron-up" else "chevron-down", size: 34, style: M.css {paddingTop: 10, flex: 1}}
 
 
@@ -258,7 +258,7 @@ unpermittedBlur props =
           props.removeContent
           props.setModalVisible \_ -> true
 
-isTop height (Just wordPlacement) = (floor height) - (floor wordPlacement) < 540
+isTop height (Just wordPlacement) = (floor height) - (floor wordPlacement) < (floor $ height * 0.62)
 isTop height Nothing = false
 
 container fade height wordPlacement children
