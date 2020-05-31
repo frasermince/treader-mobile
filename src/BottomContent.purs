@@ -116,24 +116,22 @@ definition = unsafePerformEffect
     $ do
         (component "Definition") definitionJsx
 
-renderTabBar :: Effect Unit -> Boolean -> ReactComponent {}
-renderTabBar removeContent isTop = unsafePerformEffect
+renderTabBar :: Effect Unit -> ReactComponent {}
+renderTabBar removeContent = unsafePerformEffect
     $ do
-        (component "RenderTabBar") $ renderTabBarJsx removeContent isTop
+        (component "RenderTabBar") $ renderTabBarJsx removeContent
 
-renderTabBarJsx removeContent isTop props = React.do
+renderTabBarJsx removeContent props = React.do
   pure $ M.getJsx do
      M.view {style: M.css {flexDirection: "row"}} do
+      M.touchableOpacity {style: M.css {flex: 1, elevation: 4, backgroundColor: "white", shadowColor: "black", shadowOpacity: 0.1}, onPress: RNE.capture_ removeContent} do
+        M.childElement icon { name: "close", size: 28, style: M.css {paddingTop: 12, flex: 1, paddingRight: 10}}
       tabBar $ unsafeUnion props {
         style: M.css {backgroundColor: "white", color: "black", flex: 11},
         indicatorStyle: M.css {backgroundColor: "#66aab1" },
         activeColor: "black",
         inactiveColor: "black"
       }
-      M.touchableOpacity {style: M.css {flex: 1, elevation: 4, backgroundColor: "white", shadowColor: "black", shadowOpacity: 0.1}, onPress: RNE.capture_ removeContent} do
-        M.childElement icon { name: if isTop then "chevron-up" else "chevron-down", size: 34, style: M.css {paddingTop: 10, flex: 1}}
-
-
 
 tabs :: ReactComponent Props
 tabs = unsafePerformEffect
@@ -163,7 +161,7 @@ buildTabs props = React.do
                          otherwise -> element reactComponent props
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
-       tabView {renderTabBar: renderTabBar props.removeContent (isTop window.height placementForAnimation), style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
+       tabView {renderTabBar: renderTabBar props.removeContent, style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
   where visible = isJust props.wordPlacement
 
 
