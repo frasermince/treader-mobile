@@ -48,6 +48,15 @@ import HTMLView (htmlView)
 import Data.Foldable (foldl)
 import Data.Interpolate (i)
 import Icon (icon)
+import Data.Map (fromFoldable, lookup) as Map
+
+languageList = Map.fromFoldable [
+  ("en" /\ "English"),
+  ("es" /\ "Spanish"),
+  ("fr" /\ "French"),
+  ("de" /\ "German"),
+  ("it" /\ "Italian")
+]
 
 mapValue :: String -> String -> String
 mapValue "infinitive" value = value
@@ -98,14 +107,16 @@ definitionJsx props = React.do
        Just d ->
          M.scrollView { style: M.css {marginLeft: 20, marginRight: 20, paddingTop: 20 } } do
           title {style: M.css {textAlign: "center"}} $ M.string $ fromMaybe "" $ term <|> props.word
-          htmlView {value: d, onLinkPress: mkEffectFn1 \url -> (setTerm \_ -> wordFromUrl url), stylesheet: {h4: {textAlign: "center"}}}
+          htmlView {value: d, onLinkPress: mkEffectFn1 \url -> (setTerm \_ -> wordFromUrl url props.language), stylesheet: {h4: {textAlign: "center"}}}
        Nothing -> pure mempty
 
   where wiktionary (Just text) (Just language) (Just locale) = getDefinition (toLower text) locale language
         wiktionary _ _ _ = pure []
-        wordFromUrl url = do
+        wordFromUrl url maybeLanguage = do
+           language <- maybeLanguage
            prefixless <- stripPrefix (Pattern "/wiki/") $ url
-           stripSuffix (Pattern "#French") prefixless
+           wikiLanguage <- Map.lookup language languageList
+           stripSuffix (Pattern $ i "#" wikiLanguage) prefixless
         dictHtml :: WiktionaryResult -> String
         dictHtml d = foldl foldDefinitions "" d
         foldDefinitions accum d = i accum "<h4>" d.partOfSpeech "</h4>" "<ol>" (foldl foldDefinition "" d.definitions) "</ol>"
