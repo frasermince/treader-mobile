@@ -18,7 +18,7 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Paper (surface, switch, title, toggleButton)
+import Paper (surface, switch, title, toggleButton, caption)
 import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
@@ -76,7 +76,11 @@ mutation =
 switchRowStyle = M.css {flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "85%"}
 colorToggles props = React.do
   pure $ M.getJsx $ do
-     M.view {style: M.css {height: "50%", marginLeft: "5%"}} do
+    M.view {style: M.css {margin: 20, marginTop: 40}} do
+        M.text {} $ M.string "Machine learning is used to predict the part of speech."
+        M.text {} $ M.string "While not always correct this can serve as a helpful tool."
+
+    M.view {style: M.css {height: "50%", marginLeft: "5%"}} do
       M.view {style: switchRowStyle } do
         M.text {style: M.css {marginLeft: 10}} $ M.string "Nouns"
         switch {style: M.css {}, value: props.highlightNouns, onValueChange: props.setHighlightNouns \n -> not n, color: "orange"}
