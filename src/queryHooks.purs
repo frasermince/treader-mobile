@@ -22,7 +22,7 @@ import Data.Maybe (fromMaybe)
 import Prim.Row (class Union)
 
 type Book
-  = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String }
+  = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String, language :: String }
 
 type User
   = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String, subscriptionEndDate :: Nullable Number, showPayment :: Nullable Boolean } }
@@ -48,6 +48,7 @@ query getUser {
       name
       filename
       slug
+      language
     }
   }
 }

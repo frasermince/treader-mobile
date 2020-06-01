@@ -4,13 +4,13 @@ import Prelude
 import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks as React
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\))
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\), useLayoutEffect)
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Effect.Aff (launchAff_)
 import QueryHooks (useUserBooks, Book, User, useData)
-import Paper (textInput, surface, button, listSection, listItem, listIcon, fab, portal, modal, title)
+import Paper (textInput, surface, button, listSection, listItem, listIcon, fab, portal, modal, title, dialog, dialogTitle, dialogContent, dialogActions, radioButton)
 import Markup as M
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Record (merge)
 import Data.Foldable (foldl)
 import Record.Unsafe.Union (unsafeUnion)
@@ -25,11 +25,19 @@ import Data.Interpolate (i)
 import Effect (Effect)
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit } }
+  = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit, setOptions :: EffectFn1 {headerRight :: ReactComponent {}} Unit } }
 
 
 actionBySubscription true _ setUploadVisible = setUploadVisible \_ -> true
 actionBySubscription false setModalVisible _ = setModalVisible \_ -> true
+
+buttonComponent :: ((Boolean -> Boolean) -> Effect Unit) -> Maybe String -> ReactComponent {}
+buttonComponent setLanguageModalVisible language = unsafePerformEffect
+    $ do
+        (component "TopButton") $ buttonJsx setLanguageModalVisible language
+
+buttonJsx setLanguageModalVisible language props = React.do
+  pure $ M.getJsx $ button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {position: "absolute", right: 1, marginTop: 21}} $ M.string $ fromMaybe "Language" $ language
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -37,11 +45,22 @@ reactComponent =
     $ do
         (component "BookIndex") buildJsx
 
+selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
+  where select = do
+          setLanguage \_ -> value
+          dismiss
+
 buildJsx props = React.do
   files /\ setFiles <- useState (Nothing :: Maybe (Array File))
+  language /\ setLanguage <- useState (Nothing :: Maybe String)
 
   modalVisible /\ setModalVisible <- useState false
+  languageModalVisible /\ setLanguageModalVisible <- useState false
   uploadVisible /\ setUploadVisible <- useState false
+  let dismiss = setLanguageModalVisible \_ -> false
+  useLayoutEffect language do
+     runEffectFn1 props.navigation.setOptions {headerRight: buttonComponent setLanguageModalVisible language}
+     pure mempty
   useFocusEffect unit do
     launchAff_
       $ do
@@ -54,13 +73,24 @@ buildJsx props = React.do
     Nothing -> pure mempty
     Just d -> pure $ M.getJsx
       do
+        portal {} $ dialog {visible: languageModalVisible, onDismiss: setLanguageModalVisible \_ -> false} do
+           dialogTitle {} $ M.string "Choose Language"
+           dialogContent {style: M.css {height: 240}} do
+              selectableItem language setLanguage (Just "fr") "French" dismiss
+              selectableItem language setLanguage (Just "es") "Spanish" dismiss
+              selectableItem language setLanguage (Just "it") "Italian" dismiss
+              selectableItem language setLanguage (Just "de") "German" dismiss
+              selectableItem language setLanguage Nothing "All Books" dismiss
+           dialogActions {} do
+              button {onPress: RNE.capture_ $ dismiss} $ M.string "Cancel"
         portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
         M.childElement uploadModal {uploadVisible, setUploadVisible}
         surface { style: M.css { flex: 1 } } do
           M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-              M.scrollView {style: M.css { flex: 1}} do
-                listSection {} do
-                  foldl (item files) mempty d.currentUser.books
+              M.view {style: M.css { flex: 1}} do
+                M.scrollView {} do
+                  listSection {} do
+                    foldl (item language files) mempty d.currentUser.books
               fab {icon: "plus", small: true, style: M.css {width: 40, position: "absolute", right: 5, bottom: 5}, onPress: RNE.capture_ $ actionBySubscription d.currentUser.isSubscribed setModalVisible setUploadVisible}
   where
   redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
@@ -76,15 +106,19 @@ buildJsx props = React.do
       | isJust $ find (\f -> f.name == book.filename || f.name == book.slug) files = "check-bold"
       | otherwise = "cloud-outline"
 
-  item :: Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit
-  item files accum book =
-    accum
-      <> ( listItem
-            { title: RN.string book.name
-            , left: bookIcon
-            , right: cloudState book files
-            , onPress: RNE.capture_ $ redirect book.slug
-            }
+  item :: Maybe String -> Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit
+  item language files accum book =
+    case language of
+         Nothing -> newList
+         Just l -> if book.language == l then newList else accum
+
+    where newList = accum
+            <> ( listItem
+                  { title: RN.string book.name
+                  , left: bookIcon
+                  , right: cloudState book files
+                  , onPress: RNE.capture_ $ redirect book.slug
+                  }
         )
 
 type UploadProps = {setUploadVisible :: (Boolean -> Boolean) -> Effect Unit, uploadVisible :: Boolean}

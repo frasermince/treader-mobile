@@ -26,6 +26,7 @@ exports._dialogContent = paper.Dialog.Content
 exports._dialogActions = paper.Dialog.Actions
 exports._searchbar = paper.Searchbar
 exports._toggleButton = paper.ToggleButton
+exports._radioButton = paper.RadioButton
 exports.navigationOptions = function(component) {
   return function (options) {
     component.navigationOptions = () => options;

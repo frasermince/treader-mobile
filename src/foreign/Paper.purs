@@ -40,6 +40,7 @@ foreign import _dialogContent :: forall props. ReactComponent props
 foreign import _dialogActions :: forall props. ReactComponent props
 foreign import _searchbar :: forall props. ReactComponent props
 foreign import _switch :: forall props. ReactComponent props
+foreign import _radioButton :: forall props. ReactComponent props
 foreign import _toggleButton :: forall props. ReactComponent props
 
 foreign import navigationOptions ::
@@ -49,6 +50,8 @@ foreign import navigationOptions ::
 textInput = childElement _textInput
 
 switch = childElement _switch
+
+radioButton = childElement _radioButton
 
 surface = parentElement _surface
 

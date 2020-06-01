@@ -31,9 +31,9 @@ ReviewNavigator = () => {
 BookNavigator = () => {
   const Stack = createStackNavigator();
   return (
-      <Stack.Navigator headerMode="none">
-        <Stack.Screen name="BookIndex" component={BookIndexScreen} />
-        <Stack.Screen name="Read" component={BookScreen} options={{gestureEnabled: false}} />
+      <Stack.Navigator>
+        <Stack.Screen name="BookIndex" component={BookIndexScreen} options={{headerTitle: "Books"}}/>
+        <Stack.Screen name="Read" component={BookScreen} options={{gestureEnabled: false, headerShown: false}} />
       </Stack.Navigator>
   )
 }
