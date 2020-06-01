@@ -145,7 +145,7 @@ buildJsx props = React.do
      card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound , key: props.active} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
-            M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 4}} do
+            M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 5}} do
                clozeWord props.sentence props.offset props.word $ M.css descriptionCardItem
             M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
@@ -155,7 +155,7 @@ buildJsx props = React.do
             iconButton {style: M.css {position: "absolute", top: 7, right: 0},icon: "google-translate", size: 20, onPress: toggleTranslation}
             if showTranslation
               then M.text {style: M.css translationCardItem, onPress: toggleTranslation} $ M.string props.translation
-              else M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 2}, onPress: toggleTranslation} do
+              else M.text {style: M.css {marginRight: 5, marginLeft: 5, flex: 3}, onPress: toggleTranslation} do
                  underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
             M.view {style: M.css {flex: 3}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ launchAff_ $ traverse_ stopAndPlay sound}
