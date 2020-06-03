@@ -25,7 +25,7 @@ type Book
   = { name :: String, slug :: String, __typename :: String, id :: String, filename :: String, language :: String }
 
 type User
-  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String, subscriptionEndDate :: Nullable Number, showPayment :: Nullable Boolean } }
+  = { currentUser :: { firstName :: String, lastName :: String, email :: String, isGuest :: Boolean, iosVersion :: Nullable String, isSubscribed :: Boolean, isPermitted :: Boolean, books :: Array Book, id :: String,  __typename :: String, subscriptionEndDate :: Nullable Number, showPayment :: Nullable Boolean, language :: String } }
 
 userBooksQuery :: DocumentNode
 userBooksQuery =
@@ -36,6 +36,7 @@ query getUser {
     id
     firstName
     lastName
+    language
     email
     isPermitted
     isSubscribed

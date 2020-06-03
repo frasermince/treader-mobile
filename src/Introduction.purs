@@ -62,10 +62,10 @@ next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
 
-proceed mutationFn (Just dailyGoalId) (Just levelGoal) = launchAff_ do
+proceed mutationFn (Just dailyGoalId) (Just levelGoal) (Just language) = launchAff_ do
   requestPermission
-  mutationFn {variables: {input: {iosVersion: "1.4.3", dailyGoalId, levelGoal}}}
-proceed mutationFn _ _ = mempty
+  mutationFn {variables: {input: {iosVersion: "1.4.4", dailyGoalId, levelGoal, language: language}}}
+proceed mutationFn _ _ _ = mempty
 
 slide buttonText onPress textComponent = do
   textComponent
@@ -119,11 +119,22 @@ dailyCommitmentChoice minutes pages created sessions choice selection goalSelect
              g <- goalSelected
              levels !! g
 
+languageChoice :: Maybe String -> String -> String -> ((Maybe String -> Maybe String) -> Effect Unit) -> M.Markup Unit
+languageChoice value choice label setSelection = do
+  M.view {style: M.css {alignItems: "center", width: "100%"}} do
+    divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+    listItem {
+      style: M.css {color: "black", width: "100%"},
+      title: label,
+      onPress: RNE.capture_ $ setSelection \_ -> Just choice,
+      left: radio value choice
+    }
 
 buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   dailySelection /\ setDailySelection <- useState (Nothing :: Maybe Int)
   goalSelection /\ setGoalSelection <- useState (Nothing :: Maybe Int)
+  languageSelection /\ setLanguageSelection <- useState (Nothing :: Maybe String)
   ref <- useRef null
   pure $ M.getJsx $ M.view {style: surfaceStyle} do
     swiper {style: M.css {height: "100%"}, horizontal: true, showButtons: true, loop: false, ref: ref} do
@@ -138,6 +149,21 @@ buildJsx props = React.do
 
       M.view {style: slideStyle} do
          initialSlide "Review Flashcards" "We use a spaced repetition system so you avoid reviewing a flashcard until it is needed! This increases the amount of words you can memorize." ref
+
+      M.view {style: slideStyle} do
+          M.view {style: M.css {flex: 8}} do
+            M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
+              M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Language"
+                subheading {style: textStyle} $ M.string "Choose the language you want to learn."
+              M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
+                languageChoice languageSelection "fr" "French" setLanguageSelection
+                languageChoice languageSelection "es" "Spanish" setLanguageSelection
+                languageChoice languageSelection "it" "Italian" setLanguageSelection
+                languageChoice languageSelection "de" "German" setLanguageSelection
+                divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+          M.view {style: M.css {flex: 1, alignItems: "center"}} do
+            button { disabled: isNothing languageSelection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
 
       M.view {style: slideStyle} do
           M.view {style: M.css {flex: 8}} do
@@ -169,7 +195,7 @@ buildJsx props = React.do
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between"}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
-            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection} $ M.string "Get started"
+            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection languageSelection} $ M.string "Get started"
 
 
 mainButtonStyle = M.css

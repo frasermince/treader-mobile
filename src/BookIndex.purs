@@ -69,6 +69,13 @@ buildJsx props = React.do
           liftEffect $ setFiles \_ -> Just files
     pure mempty
   queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
+
+  useEffect queryResult.state do
+     setLanguage \_ -> do
+        q <- queryResult.state
+        pure $ q.currentUser.language
+     pure mempty
+
   case queryResult.state of
     Nothing -> pure mempty
     Just d -> pure $ M.getJsx
