@@ -7,6 +7,7 @@ You can edit this file as you like.
 , dependencies =
     [ "aff"
     , "aff-promise"
+    , "aff-retry"
     , "affjax"
     , "apollo"
     , "console"

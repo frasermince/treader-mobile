@@ -49,6 +49,7 @@ import Data.Foldable (foldl)
 import Data.Interpolate (i)
 import Icon (icon)
 import Data.Map (fromFoldable, lookup) as Map
+import Debug.Trace (spy)
 
 languageList = Map.fromFoldable [
   ("en" /\ "English"),
@@ -177,7 +178,7 @@ buildTabs props = React.do
   pure $ M.getJsx
     $ container fade window.height placementForAnimation do
        tabView {renderTabBar: renderTabBar props.removeContent, style: M.css {backgroundColor: "white"}, navigationState: {index, routes}, renderScene, onIndexChange: mkEffectFn1 \i -> setIndex \_ -> i}
-  where visible = isJust props.wordPlacement
+  where visible = spy "VISIBLE" isJust props.wordPlacement
 
 
 reactComponent :: ReactComponent Props

@@ -43,6 +43,7 @@ import Data.DateTime (DateTime, diff)
 import Data.Time.Duration (fromDuration)
 import Effect.Now (nowDateTime)
 import QueryHooks (useData, UseData, stripGraphqlError)
+import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..))
 
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
@@ -292,7 +293,12 @@ useRenditionData showBars setShowBars visibleLocation bookId addToPages setError
   makePayload _ _ _ _ = Nothing
   mutateAndChangeState mutationFn (Just payload) setShowBars setTranslation setSelected = do
     liftEffect $ setSelected \_ -> true
-    result <- try $ mutationFn $ spy "PAYLOAD" payload
+    let mutation = mutationFn $ spy "PAYLOAD" payload
+    let lastIteration = 5
+    let retryPolicy = constantDelay (Milliseconds 200.0) <> limitRetries 5
+    let checks = pure \(RetryStatus rs) -> const $ pure (rs.iterNumber /= lastIteration)
+    let retriedMutation = recovering retryPolicy checks $ \_ -> mutation
+    result <- try $ retriedMutation
     case result of
       Left err -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message err
       Right r -> do
