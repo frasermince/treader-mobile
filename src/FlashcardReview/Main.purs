@@ -10,7 +10,7 @@ import Data.Traversable (traverse_)
 import Effect (Effect)
 import StackSwiper (cardStack, card)
 import Markup as M
-import Data.Array (mapWithIndex, (!!), snoc, take)
+import Data.Array (mapWithIndex, (!!), snoc, take, (:))
 import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Data.FoldableWithIndex (foldlWithIndexDefault)
@@ -39,7 +39,7 @@ import Data.Map (Map, update, lookup)
 import Data.Map as Map
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String {} Unit } }
+  = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
 
 type Query = {flashcards :: Array Flashcard}
 
@@ -126,7 +126,21 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
   let (a /\ b /\ t) = if not result && threeIncorrect flashcard timesIncorrect
     then flashcardEbisu
     else updateRecall flashcardEbisu result flashcard.hoursPassed
-  responseOrError <- try $ mutate {variables: {input: {flashcardId: flashcard.id, a: a, b: b, t: t, returnedFlashcardIds: toUnfoldable $ difference reviewWithoutCurrent stackWithoutCurrent :: Array String}}}
+  responseOrError <- try $ mutate
+    {
+      variables:
+        {
+         input:
+          {
+            flashcardId: flashcard.id
+          , a: a
+          , b: b
+          , t: t
+          , inStack: toUnfoldable stackWithoutCurrent :: Array String
+          , returnedFlashcardIds: toUnfoldable $ difference reviewWithoutCurrent stackWithoutCurrent :: Array String
+          }
+        }
+    }
   case responseOrError of
       Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
       Right resp -> addCard (fromArray resp.updateFlashcard.flashcards) stackWithoutCurrent
@@ -170,9 +184,18 @@ buildJsx props = React.do
     case (_.flashcards <$> flashcardsResult.state) >>= fromArray of
          Nothing -> mempty
          Just flashcards -> do
-          flashcardsToReview <- nRandom 30 flashcards
-          let flashcardArray = Array.fromFoldable flashcardsToReview
-          let firstThree = spy "FIRST THREE" $ take 3 $ flashcardArray
+          flashcardArray <-
+            case props.route.params.flashcardIds of
+                 Nothing -> do
+                    flashcardsToReview <- nRandom 30 flashcards
+                    pure $ Array.fromFoldable flashcardsToReview
+                 Just ids -> do
+                    let set = spy "SET" $ fromFoldable ids
+                    let newAccum accum flashcard = if member flashcard.id set
+                            then {x: flashcard, y: 0.0} : accum
+                            else accum
+                    pure $ foldl newAccum [] flashcards
+          let firstThree = spy "FIRST THREE" $ take 3 $ spy "ARRAY" flashcardArray
           setIdsNeedingReview \_ -> fromFoldable $ map (\e -> e.x.id) flashcardArray
           setTimesIncorrect \_ -> foldl (\accum e -> Map.insert e.x.id 0 accum) Map.empty flashcardArray
           setIdsInStack \_ -> fromFoldable $ map (\e -> e.x.id) firstThree

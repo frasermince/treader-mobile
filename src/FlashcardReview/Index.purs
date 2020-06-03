@@ -13,6 +13,8 @@ import React.Basic.Native.Events as RNE
 import Data.Array (length)
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Navigation (useFocusEffect)
+import Data.Interpolate (i)
+import Data.Nullable (Nullable, toMaybe, toNullable, null)
 
 mainButtonStyle = M.css
   {
@@ -23,14 +25,18 @@ mainButtonStyle = M.css
   }
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String {} Unit } }
+  = { navigation :: { navigate :: EffectFn2 String {flashcardIds :: Maybe (Array String)} Unit } }
 
-type Query = {flashcards :: Array {id :: String}}
+type Query = {flashcards :: Array {id :: String}, currentUser :: {currentReview :: Nullable (Array Int)}}
 
 query =
   gql
     """
     query getFlashcards {
+      currentUser {
+        id
+        currentReview
+      }
       flashcards {
         id
       }
@@ -43,6 +49,8 @@ reactComponent =
     $ do
         component "ReviewIndex" $ buildJsx
 
+currentReviewMaybe Nothing = Nothing
+currentReviewMaybe (Just d) = Just $ d {currentUser {currentReview = toMaybe d.currentUser.currentReview}}
 
 buildJsx props = React.do
   flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "cache-and-network" }
@@ -50,11 +58,17 @@ buildJsx props = React.do
      flashcardsResult.refetch {}
      pure mempty
 
-  case flashcardsResult.state of
+  case currentReviewMaybe flashcardsResult.state of
        Nothing -> mempty
+       Just {flashcards, currentUser: {currentReview: Just currentReview}} ->
+         pure $ M.getJsx do
+          M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
+              title {style: M.css {marginTop: "20%", marginLeft: "5%", marginRight: "5%", textAlign: "center", flex: 2}} $ M.string $ "Finish the " <> (show $ length currentReview) <> " flashcards in your current review"
+              M.view {style: M.css {flex: 3, alignItems: "center"}} do
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {flashcardIds: Just $ map show currentReview}} $ M.string $ "Complete Review"
        Just d ->
          pure $ M.getJsx do
            M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
             title {style: M.css {marginTop: "10%", textAlign: "center", flex: 2}} $ M.string $ "Start a review of " <> (show $ min 30 (length d.flashcards)) <> " flashcards"
             M.view {style: M.css {flex: 3, alignItems: "center"}} do
-              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {}} $ M.string $ "Start Review"
+              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {flashcardIds: Nothing}} $ M.string $ "Start Review"
