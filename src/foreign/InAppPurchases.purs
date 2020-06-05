@@ -15,7 +15,7 @@ foreign import _getSubscriptions :: Array String -> Effect (Promise (Nullable (A
 foreign import _requestSubscription :: String -> Boolean -> Effect (Promise Unit)
 foreign import _purchaseUpdatedListener :: EffectFn1 (EffectFn1 Purchase Unit) Unit
 foreign import _purchaseErrorListener :: EffectFn1 (EffectFn1 {} Unit) Unit
-foreign import _finishTransactionIOS :: String -> Effect (Promise Unit)
+foreign import _finishTransaction :: Purchase -> Effect (Promise Unit)
 
 getSubscriptions :: Array String -> Aff (Array Product)
 getSubscriptions x = fromMaybe [] <$> toMaybe <$> (liftEffect (_getSubscriptions x) >>= Promise.toAff)
@@ -29,5 +29,5 @@ purchaseUpdatedListener fn = runEffectFn1 _purchaseUpdatedListener $ mkEffectFn1
 purchaseErrorListener :: ({} -> Effect Unit) -> Effect Unit
 purchaseErrorListener fn = runEffectFn1 _purchaseErrorListener $ mkEffectFn1 fn
 
-finishTransactionIOS :: String -> Aff Unit
-finishTransactionIOS x = (liftEffect (_finishTransactionIOS x) >>= Promise.toAff)
+finishTransaction :: Purchase -> Aff Unit
+finishTransaction x = (liftEffect (_finishTransaction x) >>= Promise.toAff)

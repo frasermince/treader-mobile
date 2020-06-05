@@ -10,7 +10,7 @@ import Swiper (swiper)
 import React.Basic.Native.Events as RNE
 import Effect (Effect)
 import Icon (icon)
-import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransactionIOS)
+import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransaction)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Context (dataStateContext, Context)
@@ -23,6 +23,7 @@ import Data.Either (Either(..))
 import ApolloHooks (useMutation, gql, DocumentNode)
 import Data.Nullable (toMaybe, Nullable)
 import Data.String (stripPrefix, Pattern(..))
+import Platform as Platform
 
 type Props = {visible :: Boolean, onDismiss :: Effect Unit}
 
@@ -63,18 +64,24 @@ purchase (Just sku) setError = do
           Right resp -> liftEffect $ (log $ "PURCHASE RESPONSE " <> (show resp))
 
 buildJsx props = React.do
-  mutationFn /\ result <- useMutation mutation {}
+  androidMutationFn /\ r1 <- useMutation mutation {}
+  iosMutationFn /\ r2 <- useMutation mutation {}
   { setLoading, setError } <- useContext dataStateContext
   useEffect unit do
      purchaseErrorListener $ \e -> launchAff_ do
         liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
         if isJust $ toMaybe p.transactionReceipt then do
-            result <- try $ mutationFn $ {variables: {input: {apple_receipt: p.transactionReceipt}}}
+            let iosPayload = {variables: {input: {appleReceipt: p.transactionReceipt} }}
+            let androidPayload = {variables: {input: {androidReceipt: p.transactionReceipt}}}
+            result <- try $ Platform.select {
+                ios: iosMutationFn $ iosPayload,
+                android: androidMutationFn $ androidPayload
+              }
             case result of
                  Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
                  Right r -> do
-                    finishTransactionIOS p.transactionId
+                    finishTransaction p
                     liftEffect $ props.onDismiss
         else mempty
 
