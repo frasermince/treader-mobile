@@ -23,7 +23,7 @@ mainButtonStyle = M.css
   }
 
 type Props
-  = { navigation :: { push :: EffectFn2 String {} Unit } }
+  = { navigation :: { push :: EffectFn2 String {flashcardIds :: Maybe (Array String)} Unit } }
 
 type Query = {flashcards :: Array {id :: String}}
 
@@ -57,4 +57,4 @@ buildJsx props = React.do
            M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
             title {style: M.css {marginTop: "10%", textAlign: "center", flex: 2}} $ M.string $ "Review Complete!"
             M.view {style: M.css {flex: 3, alignItems: "center"}} do
-              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.push "Review" {}} $ M.string $ "Review More"
+              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.push "Review" {flashcardIds: Nothing}} $ M.string $ "Review More"
