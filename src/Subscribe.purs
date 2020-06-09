@@ -96,7 +96,7 @@ buildJsx props = React.do
               swiper {style: M.css {}, horizontal: true, autoplay: true, showButtons: true, loop: true} do
                   M.view {style: slideStyle} do
                      subheading {style: textStyle} $ M.string "Translate Unlimited Words"
-                  M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Upload Your Own Books"
+                  M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Upload Your Own Epub Books"
                   M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Create Unlimited Flashcards"
 
             M.view {style: priceSectionStyle} do
