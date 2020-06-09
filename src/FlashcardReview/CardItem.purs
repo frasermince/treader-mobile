@@ -13,7 +13,7 @@ import Data.Array (head)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (fromMaybe)
 import Effect.Console (log)
-import Image (image)
+import Image (image, contain, cover)
 import Data.Foldable (foldl)
 import Data.Array (length)
 import Data.Int (toNumber)
@@ -49,9 +49,9 @@ containerCardItem = {
 
 imageStyle imageCount = {
   borderRadius: 8,
-  flex: 1,
-  width: ((window.width - (window.width / 2.0)) / imageCount),
-  height: ((window.width - (window.width / 2.0)) / imageCount)
+  height: "100%",
+  marginLeft: if imageCount == 1.0 then "15%" else "4%",
+  marginRight: if imageCount == 1.0 then "15%" else "4%"
 }
 
 nameStyle = {
@@ -83,7 +83,9 @@ descriptionCardItem = {
 
 type Props = {active :: Boolean, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit, isFlipped :: Boolean, translation :: String}
 
-imageJsx imageCount accum imageUrl = accum <> image {style: M.css $ imageStyle $ toNumber imageCount, source: {uri: imageUrl}}
+imageJsx imageCount accum imageUrl = accum <> do
+  M.view {style: M.css {flex: 1}} do
+    image {style: M.css $ imageStyle $ toNumber imageCount, source: {uri: imageUrl}, resizeMode: cover}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -147,7 +149,7 @@ buildJsx props = React.do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
             M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 5}} do
                clozeWord props.sentence props.offset props.word $ M.css descriptionCardItem
-            M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
+            M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
         M.view {style: M.css containerCardItem} do
@@ -159,6 +161,6 @@ buildJsx props = React.do
                  underlineWordMarkup props.sentence props.offset props.word (M.css descriptionCardItem) "normal" 20
             M.view {style: M.css {flex: 3}} do
               fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ launchAff_ $ traverse_ stopAndPlay sound}
-            M.view {style: M.css {flexDirection: "column", flex: 1, width: window.width - 60.0, justifyContent: "flex-end"}} do
+            M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
