@@ -60,14 +60,14 @@ query =
     }
 """
 
-buttonComponent :: ((Boolean -> Boolean) -> Effect Unit) -> ReactComponent {}
-buttonComponent setDialogVisible = unsafePerformEffect
+buttonComponent :: (String -> {} -> Effect Unit) -> ReactComponent {}
+buttonComponent navigate = unsafePerformEffect
     $ do
-        (component "CloseButton") $ buttonJsx setDialogVisible
+        (component "CloseButton") $ buttonJsx navigate
 
-buttonJsx setDialogVisible props = React.do
+buttonJsx navigate props = React.do
   pure $ M.getJsx do
-    button {onPress: RNE.capture_ $ setDialogVisible \_ -> true, style: M.css {position: "absolute", left: 1, marginTop: 21}} $ M.string "Close"
+    button {onPress: RNE.capture_ $ navigate "WordList" {}, style: M.css {position: "absolute", left: 1, marginTop: 21}} $ M.string "Close"
 
 translateIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
 
@@ -91,18 +91,10 @@ buildJsx props = React.do
 
   dialogVisible /\ setDialogVisible <- useState false
   useLayoutEffect unit do
-     runEffectFn1 props.navigation.setOptions {headerLeft: buttonComponent setDialogVisible }
+     runEffectFn1 props.navigation.setOptions {headerLeft: buttonComponent navigate }
      pure mempty
   result <- useData (Proxy :: Proxy Query) query { variables: { sentenceId: params.sentenceId }, errorPolicy: "all", fetchPolicy: "cache-and-network" }
   pure $ M.getJsx do
-    portal {} $ dialog {visible: dialogVisible, onDismiss: setDialogVisible \_ -> false} do
-       dialogTitle {} $ M.string "Confirm"
-       dialogContent {style: M.css {height: 240}} do
-          M.text {} $ M.string "Are you sure you want to close the word selection?"
-       dialogActions {} do
-          button {onPress: RNE.capture_ $ setDialogVisible \_ -> false} $ M.string "Cancel"
-          button {onPress: RNE.capture_ $ navigate "WordList" {}} $ M.string "Confirm"
-
     case spy "RESULT" result.state of
         Nothing -> mempty
         Just {sentence: { flashcardExistence: {with, without}, text, translation, audioUrl}} ->
