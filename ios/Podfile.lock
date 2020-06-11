@@ -1,4 +1,5 @@
 PODS:
+  - Analytics (3.9.0)
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
   - epubjs-rn (0.1.5):
@@ -122,7 +123,7 @@ PODS:
     - nanopb/encode (= 0.3.9011)
   - nanopb/decode (0.3.9011)
   - nanopb/encode (0.3.9011)
-  - PromisesObjC (1.2.8)
+  - PromisesObjC (1.2.9)
   - Protobuf (3.12.0)
   - RCTRequired (0.61.2)
   - RCTTypeSafety (0.61.2):
@@ -338,6 +339,9 @@ PODS:
     - ReactCommon/jscallinvoker (= 0.61.2)
   - rn-fetch-blob (0.11.2):
     - React-Core
+  - RNAnalytics (1.1.1-beta.6):
+    - Analytics (= 3.9.0)
+    - React
   - RNCAsyncStorage (1.6.2):
     - React
   - RNCMaskedView (0.1.6):
@@ -392,9 +396,9 @@ PODS:
   - SDWebImageWebPCoder (0.4.1):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.5)
-  - Sentry (5.1.0):
-    - Sentry/Core (= 5.1.0)
-  - Sentry/Core (5.1.0)
+  - Sentry (5.1.4):
+    - Sentry/Core (= 5.1.4)
+  - Sentry/Core (5.1.4)
   - SSZipArchive (2.2.2)
   - TextToSpeech (2.0.0):
     - React
@@ -438,6 +442,7 @@ DEPENDENCIES:
   - ReactCommon/jscallinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFastImage (from `../node_modules/react-native-fast-image`)
@@ -458,6 +463,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - Analytics
     - boost-for-react-native
     - Firebase
     - FirebaseAnalytics
@@ -548,6 +554,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
+  RNAnalytics:
+    :path: "../node_modules/@segment/analytics-react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
   RNCMaskedView:
@@ -584,6 +592,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  Analytics: 67cce2129e4b0df5b532bf0c043043f292b32f5f
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
   epubjs-rn: d93c46d41f0004901858f6488a869654727b02e8
@@ -606,7 +615,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 39530bc0ad980530298e9c4af8549e991fd033b1
   libwebp: 946cb3063cea9236285f7e9a8505d806d30e07f3
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
-  PromisesObjC: c119f3cd559f50b7ae681fa59dc1acd19173b7e6
+  PromisesObjC: b48e0338dbbac2207e611750777895f7a5811b75
   Protobuf: 2793fcd0622a00b546c60e7cbbcc493e043e9bb9
   RCTRequired: c639d59ed389cfb1f1203f65c2ea946d8ec586e2
   RCTTypeSafety: dc23fb655d6c77667c78e327bf661bc11e3b8aec
@@ -635,6 +644,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: fb54c732fd20405a76598e431aa2f8c2bf527de9
   ReactCommon: 5848032ed2f274fcb40f6b9ec24067787c42d479
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
+  RNAnalytics: 0176cbd15962b36479c9ab76a2c613be9a34528c
   RNCAsyncStorage: 60a80e72d95bf02a01cace55d3697d9724f0d77f
   RNCMaskedView: a88953beefbd347a29072d9eba90e42945fe291e
   RNFastImage: 35ae972d6727c84ee3f5c6897e07f84d0a3445e9
@@ -652,7 +662,7 @@ SPEC CHECKSUMS:
   RNZipArchive: be636657a6630e9771d4a3223dc8fd0bd0137b55
   SDWebImage: 84000f962cbfa70c07f19d2234cbfcf5d779b5dc
   SDWebImageWebPCoder: 36f8f47bd9879a8aea6044765c1351120fd8e3a8
-  Sentry: 01008d590825eb1c02a796cbdced2cd3625f61e4
+  Sentry: 74f2ad93a20a5567a1badaedf5b3f60b142ad082
   SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
   TextToSpeech: 4e2fc50c7495416c6da5a1662ad3f750c58d3c85
   Yoga: 14927e37bd25376d216b150ab2a561773d57911f

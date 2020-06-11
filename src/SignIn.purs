@@ -24,6 +24,7 @@ import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
 import Linking (openUrl)
+import Segment (identify)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit } }
@@ -35,6 +36,8 @@ mutation =
 mutation loginMutation($input: LoginInput!) {
   login(input: $input) {
     session {token}
+    id
+    email
   }
 }
   """
@@ -77,6 +80,7 @@ buildJsx props = React.do
           Right resp -> do
             let
               session = "Bearer " <> resp.login.session.token
+            liftEffect $ identify (spy "RESP" resp).login.id {email: resp.login.email}
             liftEffect $ traverse_ _.resetStore client
             setItem "treader-session" session
         --    liftEffect $ runEffectFn1 props.navigation.navigate "App"

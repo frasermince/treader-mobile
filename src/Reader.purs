@@ -44,7 +44,7 @@ import Data.Time.Duration (fromDuration)
 import Effect.Now (nowDateTime)
 import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..))
-
+import Segment (track, screen)
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
 type VisibleLocation
@@ -304,6 +304,7 @@ useRenditionData showBars setShowBars visibleLocation bookId addToPages setError
       Right r -> do
         liftEffect $ setShowBars \_ -> false
         liftEffect $ setTranslation \_ -> Just {text: r.translateWithContext.translation, isPermitted: r.translateWithContext.is_permitted}
+        liftEffect $ track "Select Word" {bookId: payload.variables.input.bookId}
 
   mutateAndChangeState _ _ _ setTranslation _ = do
     liftEffect $ setTranslation \_ -> Nothing
@@ -423,6 +424,7 @@ buildJsx props = React.do
 
   useEffect unit
     $ do
+        screen "Book" {bookSlug: props.slug}
         launchAff_ do
           { verb, noun, adjective } <- getPosStates
           liftEffect $ setHighlightVerbs \_ -> verb

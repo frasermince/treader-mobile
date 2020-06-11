@@ -11,6 +11,7 @@ import { Button, Snackbar, DefaultTheme } from 'react-native-paper';
 import Config from "react-native-config"
 import StoryBook from './storybook';
 import { ActivityIndicator, Colors } from 'react-native-paper';
+import analytics from '@segment/analytics-react-native'
 
 import * as Sentry from '@sentry/react-native';
 
@@ -52,6 +53,12 @@ export default App = () => {
       async function awaitClient() {
         const c = await apolloClient();
         setClient(c);
+        await analytics.setup(Config.SEGMENT_WRITE_KEY, {
+          // Record screen views automatically!
+          recordScreenViews: true,
+          // Record certain application events automatically!
+          trackAppLifecycleEvents: true
+        })
       }
       awaitClient();
     }, []);

@@ -24,6 +24,7 @@
     "@react-navigation/material-bottom-tabs": "^5.0.7",
     "@react-navigation/native": "^5.0.0",
     "@react-navigation/stack": "^5.0.9",
+    "@segment/analytics-react-native": "^1.1.1-beta.6",
     "@sentry/react-native": "^1.4.1",
     "apollo-absinthe-upload-link": "^1.5.0",
     "apollo-boost": "^0.4.4",

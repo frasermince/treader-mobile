@@ -56,6 +56,7 @@ import Blur (blurView)
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
 import Data.Nullable (null)
+import Segment (track)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -218,7 +219,9 @@ saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath s
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
     Right resp -> case resp.createFlashcardWithSentence.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
-                       true -> liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
+                       true -> do
+                          liftEffect $ track "Flashcard Created" {}
+                          liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
 saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading setShouldBlur _ = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
@@ -228,7 +231,9 @@ saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ se
     Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
     Right resp -> case resp.createFlashcard.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
-                       true -> liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
+                       true -> do
+                          liftEffect $ track "Flashcard Created" {}
+                          liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
 
 
 searchFromDialog setShowSearch setSelected search refetch setError language = do

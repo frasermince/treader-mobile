@@ -37,6 +37,7 @@ import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert,
 import Navigation (useFocusEffect)
 import Data.Map (Map, update, lookup)
 import Data.Map as Map
+import Segment (track, screen)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
@@ -154,7 +155,9 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
           traverse_ (\n -> liftEffect $ setCardList \cards -> snoc cards n) newCard
         addCard Nothing stack
           | isEmpty stack = do
-              _ <- incrementSessionsMutation {}
+              _ <- do
+                 liftEffect $ track "Completed Session" {}
+                 incrementSessionsMutation {}
               liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
 
@@ -180,6 +183,9 @@ buildJsx props = React.do
         result <- readRefMaybe swipeRef
         traverse_ (\s -> s.swipeRight) result
 
+  useEffect unit do
+     screen "Flashcard Review" {}
+     pure mempty
   useEffect (isJust flashcardsResult.state) $ do
     case (_.flashcards <$> flashcardsResult.state) >>= fromArray of
          Nothing -> mempty

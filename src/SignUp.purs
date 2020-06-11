@@ -23,11 +23,14 @@ import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
 import QueryHooks (useData, UseData, stripGraphqlError)
+import Segment (identify)
 
 mutation :: DocumentNode
 mutation = gql """
 mutation userMutation($input: UserInput!) {
   user(input: $input) {
+    id
+    email
     session {token}
   }
 }
@@ -76,6 +79,7 @@ buildJsx props = React.do
           Right resp -> do
             let
               session = "Bearer " <> resp.user.session.token
+            liftEffect $ identify resp.user.id {email: resp.user.email}
             liftEffect $ traverse_ _.resetStore client
             setItem "treader-session" session
         --    liftEffect $ runEffectFn1 props.navigation.navigate "App"
