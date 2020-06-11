@@ -103,13 +103,12 @@ buildJsx props = React.do
 
             M.view {style: priceSectionStyle} do
               subheading {} $ M.string "Upgrade to Premium for"
-              subheading {style: M.css {marginTop: "8%"}} $ M.string "30 days free and then"
               M.text {style: priceStyle} $ M.string "$11.99/mo"
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "START FREE TRIAL"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "SUBSCRIBE"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
-              M.text {style: M.css {color: "white"}} $ M.string "By tapping the start free trial subscription button you are enrolling in automatic payments of the listed amount, beginning at the end of your free trial that will continue until you cancel."
+              M.text {style: M.css {color: "white"}} $ M.string "By tapping the subscribe button you are enrolling in automatic payments of the listed amount that will continue until you cancel."
 
 benefitsSectionStyle = M.css
   {
@@ -181,7 +180,7 @@ bottomStyle = M.css
 
 priceStyle = M.css
   {
-    marginTop: 10,
+    marginTop: "10%",
     fontWeight: "700",
     fontSize: 28
   }
