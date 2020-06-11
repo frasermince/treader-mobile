@@ -24,6 +24,7 @@ import ApolloHooks (useMutation, gql, DocumentNode)
 import Data.Nullable (toMaybe, Nullable)
 import Data.String (stripPrefix, Pattern(..))
 import Platform as Platform
+import Segment (track, screen)
 
 type Props = {visible :: Boolean, onDismiss :: Effect Unit}
 
@@ -81,6 +82,7 @@ buildJsx props = React.do
             case result of
                  Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
                  Right r -> do
+                    _ <- track "Subscribe" {productId: "io.unchart.sub", quantity: 1, price: 11.99, revenueType: "income"}
                     finishTransaction p
                     liftEffect $ props.onDismiss
         else mempty
