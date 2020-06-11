@@ -14,7 +14,7 @@ import Debug.Trace
 import AsyncStorage (setItem)
 import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
-import Effect.Aff (Aff, launchAff_, try)
+import Effect.Aff (Aff, launchAff_, try, forkAff)
 import Data.Either (Either(..))
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Data.Traversable (traverse_)
@@ -23,7 +23,7 @@ import Data.String (stripPrefix, Pattern(..))
 import Data.Maybe (fromMaybe)
 import Keyboard (dismiss)
 import QueryHooks (useData, UseData, stripGraphqlError)
-import Segment (identify)
+import Segment (identify, track)
 
 mutation :: DocumentNode
 mutation = gql """
@@ -79,7 +79,8 @@ buildJsx props = React.do
           Right resp -> do
             let
               session = "Bearer " <> resp.user.session.token
-            liftEffect $ identify resp.user.id {email: resp.user.email}
+            _ <- identify resp.user.id {email: resp.user.email}
+            _ <- track "Account Created" {email: resp.user.email}
             liftEffect $ traverse_ _.resetStore client
             setItem "treader-session" session
         --    liftEffect $ runEffectFn1 props.navigation.navigate "App"

@@ -80,7 +80,7 @@ buildJsx props = React.do
           Right resp -> do
             let
               session = "Bearer " <> resp.login.session.token
-            liftEffect $ identify (spy "RESP" resp).login.id {email: resp.login.email}
+            _ <- identify resp.login.id {email: resp.login.email}
             liftEffect $ traverse_ _.resetStore client
             setItem "treader-session" session
         --    liftEffect $ runEffectFn1 props.navigation.navigate "App"

@@ -220,7 +220,7 @@ saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath s
     Right resp -> case resp.createFlashcardWithSentence.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
                        true -> do
-                          liftEffect $ track "Flashcard Created" {}
+                          _ <- track "Flashcard Created" {}
                           liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
 saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading setShouldBlur _ = launchAff_ do
@@ -232,7 +232,7 @@ saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ se
     Right resp -> case resp.createFlashcard.isPermitted of
                        false -> liftEffect $ setShouldBlur \_ -> true
                        true -> do
-                          liftEffect $ track "Flashcard Created" {}
+                          _ <- track "Flashcard Created" {}
                           liftEffect $ redirect resp.createFlashcard.flashcard.sentenceId
 
 

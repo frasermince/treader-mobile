@@ -156,7 +156,7 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
         addCard Nothing stack
           | isEmpty stack = do
               _ <- do
-                 liftEffect $ track "Completed Session" {}
+                 _ <- track "Completed Session" {}
                  incrementSessionsMutation {}
               liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
@@ -184,7 +184,8 @@ buildJsx props = React.do
         traverse_ (\s -> s.swipeRight) result
 
   useEffect unit do
-     screen "Flashcard Review" {}
+     launchAff_ $ do
+        screen "Flashcard Review" {}
      pure mempty
   useEffect (isJust flashcardsResult.state) $ do
     case (_.flashcards <$> flashcardsResult.state) >>= fromArray of

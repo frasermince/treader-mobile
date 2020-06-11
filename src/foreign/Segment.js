@@ -1,6 +1,6 @@
 var analytics = require('@segment/analytics-react-native');
 
-exports.identify = function(email){
+exports._identify = function(email){
   return function(data) {
     return function() {
       analytics.default.identify(email, data);
@@ -8,7 +8,7 @@ exports.identify = function(email){
   }
 }
 
-exports.track = function(event){
+exports._track = function(event){
   return function(data) {
     return function() {
       analytics.default.track(event, data);
@@ -16,7 +16,7 @@ exports.track = function(event){
   }
 }
 
-exports.screen = function(screen){
+exports._screen = function(screen){
   return function(data) {
     return function() {
       analytics.default.screen(screen, data);

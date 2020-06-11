@@ -302,9 +302,9 @@ useRenditionData showBars setShowBars visibleLocation bookId addToPages setError
     case result of
       Left err -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message err
       Right r -> do
+        _ <- track "Select Word" {bookId: payload.variables.input.bookId}
         liftEffect $ setShowBars \_ -> false
         liftEffect $ setTranslation \_ -> Just {text: r.translateWithContext.translation, isPermitted: r.translateWithContext.is_permitted}
-        liftEffect $ track "Select Word" {bookId: payload.variables.input.bookId}
 
   mutateAndChangeState _ _ _ setTranslation _ = do
     liftEffect $ setTranslation \_ -> Nothing
@@ -424,8 +424,8 @@ buildJsx props = React.do
 
   useEffect unit
     $ do
-        screen "Book" {bookSlug: props.slug}
         launchAff_ do
+          _ <- screen "Book" {bookSlug: props.slug}
           { verb, noun, adjective } <- getPosStates
           liftEffect $ setHighlightVerbs \_ -> verb
           liftEffect $ setHighlightNouns \_ -> noun
