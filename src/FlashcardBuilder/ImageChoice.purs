@@ -51,12 +51,15 @@ import Data.Argonaut.Decode (decodeJson)
 import Data.Either (Either(..))
 import Foreign.Object (lookup) as Object
 import FetchBlob (fetch)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\), useLayoutEffect)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Blur (blurView)
 import QueryHooks (useData, UseData)
 import Type.Proxy (Proxy(..))
 import Data.Nullable (null)
 import Segment (track)
+import Debug.Trace (spy)
+import WiktionaryModal as WiktionaryModal
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -82,7 +85,26 @@ data Payload = NewSentencePayload
   , sentenceText :: String
   }}}
 
-type Props = {route :: {params :: {selection :: Selection, range :: String, wordTranslation :: String, rangeTranslation :: String, rangeOffset :: Int, word :: String, existingSentence :: Boolean, audio :: Maybe String}}, navigation :: {push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit } }
+type Props = {
+  route :: 
+    {
+      params :: 
+        {
+          selection :: Selection,
+          range :: String,
+          wordTranslation :: String,
+          rangeTranslation :: String,
+          rangeOffset :: Int,
+          word :: String,
+          existingSentence :: Boolean, audio :: Maybe String
+        }
+    }, 
+        navigation :: {
+          push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit,
+          navigate :: EffectFn2 String {word :: String} Unit,
+          setOptions :: EffectFn1 {headerRight :: ReactComponent {}} Unit
+        } 
+    }
 
 blurTextStyle = {
   position: "absolute",
@@ -307,13 +329,14 @@ unpermittedBlur setModalVisible =
   where blurPress = RNE.capture_ do
           setModalVisible \_ -> true
 
-
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   mutateWithSentence /\ d1 <- useMutation withSentenceMutation { errorPolicy: "all" }
   mutate /\ d2 <- useMutation flashcardMutation { errorPolicy: "all" }
   getAudio /\ d3 <- useMutation audioMutation { errorPolicy: "all" }
   let params = props.route.params
+  let navigate = runEffectFn2 props.navigation.navigate
+
   let selection = params.selection
   imagesResult <- useData (Proxy :: Proxy Query) imageQuery {variables: {keyword: params.word, start: 0, num: 8, language: "lang_" <> selection.book.language}, fetchPolicy: "cache-and-network"}
   let images result = fromMaybe [] do
@@ -321,12 +344,14 @@ buildJsx props = React.do
         pure $ i.imageSearch
   shouldBlur /\ setShouldBlur <- useState false
   modalVisible /\ setModalVisible <- useState false
+  showDefinition /\ setShowDefinition <- useState false
   selected /\ setSelected <- useState $ replicate 8 false
   search /\ setSearch <- useState params.word
   showSearch /\ setShowSearch <- useState false
   showTranslation /\ setShowTranslation <- useState false
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
+
   let setAudioInformation :: String -> Aff Sound
       setAudioInformation path = do
         s <- createSound path
@@ -349,6 +374,7 @@ buildJsx props = React.do
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected $ images imagesResult) params.word params.existingSentence
   pure $ M.getJsx do
     portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
+    portal {} $ M.childElement WiktionaryModal.reactComponent {word: params.word, visible: showDefinition, onDismiss: setShowDefinition \_ -> false, language: selection.book.language}
     portal {} do
       keyboardAwareDialog {visible: showSearch, onDismiss: setShowSearch \_ -> false} do
         dialogTitle {} $ M.string "Search Google For Images"
@@ -361,8 +387,12 @@ buildJsx props = React.do
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
          M.view {style: M.css {flex: 2, justifyContent: "flex-end", marginLeft: 15}} do
-           headline {} $ M.string params.word
-           M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
+            M.view {style: M.css {flexDirection: "row"}} do
+              M.view {style: M.css {flex: 1}} do
+                headline {} $ M.string params.word
+                M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
+              M.view {style: M.css {flex: 1}} do
+                button {style: M.css {marginTop: 15, marginLeft: 35}, onPress: RNE.capture_ $ setShowDefinition \_ -> true} $ M.string "Get Definition"
          M.view {style: M.css {flex: 6}} do
            M.view {style: M.css {flex: 1}} do
             divider {style: M.css {height: 1, width: "100%"}}
