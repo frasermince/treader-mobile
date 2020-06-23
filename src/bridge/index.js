@@ -46,6 +46,7 @@ import tokenizer from 'sbd';
 
   function ltrim(str) {
     if(!str) return str;
+    str = str.replace(/(\r\n|\n|\r)/gm, "");
     return str.replace(/^\s+/g, '');
   }
 
@@ -56,7 +57,8 @@ import tokenizer from 'sbd';
     let phraseOffset = 0;
     paragraphRange.setStart(range.startContainer.parentElement, 0);
     paragraphRange.setEnd(range.startContainer, 0);
-    let sentences = tokenizer.sentences(range.commonAncestorContainer.parentElement.textContent.trim(), {"sanitize": true});
+    let paragraphText = range.commonAncestorContainer.parentElement.textContent.trim().replace(/(\r\n|\n|\r)/gm, "");
+    let sentences = tokenizer.sentences(paragraphText, {"sanitize": true});
     let sentenceCharacters = ltrim(paragraphRange.toString()).length;
     let characterIteration = 0;
     let sentence = sentences.find((sentence) => {
@@ -86,10 +88,11 @@ import tokenizer from 'sbd';
     let surrounding = multiRange.toString()
     let sentenceWhitespaceLength = sentence.length - ltrim(sentence).length
     let phraseWhitespaceLength = phrase.length - ltrim(phrase).length
-    sentence = sentence.trim();
-    phrase = phrase.trim();
+    sentence = sentence.trim().replace(/(\r\n|\n|\r)/gm, "");
+    phrase = phrase.trim().replace(/(\r\n|\n|\r)/gm, "");
     sentenceOffset -= sentenceWhitespaceLength;
     phraseOffset -= phraseWhitespaceLength;
+    debugger
     return {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength};
   }
 
