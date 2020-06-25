@@ -7,11 +7,11 @@ import React.Basic.Native as RN
 import React.Basic.Native.Events as RNE
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\))
 import Markup as M
-import Paper (textInput, surface, button, listSection, listItem, listIcon, divider, title)
+import Paper (textInput, surface, button, listSection, listItem, listIcon, divider, title, portal, dialog, dialogTitle, dialogContent, dialogActions)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import Record.Unsafe.Union (unsafeUnion)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Array (findIndex, (!!))
+import Data.Array (findIndex, (!!), find)
 import ApolloHooks (useMutation, gql)
 import Type.Proxy (Proxy(..))
 import Navigation (useFocusEffect)
@@ -24,17 +24,21 @@ type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
-  = { currentUser :: {dailyReviewedSessions :: Int, flashcardCount :: Int, currentStreak :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}} }
+  = { currentUser :: {dailyReviewedSessions :: Int, flashcardCountPerLanguage :: Array {count :: Int, language :: String}, currentStreak :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}, language :: String} }
 query =
   gql
     """
 query getUser {
   currentUser {
+    language
     id
     dailyReviewedSessions
     dailyCreatedCards
     dailyReadPages
-    flashcardCount
+    flashcardCountPerLanguage {
+      count
+      language
+    }
     currentStreak
     dailyGoal {
       created
@@ -78,12 +82,28 @@ nextLevelInfo flashcardCount = fromMaybe {wordsUntil: 0, nextLevelName: "A0"} do
 nextLevelIndex flashcardCount = findIndex moreThanCreated levels
   where moreThanCreated elem = elem.wordsNeeded > flashcardCount
 
+selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
+  where select = do
+          setLanguage \_ -> value
+          dismiss
+
+
 buildJsx props = React.do
   let redirectBook = runEffectFn2 props.navigation.navigate "Read" {}
   let redirectCreate = runEffectFn2 props.navigation.navigate "Create" {}
   let redirectReview = runEffectFn2 props.navigation.navigate "Review" {}
   let ratioDone numerator denominator = numerator <> "/" <> denominator
+  languageModalVisible /\ setLanguageModalVisible <- useState false
+  language /\ setLanguage <- useState (Nothing :: Maybe String)
   user <- useData (Proxy :: Proxy Query) query {fetchPolicy: "cache-and-network"}
+  let dismiss = setLanguageModalVisible \_ -> false
+
+  useEffect user.state do
+     setLanguage \_ -> do
+        q <- user.state
+        pure $ q.currentUser.language
+     pure mempty
+
   useEffect unit do
     launchAff_ requestPermission
     pure mempty
@@ -96,11 +116,27 @@ buildJsx props = React.do
     Nothing -> mempty
     Just u ->
       pure $ M.getJsx do
-         surface { style: M.css { flex: 1 } } do
-           M.safeAreaView { style: M.css { flex: 1 } } do
+          portal {} $ dialog {visible: languageModalVisible, onDismiss: setLanguageModalVisible \_ -> false} do
+            dialogTitle {} $ M.string "Choose Language"
+            dialogContent {style: M.css {height: 240}} do
+                selectableItem language setLanguage (Just "fr") "French" dismiss
+                selectableItem language setLanguage (Just "es") "Spanish" dismiss
+                selectableItem language setLanguage (Just "it") "Italian" dismiss
+                selectableItem language setLanguage (Just "de") "German" dismiss
+            dialogActions {} do
+                button {onPress: RNE.capture_ $ dismiss} $ M.string "Cancel"
+
+          surface { style: M.css { flex: 1 } } do
+            M.safeAreaView { style: M.css { flex: 1 } } do
               M.view {style: M.css { flex: 1, flexDirection: "row", paddingTop: 20 }} do
-                let nextLevel = nextLevelInfo u.currentUser.flashcardCount
-                topMetric "Level" $ currentLevelName u.currentUser.flashcardCount
+                let findLanguage :: {language :: String, count :: Int} -> Boolean
+                    findLanguage e = e.language == fromMaybe "" language
+                let languageCount = fromMaybe 0 do
+                      l <- find findLanguage u.currentUser.flashcardCountPerLanguage
+                      pure l.count
+                let nextLevel = nextLevelInfo languageCount
+                button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {flex: 1}} $ M.string $ fromMaybe "Language" $ language
+                topMetric "Level" $ currentLevelName languageCount
                 topMetric (i "Words Until " nextLevel.nextLevelName) (show nextLevel.wordsUntil)
                 topMetric "Streak" $ i u.currentUser.currentStreak " days"
 

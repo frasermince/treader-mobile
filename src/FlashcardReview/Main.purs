@@ -118,7 +118,7 @@ imageBackgroundStyles = {
 handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
 
 handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
-  let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else idsNeedingReview
+  let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else spy "FIRST" idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
   liftEffect $ setIdsInStack \_ -> stackWithoutCurrent
@@ -144,7 +144,7 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
     }
   case responseOrError of
       Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-      Right resp -> addCard (fromArray resp.updateFlashcard.flashcards) stackWithoutCurrent
+      Right resp -> addCard (fromArray (spy "RESP" resp).updateFlashcard.flashcards) stackWithoutCurrent
   where incrementIncorrect flashcard incorrectMap = update (\value -> Just $ value + 1) flashcard.id incorrectMap
         threeIncorrect flashcard timesIncorrect = fromMaybe false do
           incorrectForFlashcard <- lookup flashcard.id timesIncorrect
@@ -155,9 +155,8 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
           traverse_ (\n -> liftEffect $ setCardList \cards -> snoc cards n) newCard
         addCard Nothing stack
           | isEmpty stack = do
-              _ <- do
-                 _ <- track "Completed Session" {}
-                 incrementSessionsMutation {}
+              _ <- track "Completed Session" {}
+              _ <- incrementSessionsMutation {}
               liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
 
@@ -216,7 +215,7 @@ buildJsx props = React.do
       cardsMarkup [] Nothing = mempty
       cardsMarkup cards state = whiteImageBackground {style: M.css imageBackgroundStyles} do
           M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-            cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! i) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! i) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
+            cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-        cardsMarkup cardList flashcardsResult.state
+        cardsMarkup (spy "LIST" cardList) flashcardsResult.state
