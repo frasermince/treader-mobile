@@ -48,7 +48,7 @@ dismiss mutationFn = launchAff_ $ mutationFn {variables: {input: {showPayment: f
 
 isCurrentVersion d = fromMaybe false $ do
   v <- toMaybe d.currentUser.iosVersion
-  pure $ v == "1.4.4"
+  pure $ v >= "1.4.6"
 
 reactComponent :: ReactComponent Props
 reactComponent =

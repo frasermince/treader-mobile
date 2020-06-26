@@ -392,7 +392,7 @@ buildJsx props = React.do
                 headline {} $ M.string params.word
                 M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
               M.view {style: M.css {flex: 1}} do
-                button {style: M.css {marginTop: 15, marginLeft: 35}, onPress: RNE.capture_ $ setShowDefinition \_ -> true} $ M.string "Get Definition"
+                button {style: M.css {marginTop: 15, marginLeft: 10}, onPress: RNE.capture_ $ setShowDefinition \_ -> true} $ M.string "Get Definition"
          M.view {style: M.css {flex: 6}} do
            M.view {style: M.css {flex: 1}} do
             divider {style: M.css {height: 1, width: "100%"}}

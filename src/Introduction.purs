@@ -12,7 +12,7 @@ import Data.Traversable (traverse_)
 import Effect.Unsafe (unsafePerformEffect)
 import Effect (Effect)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
-import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, mkEffectFn2)
 import ApolloHooks (useMutation, gql, DocumentNode)
 import Record.Unsafe.Union (unsafeUnion)
 import Effect.Aff (Aff, launchAff_, try)
@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), isNothing, fromMaybe)
 import Data.Array ((!!))
 import FirebaseMessaging (requestPermission)
 import CefrLevels (levels)
+import TranslateLanguages (languages)
 
 type Props = {}
 
@@ -33,6 +34,8 @@ mutation createGoals($input: CreateGoalsInput!) {
     user {
       id
       iosVersion
+      nativeLanguage
+      startingLevel
     }
   }
 }
@@ -51,8 +54,8 @@ radio (Just selected) choice p
 
 neededWordsIcon number p = M.getJsx $ M.text {style: M.css {marginTop: 12}} $ M.string $ "~" <> show number <> " words"
 
-daysToGoal created Nothing p = mempty
-daysToGoal created (Just level) p = M.getJsx $ M.text {style: M.css {marginTop: 12}} $ M.string $ show (level.wordsNeeded / created) <> " days\n Until " <> level.name
+daysToGoal created (Just level) (Just levelCurrent) p = M.getJsx $ M.text {style: M.css {marginTop: 12}} $ M.string $ (show $ (level.wordsNeeded - levelCurrent.wordsNeeded) / created) <> " days\n Until " <> level.name
+daysToGoal _ _ _ p = mempty
 
 previous ref = do
   result <- readRefMaybe ref
@@ -62,10 +65,10 @@ next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
 
-proceed mutationFn (Just dailyGoalId) (Just levelGoal) (Just language) = launchAff_ do
+proceed mutationFn (Just dailyGoalId) (Just levelGoal) (Just language) (Just currentLevel) (Just nativeLanguageSelection) = launchAff_ do
   requestPermission
-  mutationFn {variables: {input: {iosVersion: "1.4.4", dailyGoalId, levelGoal, language: language}}}
-proceed mutationFn _ _ _ = mempty
+  mutationFn {variables: {input: {iosVersion: "1.4.6", dailyGoalId, levelGoal, language: language, startingLevel: currentLevel, nativeLanguage: nativeLanguageSelection}}}
+proceed mutationFn _ _ _ _ _ = mempty
 
 slide buttonText onPress textComponent = do
   textComponent
@@ -99,8 +102,8 @@ goalChoice choice selection setSelection = do
           | isSelected = level.description
           | otherwise = ""
 
-dailyCommitmentChoice :: Int -> Int -> Int -> Int -> Int -> Maybe Int -> Maybe Int -> ((Maybe Int -> Maybe Int) -> Effect Unit) -> M.Markup Unit
-dailyCommitmentChoice minutes pages created sessions choice selection goalSelected setSelection = do
+dailyCommitmentChoice :: Int -> Int -> Int -> Int -> Int -> Maybe Int -> Maybe Int -> ((Maybe Int -> Maybe Int) -> Effect Unit) -> Maybe Int -> M.Markup Unit
+dailyCommitmentChoice minutes pages created sessions choice selection goalSelected setSelection currentLevel = do
   M.view {style: M.css {alignItems: "center", width: "100%"}} do
     divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
     listItem {
@@ -110,15 +113,19 @@ dailyCommitmentChoice minutes pages created sessions choice selection goalSelect
       description: description,
       onPress: RNE.capture_ $ setSelection \_ -> Just choice,
       left: radio selection choice,
-      right: daysToGoal created levelSelected
+      right: daysToGoal created levelSelected wordsForCurrent
     }
     where description :: String
           description = i "Read " pages " pages a day \nCreate " created " flashcards\nComplete " sessions " review sessions"
           title = M.getJsx $ M.text {style: M.css {fontWeight: "bold"}} $ M.string $ i "~" minutes " minutes a day"
+          wordsForCurrent = do
+             g <- currentLevel
+             levels !! g
           levelSelected = do
              g <- goalSelected
              levels !! g
 
+flatListLanguageChoice value setSelection i = pure $ M.getJsx $ languageChoice value i.item.code i.item.name setSelection
 languageChoice :: Maybe String -> String -> String -> ((Maybe String -> Maybe String) -> Effect Unit) -> M.Markup Unit
 languageChoice value choice label setSelection = do
   M.view {style: M.css {alignItems: "center", width: "100%"}} do
@@ -134,7 +141,9 @@ buildJsx props = React.do
   mutationFn /\ result <- useMutation mutation {}
   dailySelection /\ setDailySelection <- useState (Nothing :: Maybe Int)
   goalSelection /\ setGoalSelection <- useState (Nothing :: Maybe Int)
+  currentLevel /\ setCurrentLevel <- useState (Nothing :: Maybe Int)
   languageSelection /\ setLanguageSelection <- useState (Nothing :: Maybe String)
+  nativeLanguageSelection /\ setNativeLanguageSelection <- useState (Nothing :: Maybe String)
   ref <- useRef null
   pure $ M.getJsx $ M.view {style: surfaceStyle} do
     swiper {style: M.css {height: "100%"}, horizontal: true, showButtons: true, loop: false, ref: ref} do
@@ -154,6 +163,23 @@ buildJsx props = React.do
           M.view {style: M.css {flex: 8}} do
             M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
               M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Native Language"
+                subheading {style: textStyle} $ M.string "This will be the language we provide translations to."
+              M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
+                M.flatList {
+                  data: languages,
+                  renderItem: mkEffectFn1 $ flatListLanguageChoice nativeLanguageSelection setNativeLanguageSelection,
+                  style: M.css {flex: 1, width: "100%"},
+                  keyExtractor: mkEffectFn2 \i n -> pure i.code
+                }
+              M.view {style: M.css {flex: 1, alignItems: "center", marginBottom: 50, marginTop: 30}} do
+                button { disabled: isNothing nativeLanguageSelection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
+
+
+      M.view {style: slideStyle} do
+          M.view {style: M.css {flex: 8}} do
+            M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
+              M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
                 title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Language"
                 subheading {style: textStyle} $ M.string "Choose the language you want to learn."
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
@@ -164,6 +190,24 @@ buildJsx props = React.do
                 divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center"}} do
             button { disabled: isNothing languageSelection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
+
+      M.view {style: slideStyle} do
+          M.view {style: M.css {flex: 8}} do
+            M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
+              M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Current Level"
+                subheading {style: textStyle} $ M.string "This will help us keep track of your progress"
+              M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
+                  goalChoice 0 currentLevel setCurrentLevel
+                  goalChoice 1 currentLevel setCurrentLevel
+                  goalChoice 2 currentLevel setCurrentLevel
+                  goalChoice 3 currentLevel setCurrentLevel
+                  goalChoice 4 currentLevel setCurrentLevel
+                  goalChoice 5 currentLevel setCurrentLevel
+                  divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+          M.view {style: M.css {flex: 1, alignItems: "center"}} do
+            button { disabled: isNothing currentLevel, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
+
 
       M.view {style: slideStyle} do
           M.view {style: M.css {flex: 8}} do
@@ -189,13 +233,13 @@ buildJsx props = React.do
                 title {style: M.css {marginBottom: 20}} $ M.string "Choose your daily commitment"
                 subheading {style: textStyle} $ M.string "Progressing in language learning requires regular practice. Choose your daily goal to get started!"
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
-                  dailyCommitmentChoice 30 4 10 1 1 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 45 6 20 2 2 dailySelection goalSelection setDailySelection
-                  dailyCommitmentChoice 60 8 30 3 3 dailySelection goalSelection setDailySelection
+                  dailyCommitmentChoice 30 4 10 1 1 dailySelection goalSelection setDailySelection currentLevel
+                  dailyCommitmentChoice 45 6 20 2 2 dailySelection goalSelection setDailySelection currentLevel
+                  dailyCommitmentChoice 60 8 30 3 3 dailySelection goalSelection setDailySelection currentLevel
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between"}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
-            button { disabled: isNothing dailySelection || isNothing goalSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection languageSelection} $ M.string "Get started"
+            button { disabled: isNothing dailySelection || isNothing goalSelection || isNothing currentLevel || isNothing nativeLanguageSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection languageSelection currentLevel nativeLanguageSelection} $ M.string "Get started"
 
 
 mainButtonStyle = M.css
