@@ -135,7 +135,6 @@ buildJsx props = React.do
                       l <- find findLanguage u.currentUser.flashcardCountPerLanguage
                       pure l.count
                 let nextLevel = nextLevelInfo languageCount
-                button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {flex: 1}} $ M.string $ fromMaybe "Language" $ language
                 topMetric "Level" $ currentLevelName languageCount
                 topMetric (i "Words Until " nextLevel.nextLevelName) (show nextLevel.wordsUntil)
                 topMetric "Streak" $ i u.currentUser.currentStreak " days"
@@ -149,3 +148,4 @@ buildJsx props = React.do
                   listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
                   divider {style: M.css {height: 1, width: "100%"}}
 
+                button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {position: "absolute", bottom: 5, right: 2}} $ M.string $ fromMaybe "Language" $ language
