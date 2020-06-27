@@ -24,7 +24,7 @@ type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
 chevron p = element listIcon $ unsafeUnion p { color: "#000", icon: "chevron-right" }
 type Query
-  = { currentUser :: {dailyReviewedSessions :: Int, flashcardCountPerLanguage :: Array {count :: Int, language :: String}, currentStreak :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}, language :: String} }
+  = { currentUser :: {dailyReviewedSessions :: Int, flashcardCountPerLanguage :: Array {count :: Int, language :: String}, currentStreak :: Int, dailyCreatedCards :: Int, dailyReadPages :: Int, id :: String, dailyGoal :: {pages :: Int, reviewSessions :: Int, created :: Int}, language :: String, startingLevel :: Int} }
 query =
   gql
     """
@@ -35,6 +35,7 @@ query getUser {
     dailyReviewedSessions
     dailyCreatedCards
     dailyReadPages
+    startingLevel
     flashcardCountPerLanguage {
       count
       language
@@ -54,7 +55,6 @@ topMetric title content =
     M.text {style: M.css {textAlign: "center", fontWeight: "bold"}} $ M.string title
     M.text {style: M.css {textAlign: "center"}} $ M.string content
 
-
 reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
@@ -65,22 +65,25 @@ checkEmptyIcon total goal p
   | total >= goal = element listIcon $ unsafeUnion p { color: "#000", icon: "checkbox-marked-outline" }
   | otherwise = element listIcon $ unsafeUnion p { color: "#000", icon: "checkbox-blank-outline" }
 
-currentLevelName flashcardCount = fromMaybe "A0" do
-  levelIndex <- currentLevelIndex flashcardCount
+currentLevelName flashcardCount startingLevel = fromMaybe "A0" do
+  levelIndex <- currentLevelIndex flashcardCount startingLevel
   level <- levels !! levelIndex
   pure $ level.name
 
-currentLevelIndex flashcardCount = do
-  levelIndex <- nextLevelIndex flashcardCount
+currentLevelIndex flashcardCount startingLevel = do
+  levelIndex <- nextLevelIndex flashcardCount startingLevel
   if levelIndex == 0 then Nothing else Just $ levelIndex - 1
 
-nextLevelInfo flashcardCount = fromMaybe {wordsUntil: 0, nextLevelName: "A0"} do
-  index <- nextLevelIndex flashcardCount
+nextLevelInfo flashcardCount startingLevel = fromMaybe {wordsUntil: 0, nextLevelName: "A0"} do
+  index <- nextLevelIndex flashcardCount startingLevel
   nextLevel <- levels !! index
   pure $ {wordsUntil: nextLevel.wordsNeeded - flashcardCount, nextLevelName: nextLevel.name}
 
-nextLevelIndex flashcardCount = findIndex moreThanCreated levels
-  where moreThanCreated elem = elem.wordsNeeded > flashcardCount
+nextLevelIndex flashcardCount startingLevel = findIndex moreThanCreated levels
+  where moreThanCreated elem = elem.wordsNeeded > flashcardCount + startingFlashcardAmount
+        startingFlashcardAmount = fromMaybe 0 do
+           l <- levels !! startingLevel
+           pure $ l.wordsNeeded
 
 selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
   where select = do
@@ -134,9 +137,9 @@ buildJsx props = React.do
                 let languageCount = fromMaybe 0 do
                       l <- find findLanguage u.currentUser.flashcardCountPerLanguage
                       pure l.count
-                let nextLevel = nextLevelInfo languageCount
-                topMetric "Level" $ currentLevelName languageCount
-                topMetric (i "Words Until " nextLevel.nextLevelName) (show nextLevel.wordsUntil)
+                let nextLevel = nextLevelInfo languageCount u.currentUser.startingLevel
+                topMetric "Level" $ currentLevelName languageCount u.currentUser.startingLevel
+                topMetric (i "Words Until " $ nextLevel.nextLevelName) (show nextLevel.wordsUntil)
                 topMetric "Streak" $ i u.currentUser.currentStreak " days"
 
               M.view {style: M.css {flex: 12}} do

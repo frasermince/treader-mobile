@@ -180,7 +180,7 @@ buildJsx props = React.do
           M.view {style: M.css {flex: 8}} do
             M.view {style: M.css {alignItems: "center", height: "100%", marginTop: 45}} do
               M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
-                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Language"
+                title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Target Language"
                 subheading {style: textStyle} $ M.string "Choose the language you want to learn."
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
                 languageChoice languageSelection "fr" "French" setLanguageSelection
@@ -198,6 +198,7 @@ buildJsx props = React.do
                 title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Current Level"
                 subheading {style: textStyle} $ M.string "This will help us keep track of your progress"
               M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
+                  goalChoice 6 currentLevel setCurrentLevel
                   goalChoice 0 currentLevel setCurrentLevel
                   goalChoice 1 currentLevel setCurrentLevel
                   goalChoice 2 currentLevel setCurrentLevel
