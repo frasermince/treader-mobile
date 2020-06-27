@@ -137,8 +137,9 @@ buildJsx props = React.do
                 let languageCount = fromMaybe 0 do
                       l <- find findLanguage u.currentUser.flashcardCountPerLanguage
                       pure l.count
-                let nextLevel = nextLevelInfo languageCount u.currentUser.startingLevel
-                topMetric "Level" $ currentLevelName languageCount u.currentUser.startingLevel
+                let startingLevel = if Just u.currentUser.language == language then u.currentUser.startingLevel else 6
+                let nextLevel = nextLevelInfo languageCount startingLevel
+                topMetric "Level" $ currentLevelName languageCount startingLevel
                 topMetric (i "Words Until " $ nextLevel.nextLevelName) (show nextLevel.wordsUntil)
                 topMetric "Streak" $ i u.currentUser.currentStreak " days"
 
