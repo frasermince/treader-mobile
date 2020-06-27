@@ -82,11 +82,13 @@ buildJsx props = React.do
       do
         portal {} $ dialog {visible: languageModalVisible, onDismiss: setLanguageModalVisible \_ -> false} do
            dialogTitle {} $ M.string "Choose Language"
-           dialogContent {style: M.css {height: 240}} do
+           dialogContent {style: M.css {height: 340}} do
               selectableItem language setLanguage (Just "fr") "French" dismiss
               selectableItem language setLanguage (Just "es") "Spanish" dismiss
               selectableItem language setLanguage (Just "it") "Italian" dismiss
               selectableItem language setLanguage (Just "de") "German" dismiss
+              selectableItem language setLanguage (Just "ru") "Russian" dismiss
+              selectableItem language setLanguage (Just "en") "English" dismiss
               selectableItem language setLanguage Nothing "All Books" dismiss
            dialogActions {} do
               button {onPress: RNE.capture_ $ dismiss} $ M.string "Cancel"

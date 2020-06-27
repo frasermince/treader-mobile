@@ -23,6 +23,7 @@ languageList = Map.fromFoldable [
   ("en" /\ "English"),
   ("es" /\ "Spanish"),
   ("fr" /\ "French"),
+  ("ru" /\ "Russian"),
   ("de" /\ "German"),
   ("it" /\ "Italian")
 ]

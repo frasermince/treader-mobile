@@ -187,6 +187,8 @@ buildJsx props = React.do
                 languageChoice languageSelection "es" "Spanish" setLanguageSelection
                 languageChoice languageSelection "it" "Italian" setLanguageSelection
                 languageChoice languageSelection "de" "German" setLanguageSelection
+                languageChoice languageSelection "ru" "Russian" setLanguageSelection
+                languageChoice languageSelection "en" "English" setLanguageSelection
                 divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center"}} do
             button { disabled: isNothing languageSelection, mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
