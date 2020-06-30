@@ -18,7 +18,7 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Paper (surface, switch, title, toggleButton, caption)
+import Paper (surface, switch, title, toggleButton, caption, fab)
 import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
@@ -291,6 +291,12 @@ buildJsx props = React.do
 
   pure $ M.getJsx do
       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20, paddingTop: 20 }, contentContainerStyle: M.css {flexGrow: 1}, showsVerticalScrollIndicator: false } do
+        fab 
+          { icon: "volume-medium"
+          , small: true
+          , style: M.css {width: 40, position: "absolute", right: 5}
+          , onPress: RNE.capture_ mempty
+          }
         translationMarker <> fromMaybe translationPlaceholder translationText
         M.view {style: M.css {paddingBottom: 40}} do
           tappableTranslations mutationFn

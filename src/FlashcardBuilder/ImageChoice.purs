@@ -42,24 +42,23 @@ import Affjax.RequestBody as RequestBody
 import Data.Argonaut.Core as J
 import Config (config)
 import Record.Unsafe (unsafeGet)
-import Sound (play)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import FS (audioDir, writeFile, exists, unlink, absintheFile)
+import FS (audioDir, exists, unlink, absintheFile)
 import Effect.Console (log)
 import Data.Argonaut.Encode (encodeJson)
 import Data.Argonaut.Decode (decodeJson)
 import Data.Either (Either(..))
 import Foreign.Object (lookup) as Object
-import FetchBlob (fetch)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\), useLayoutEffect)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Blur (blurView)
-import QueryHooks (useData, UseData)
+import QueryHooks (useData, UseData, stripGraphqlError)
 import Type.Proxy (Proxy(..))
 import Data.Nullable (null)
 import Segment (track)
 import Debug.Trace (spy)
 import WiktionaryModal as WiktionaryModal
+import FetchAudio (useAudio, defaultAudioFile)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -86,9 +85,9 @@ data Payload = NewSentencePayload
   }}}
 
 type Props = {
-  route :: 
+  route ::
     {
-      params :: 
+      params ::
         {
           selection :: Selection,
           range :: String,
@@ -96,14 +95,15 @@ type Props = {
           rangeTranslation :: String,
           rangeOffset :: Int,
           word :: String,
-          existingSentence :: Boolean, audio :: Maybe String
+          existingSentence :: Boolean,
+          audio :: Maybe String
         }
-    }, 
+    },
         navigation :: {
           push :: EffectFn2 String { sentenceId :: Int, selection :: Selection } Unit,
           navigate :: EffectFn2 String {word :: String} Unit,
           setOptions :: EffectFn1 {headerRight :: ReactComponent {}} Unit
-        } 
+        }
     }
 
 blurTextStyle = {
@@ -126,28 +126,6 @@ blurStyle = {
   justifyContent: "center",
   alignItems: "center"
   }
-
-type AudioMutate = {variables :: {input :: {text :: String, language :: String}}} -> Aff {textToSpeech :: {encodedUrl :: String}}
-
-speak :: AudioMutate -> (EffectFn1 String Unit) -> String -> String -> Maybe Sound -> (String -> Aff Sound) -> Effect Unit
-speak fetchAudio setError text language sound setAudioInformation = launchAff_ do
-  case sound of
-       Just s -> do
-          stopAndPlay s
-       Nothing -> do
-          s <- fetchWaveNet fetchAudio setError text language setAudioInformation
-          traverse_ play s
-
-fetchWaveNet :: AudioMutate -> (EffectFn1 String Unit) -> String -> String -> (String -> Aff Sound) -> Aff (Maybe Sound)
-fetchWaveNet fetchAudio setError text language setAudioInformation = do
-  result <- try $ fetchAudio {variables: {input: {text: text, language: language}}}
-  case result of
-    Left error -> do
-       liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-       pure Nothing
-    Right response -> do
-       writeFile defaultAudioFile response.textToSpeech.encodedUrl "base64"
-       Just <$> (setAudioInformation defaultAudioFile)
 
 text :: EventFn (RNE.NativeSyntheticEvent String) String
 text = unsafeEventFn \e -> (unsafeCoerce e)
@@ -186,8 +164,6 @@ selectableImage selected setSelected i = pure $ M.getJsx do
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
     if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 10, top: 2, right: 10, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
     image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.thumbnailLink}}
-
-stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
 makePayload :: Selection -> String -> String -> Int -> Array String -> String -> Boolean -> Payload
 makePayload selection range rangeTranslation rangeOffset imageUrl word false = NewSentencePayload $ \audio ->
@@ -228,13 +204,13 @@ makePayload selection range rangeTranslation rangeOffset imageUrl word true = Ex
   }
   where a /\ b /\ t = Ebisu.defaultModel 24.0
 
-saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath setAudioInformation setError redirect text language setLoading setShouldBlur getAudio = launchAff_ do
+saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) fetch setError redirect text language setLoading setShouldBlur = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
-  e <- fileExists audioPath
-  if e then mempty else do
-     _ <- fetchWaveNet getAudio setError text language setAudioInformation
-     pure unit
-  let completedPayload = payload $ absintheFile {uri: "file://" <> fromMaybe defaultAudioFile audioPath, name: "speech.mp3", type: "application/mpeg"}
+  maybeFetch <- fetch text language
+  let path = fromMaybe defaultAudioFile do
+        result <- maybeFetch
+        pure $ result.path
+  let completedPayload = payload $ absintheFile {uri: "file://" <> path, name: "speech.mp3", type: "application/mpeg"}
   result <- try $ mutateWithSentence $ completedPayload
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
   case result of
@@ -245,7 +221,7 @@ saveFlashcard mutate mutateWithSentence (NewSentencePayload payload) audioPath s
                           _ <- track "Flashcard Created" {}
                           liftEffect $ redirect resp.createFlashcardWithSentence.flashcard.sentenceId
 
-saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ _ setError redirect _ _ setLoading setShouldBlur _ = launchAff_ do
+saveFlashcard mutate mutateWithSentence (ExistingSentencePayload payload) _ setError redirect _ _ setLoading setShouldBlur = launchAff_ do
   liftEffect $ runEffectFn1 setLoading $ \_ -> true
   result <- try $ mutate payload
   liftEffect $ runEffectFn1 setLoading $ \_ -> false
@@ -299,28 +275,10 @@ mutation flashcardMutation($input: LoginInput!) {
 }
   """
 
-audioMutation =
-  gql
-    """
-mutation audioMutation($input: TextToSpeechInput!) {
-  textToSpeech(input: $input) {
-    encodedUrl
-  }
-}
-  """
-
-
-
 noneSelected selected = foldl (\accum s -> accum && not s) true selected
 
 paragraphItem params false = M.getJsx $ paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset params.word (M.css {fontWeight: "bold"}) "bold" 16]
 paragraphItem params true = M.getJsx $ paragraph {} $ M.string $ params.rangeTranslation
-
-fileExists :: Maybe String -> Aff Boolean
-fileExists (Just filePath) = exists filePath
-fileExists Nothing = pure false
-
-defaultAudioFile = audioDir <> "/speech.mp3"
 
 unpermittedBlur setModalVisible =
     blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
@@ -333,8 +291,11 @@ buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
   mutateWithSentence /\ d1 <- useMutation withSentenceMutation { errorPolicy: "all" }
   mutate /\ d2 <- useMutation flashcardMutation { errorPolicy: "all" }
-  getAudio /\ d3 <- useMutation audioMutation { errorPolicy: "all" }
   let params = props.route.params
+  let audioContext = do
+        url <- params.audio
+        pure $ {url, text: params.range}
+  {play: playText, fetch} <- useAudio audioContext setError
   let navigate = runEffectFn2 props.navigation.navigate
 
   let selection = params.selection
@@ -349,27 +310,6 @@ buildJsx props = React.do
   search /\ setSearch <- useState params.word
   showSearch /\ setShowSearch <- useState false
   showTranslation /\ setShowTranslation <- useState false
-  audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
-  sound /\ setSound <- useState (Nothing :: Maybe Sound)
-
-  let setAudioInformation :: String -> Aff Sound
-      setAudioInformation path = do
-        s <- createSound path
-        liftEffect $ setAudioPath \_ -> Just path
-        liftEffect $ setSound \_ -> Just $ s
-        pure $ s
-
-  useEffect params.audio do
-     case params.audio of
-          Nothing -> mempty
-          Just url -> launchAff_ do
-             result <- fetch {fileCache: true} "GET" url {}
-             path <- liftEffect result.path
-             setAudioInformation $ "file://" <> path
-     pure $ launchAff_ do
-        e <- fileExists audioPath
-        if e then unlink $ fromMaybe defaultAudioFile audioPath else mempty
-        liftEffect $ traverse_ release sound
 
   let payload = makePayload selection params.range params.rangeTranslation params.rangeOffset (selectedImages selected $ images imagesResult) params.word params.existingSentence
   pure $ M.getJsx do
@@ -397,7 +337,7 @@ buildJsx props = React.do
            M.view {style: M.css {flex: 1}} do
             divider {style: M.css {height: 1, width: "100%"}}
             M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
-              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ speak getAudio setError params.range selection.book.language sound setAudioInformation}
+              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ (spy "PLAY" playText) params.range selection.book.language}
               listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
             --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
             fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
@@ -409,7 +349,7 @@ buildJsx props = React.do
               style: M.css {flex: 2},
               contentContainerStyle: M.css {flex: 2, justifyContent: "flex-end"}, numColumns: 4.0
             }
-            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload audioPath setAudioInformation setError (redirectFn selection) params.range selection.book.language setLoading setShouldBlur getAudio, disabled: noneSelected selected} $ M.string "Add Images"
+            button { mode: "contained", onPress: RNE.capture_ $ saveFlashcard mutate mutateWithSentence payload fetch setError (redirectFn selection) params.range selection.book.language setLoading setShouldBlur, disabled: noneSelected selected} $ M.string "Add Images"
       if shouldBlur then unpermittedBlur setModalVisible else mempty
 
   where redirectFn selection sentenceId =
