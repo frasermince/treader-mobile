@@ -47,8 +47,8 @@ newtype UseAudio h
 
 derive instance ntUseAudio :: Newtype (UseAudio h) _
 
-useAudio :: DefaultSound -> Hook UseAudio {play :: String -> String -> Effect Unit, fetch :: String -> String -> Aff (Maybe {path :: String, sound :: Sound})}
-useAudio audio = coerceHook $ React.do
+useAudio :: String -> DefaultSound -> Hook UseAudio {play :: String -> String -> Effect Unit, fetch :: String -> String -> Aff (Maybe {path :: String, sound :: Sound})}
+useAudio tag audio = coerceHook $ React.do
   { setLoading, setError } <- useContext dataStateContext
   getAudio /\ d <- useMutation audioMutation { errorPolicy: "all" }
   numberOfAudio /\ setNumberOfAudio <- useState 0
@@ -73,7 +73,7 @@ useAudio audio = coerceHook $ React.do
      pure $ launchAff_ do
         foldl unlinkFold mempty $ Map.values audioPaths
         liftEffect $ traverse_ release sound
-  let fetch = fetchWaveNet audioPaths setAudioInformation getAudio setError numberOfAudio setNumberOfAudio
+  let fetch = fetchWaveNet tag audioPaths setAudioInformation getAudio setError numberOfAudio setNumberOfAudio
   pure $ { play: speak sound soundText fetch
          , fetch: fetch
          }
@@ -94,8 +94,8 @@ speak _ _ fetch text language = launchAff_ do
   s <- fetch text language
   traverse_ (_.sound >>> play) s
 
-fetchWaveNet :: Map String String -> (String -> String -> Aff {path :: String, sound :: Sound}) -> AudioMutate -> (EffectFn1 String Unit) -> Int -> ((Int -> Int) -> Effect Unit) -> String -> String -> Aff (Maybe {sound :: Sound, path :: String} )
-fetchWaveNet audioPaths setAudioInformation fetchAudio setError numberOfAudio setNumberOfAudio text language = do
+fetchWaveNet :: String -> Map String String -> (String -> String -> Aff {path :: String, sound :: Sound}) -> AudioMutate -> (EffectFn1 String Unit) -> Int -> ((Int -> Int) -> Effect Unit) -> String -> String -> Aff (Maybe {sound :: Sound, path :: String} )
+fetchWaveNet tag audioPaths setAudioInformation fetchAudio setError numberOfAudio setNumberOfAudio text language = do
   case Map.lookup text audioPaths of
        Nothing -> fetchFromServer
        Just path -> do
@@ -107,7 +107,7 @@ fetchWaveNet audioPaths setAudioInformation fetchAudio setError numberOfAudio se
               liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
               pure Nothing
             Right response -> do
-              let filename = i audioDir "/audio-" numberOfAudio ".mp3"
+              let filename = i audioDir "/audio-" numberOfAudio "-" tag ".mp3"
               liftEffect $ setNumberOfAudio \n -> n + 1
               writeFile filename response.textToSpeech.encodedUrl "base64"
               Just <$> (setAudioInformation filename text)

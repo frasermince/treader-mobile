@@ -286,7 +286,7 @@ maybePlay play _ _ = mempty
 buildJsx props = React.do
   navigation <- useNavigation
   mutationFn /\ result <- useMutation mutation {}
-  {play, fetch} <- useAudio Nothing
+  {play, fetch} <- useAudio "bottom-content" Nothing
   ref <- useRef null
   useEffect props.wordPlacement do
      result <- readRefMaybe ref
@@ -298,7 +298,7 @@ buildJsx props = React.do
         fab
           { icon: "volume-medium"
           , small: true
-          , style: M.css {width: 40, position: "absolute", right: 5}
+          , style: M.css {width: 40, position: "absolute", right: 5, zIndex: 2}
           , onPress: RNE.capture_ $ maybePlay play props.word props.language
           }
         translationMarker <> fromMaybe translationPlaceholder translationText
