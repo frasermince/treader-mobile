@@ -295,7 +295,7 @@ buildJsx props = React.do
   let audioContext = do
         url <- params.audio
         pure $ {url, text: params.range}
-  {play: playText, fetch} <- useAudio audioContext setError
+  {play: playText, fetch} <- useAudio audioContext
   let navigate = runEffectFn2 props.navigation.navigate
 
   let selection = params.selection

@@ -50,6 +50,7 @@ import Data.Interpolate (i)
 import Icon (icon)
 import Data.Map (fromFoldable, lookup) as Map
 import Debug.Trace (spy)
+import FetchAudio (useAudio)
 
 languageList = Map.fromFoldable [
   ("en" /\ "English"),
@@ -280,9 +281,12 @@ container fade height wordPlacement children
   | isTop height wordPlacement = surface {style: M.css $ merge (styles fade) { top: 0}} $ M.view {style: M.css {flex: 1, marginTop: 30}} children
   | otherwise = surface {style: M.css $ merge (styles fade) { bottom: 0 }} children
 
+maybePlay play (Just text) (Just language) = play text language
+maybePlay play _ _ = mempty
 buildJsx props = React.do
   navigation <- useNavigation
   mutationFn /\ result <- useMutation mutation {}
+  {play, fetch} <- useAudio Nothing
   ref <- useRef null
   useEffect props.wordPlacement do
      result <- readRefMaybe ref
@@ -291,11 +295,11 @@ buildJsx props = React.do
 
   pure $ M.getJsx do
       scrollView { ref: ref, style: M.css { marginLeft: 20, marginRight: 20, paddingTop: 20 }, contentContainerStyle: M.css {flexGrow: 1}, showsVerticalScrollIndicator: false } do
-        fab 
+        fab
           { icon: "volume-medium"
           , small: true
           , style: M.css {width: 40, position: "absolute", right: 5}
-          , onPress: RNE.capture_ mempty
+          , onPress: RNE.capture_ $ maybePlay play props.word props.language
           }
         translationMarker <> fromMaybe translationPlaceholder translationText
         M.view {style: M.css {paddingBottom: 40}} do

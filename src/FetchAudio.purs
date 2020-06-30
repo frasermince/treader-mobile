@@ -17,9 +17,10 @@ import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Exception (message)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
 import React.Basic.Hooks as React
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\), useLayoutEffect, UseEffect, UseState, Hook, coerceHook)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, useEffect, (/\), useLayoutEffect, UseEffect, UseState, Hook, coerceHook, useContext, UseContext)
 import Data.Foldable (foldl)
 import Data.Newtype (class Newtype)
+import Context (dataStateContext, Context)
 import Data.Interpolate (i)
 
 type AudioMutate = {variables :: {input :: {text :: String, language :: String}}} -> Aff {textToSpeech :: {encodedUrl :: String}}
@@ -42,20 +43,23 @@ fileExists Nothing = pure false
 
 type DefaultSound = Maybe {url :: String, text :: String}
 newtype UseAudio h
-  = UseAudio (UseEffect DefaultSound (UseState (Maybe Sound) (UseState (Map String String) (UseState Int (UseEffect Unit h)))))
+  = UseAudio (UseEffect DefaultSound (UseState (Maybe String) (UseState (Maybe Sound) (UseState (Map String String) (UseState Int (UseEffect Unit (UseContext Context h)))))))
 
 derive instance ntUseAudio :: Newtype (UseAudio h) _
 
-useAudio :: DefaultSound -> (EffectFn1 String Unit) -> Hook UseAudio {play :: String -> String -> Effect Unit, fetch :: String -> String -> Aff (Maybe {path :: String, sound :: Sound})}
-useAudio audio setError = coerceHook $ React.do
+useAudio :: DefaultSound -> Hook UseAudio {play :: String -> String -> Effect Unit, fetch :: String -> String -> Aff (Maybe {path :: String, sound :: Sound})}
+useAudio audio = coerceHook $ React.do
+  { setLoading, setError } <- useContext dataStateContext
   getAudio /\ d <- useMutation audioMutation { errorPolicy: "all" }
   numberOfAudio /\ setNumberOfAudio <- useState 0
   audioPaths /\ setAudioPaths <- useState (mempty :: Map String String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
+  soundText /\ setSoundText <- useState (Nothing :: Maybe String)
   let setAudioInformation :: String -> String -> Aff {sound :: Sound, path :: String}
       setAudioInformation path text = do
         s <- createSound $ path
         liftEffect $ setAudioPaths \m -> Map.insert text path m
+        liftEffect $ setSoundText \_ -> Just text
         liftEffect $ setSound \_ -> Just $ s
         pure $ {sound: s, path: path}
 
@@ -70,7 +74,7 @@ useAudio audio setError = coerceHook $ React.do
         foldl unlinkFold mempty $ Map.values audioPaths
         liftEffect $ traverse_ release sound
   let fetch = fetchWaveNet audioPaths setAudioInformation getAudio setError numberOfAudio setNumberOfAudio
-  pure $ { play: speak sound fetch
+  pure $ { play: speak sound soundText fetch
          , fetch: fetch
          }
   where unlinkFold :: Aff Unit -> String -> Aff Unit
@@ -80,14 +84,15 @@ useAudio audio setError = coerceHook $ React.do
           if e then unlink path else mempty
 
 
-speak :: Maybe Sound -> (String -> String -> Aff (Maybe {sound :: Sound, path :: String})) -> String -> String -> Effect Unit
-speak sound fetch text language = launchAff_ do
-  case sound of
-       Just s -> do
-          stopAndPlay s
-       Nothing -> do
+speak :: Maybe Sound -> Maybe String -> (String -> String -> Aff (Maybe {sound :: Sound, path :: String})) -> String -> String -> Effect Unit
+speak (Just sound) (Just soundText) fetch text language
+  | soundText == text = launchAff_ $ stopAndPlay sound
+  | otherwise = launchAff_ do
           s <- fetch text language
           traverse_ (_.sound >>> play) s
+speak _ _ fetch text language = launchAff_ do
+  s <- fetch text language
+  traverse_ (_.sound >>> play) s
 
 fetchWaveNet :: Map String String -> (String -> String -> Aff {path :: String, sound :: Sound}) -> AudioMutate -> (EffectFn1 String Unit) -> Int -> ((Int -> Int) -> Effect Unit) -> String -> String -> Aff (Maybe {sound :: Sound, path :: String} )
 fetchWaveNet audioPaths setAudioInformation fetchAudio setError numberOfAudio setNumberOfAudio text language = do
