@@ -4,16 +4,20 @@ import Prelude
 import Debug.Trace
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useEffect, (/\))
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useEffect, (/\), useContext)
 import ApolloHooks (useQuery, gql, QueryState(..), DocumentNode)
 import React.Basic.Native as RN
+import Effect.Console (log)
+import Data.Maybe (Maybe(..), isJust, fromMaybe)
+import Platform as Platform
 import Effect.Uncurried (runEffectFn1, EffectFn1)
 import React.Basic.Hooks as React
 import Data.Array (head)
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Eq (class Eq)
 import Data.Traversable (traverse_)
-import QueryHooks (useUserBooks, Book, User)
+import QueryHooks (useUserBooks, Book, User, stripGraphqlError)
+import Effect.Exception (message)
 import Markup as M
 import TabNavigator (tabNavigator)
 import AuthenticationNavigator (authenticationNavigator)
@@ -25,6 +29,11 @@ import Paper (portal)
 import Effect.Aff (Aff, launchAff_, try)
 import Debug.Trace (spy)
 import ApolloHooks (useMutation, gql, DocumentNode)
+import Effect.Class (liftEffect)
+import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransaction)
+import Data.Either (Either(..))
+import Context (dataStateContext, Context)
+import Segment (track, screen)
 
 type Props = {}
 
@@ -44,6 +53,23 @@ mutation updateCurrentUser($input: UserInput!) {
 }
   """
 
+subscribeMutation :: DocumentNode
+subscribeMutation =
+  gql
+    """
+mutation updateCurrentUser($input: UserInput!) {
+  update_user(input: $input) {
+    user {
+      id
+      appleReceipt
+      isSubscribed
+      isPermitted
+    }
+  }
+}
+  """
+
+
 dismiss mutationFn = launchAff_ $ mutationFn {variables: {input: {showPayment: false}}}
 
 isCurrentVersion d = fromMaybe false $ do
@@ -57,6 +83,29 @@ reactComponent =
         (component "Main") buildJsx
 
 buildJsx props = React.do
+  androidMutationFn /\ r1 <- useMutation subscribeMutation {}
+  iosMutationFn /\ r2 <- useMutation subscribeMutation {}
+  { setLoading, setError } <- useContext dataStateContext
+  useEffect unit do
+     purchaseErrorListener $ \e -> launchAff_ do
+        liftEffect $ log $ "ERROR: " <> show e
+     purchaseUpdatedListener $ \p -> launchAff_ do
+        if isJust $ toMaybe $  p.transactionReceipt then do
+            let iosPayload = {variables: {input: {appleReceipt: p.transactionReceipt} }}
+            let androidPayload = {variables: {input: {androidReceipt: p.transactionReceipt}}}
+            result <- try $ Platform.select {
+                ios: iosMutationFn $ iosPayload,
+                android: androidMutationFn $ androidPayload
+              }
+            case result of
+                 Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
+                 Right r -> do
+                    _ <- track "Subscribe" {productId: "io.unchart.sub", quantity: 1, price: 11.99, revenueType: "income"}
+                    finishTransaction p
+        else mempty
+
+     pure mempty
+
   mutationFn /\ result <- useMutation mutation {}
   queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
   pure $ M.getJsx $ traverse_ (authOrApp (dismiss mutationFn)) (spy "RESULT" queryResult).state

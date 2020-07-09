@@ -28,23 +28,6 @@ import Segment (track, screen)
 
 type Props = {visible :: Boolean, onDismiss :: Effect Unit}
 
-mutation :: DocumentNode
-mutation =
-  gql
-    """
-mutation updateCurrentUser($input: UserInput!) {
-  update_user(input: $input) {
-    user {
-      id
-      appleReceipt
-      isSubscribed
-      isPermitted
-    }
-  }
-}
-  """
-
-stripGraphqlError message = fromMaybe message $ stripPrefix (Pattern "GraphQL error: ") message
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -65,28 +48,12 @@ purchase (Just sku) setError = do
           Right resp -> liftEffect $ (log $ "PURCHASE RESPONSE " <> (show resp))
 
 buildJsx props = React.do
-  androidMutationFn /\ r1 <- useMutation mutation {}
-  iosMutationFn /\ r2 <- useMutation mutation {}
   { setLoading, setError } <- useContext dataStateContext
   useEffect unit do
-     purchaseErrorListener $ \e -> launchAff_ do
-        liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
-        if isJust $ toMaybe p.transactionReceipt then do
-            let iosPayload = {variables: {input: {appleReceipt: p.transactionReceipt} }}
-            let androidPayload = {variables: {input: {androidReceipt: p.transactionReceipt}}}
-            result <- try $ Platform.select {
-                ios: iosMutationFn $ iosPayload,
-                android: androidMutationFn $ androidPayload
-              }
-            case result of
-                 Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
-                 Right r -> do
-                    _ <- track "Subscribe" {productId: "io.unchart.sub", quantity: 1, price: 11.99, revenueType: "income"}
-                    finishTransaction p
-                    liftEffect $ props.onDismiss
-        else mempty
-
+        if isJust $ toMaybe $  p.transactionReceipt then do
+          liftEffect $ props.onDismiss
+          else mempty
      pure mempty
 
   pure $ M.getJsx do
