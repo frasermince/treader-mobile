@@ -80,7 +80,6 @@ styles =
   , wrapper:
     { flex: 1
     , marginTop: 40
-    , marginBottom: 40
     , zIndex: 1
     }
   }
