@@ -266,10 +266,10 @@ runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 runAnimation false fade = timing fade { toValue: 0, duration: 0 }
 
 shouldBlur translation = not $ fromMaybe true (_.isPermitted <$> translation)
-unpermittedBlur props =
-    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
-      M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
-        M.text {style: M.css {}} $ M.string "You have used your words for the day. Press to subscribe and receive unlimited words"
+unpermittedBlur props = do
+    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5}
+    M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
+      M.text {style: M.css {}} $ M.string "You have used your words for the day. Press to subscribe and receive unlimited words"
   where blurPress = RNE.capture_ do
           props.removeContent
           props.setModalVisible \_ -> true

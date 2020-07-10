@@ -280,10 +280,10 @@ noneSelected selected = foldl (\accum s -> accum && not s) true selected
 paragraphItem params false = M.getJsx $ paragraph {} $ M.jsx $ [ underlineWord params.range params.rangeOffset params.word (M.css {fontWeight: "bold"}) "bold" 16]
 paragraphItem params true = M.getJsx $ paragraph {} $ M.string $ params.rangeTranslation
 
-unpermittedBlur setModalVisible =
-    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5} do
-      M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
-        M.text {style: M.css {}} $ M.string "You have reached your limit on creating flashcards for the day. Press to subscribe and create unlimited flashcards."
+unpermittedBlur setModalVisible = do
+    blurView {style: M.css blurStyle, blurType: "light", blurAmount: 5}
+    M.touchableOpacity {style: M.css blurTextStyle, onPress: blurPress} do
+      M.text {style: M.css {}} $ M.string "You have reached your limit on creating flashcards for the day. Press to subscribe and create unlimited flashcards."
   where blurPress = RNE.capture_ do
           setModalVisible \_ -> true
 

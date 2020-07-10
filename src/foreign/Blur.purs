@@ -7,4 +7,4 @@ import Markup
 
 foreign import _blurView :: forall props. ReactComponent props
 
-blurView = parentElement _blurView
+blurView = childElement _blurView
