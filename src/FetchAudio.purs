@@ -69,7 +69,7 @@ useAudio tag audio = coerceHook $ React.do
           Just {url, text} -> launchAff_ do
              result <- fetch {fileCache: true} "GET" url {}
              path <- liftEffect result.path
-             setAudioInformation ("file://" <> path) text
+             setAudioInformation path text
      pure $ launchAff_ do
         foldl unlinkFold mempty $ Map.values audioPaths
         liftEffect $ traverse_ release sound
