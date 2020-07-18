@@ -51,15 +51,24 @@ footerStyles fade =
       , outputRange: [ -1, 9 ]
       }
 
-sliderStyles =
+sliderStyles fade =
   { height: 30
   , alignItems: "center"
   , justifyContent: "center"
   , flexDirection: "row"
   , flex: 1
+  {--, zIndex: zIndex--}
+  {--, elevation: zIndex--}
   , marginLeft: 50
   , marginRight: 50
   }
+  where
+  zIndex :: Int
+  zIndex =
+    fade.interpolate
+      { inputRange: [ 0, 1 ]
+      , outputRange: [ -1, 9 ]
+      }
 
 runAnimation true fade = timing fade { toValue: 1, duration: 20 }
 
@@ -75,5 +84,5 @@ buildJsx props = React.do
     pure mempty
   pure $ M.getJsx
     $ do
-        view { style: footerStyles fade } do
-          slider { style: sliderStyles, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete, maximumTrackTintColor: "#707070" }
+        view { style: M.css $ footerStyles fade } do
+          slider { style: M.css $ sliderStyles fade, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete, maximumTrackTintColor: "#707070" }
