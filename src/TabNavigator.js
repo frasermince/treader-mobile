@@ -12,6 +12,7 @@ import { reactComponent as ReviewEntryScreen} from "../output/FlashcardReview.In
 import { reactComponent as ReviewCompleteScreen} from "../output/FlashcardReview.Complete";
 //import Review from "./Tinder/Review"
 import { reactComponent as WordSelection} from "../output/FlashcardBuilder.WordSelection";
+import { reactComponent as LanguageSettings } from "../output/LanguageSettings";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
@@ -28,6 +29,17 @@ ReviewNavigator = () => {
   )
 
 }
+
+AccountNavigator = () => {
+  const Stack = createStackNavigator();
+  return (
+      <Stack.Navigator>
+        <Stack.Screen name="Settings" component={AccountScreen} options={{headerShown: false}}/>
+        <Stack.Screen name="LanguageSettings" component={LanguageSettings} options={{headerShown: false}}/>
+      </Stack.Navigator>
+  );
+}
+
 BookNavigator = () => {
   const Stack = createStackNavigator();
   return (
@@ -62,7 +74,7 @@ export default TabNavigator = () => {
         <Tab.Screen name="Read" component={BookNavigator} options={{tabBarIcon:  bookIcon}} />
         <Tab.Screen name="Review" component={ReviewNavigator} options={{tabBarIcon: reviewIcon}} />
         <Tab.Screen name="Create" component={FlashcardNavigator} options={{tabBarIcon: flashcardIcon}} />
-        <Tab.Screen name="Account" component={AccountScreen} options={{tabBarIcon:  accountIcon}} />
+        <Tab.Screen name="Account" component={AccountNavigator} options={{tabBarIcon: accountIcon}} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -24,8 +24,9 @@ import Data.DateTime (date, month, day, year)
 import Data.Formatter.DateTime (format, FormatterCommand(..))
 import Data.List (List(..), (:))
 import Linking (openUrl, canOpenUrl)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, EffectFn2, runEffectFn2)
 
-type Props = {}
+type Props = {navigation :: { navigate :: EffectFn2 String {} Unit }}
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -38,7 +39,7 @@ buildJsx props = React.do
   client <- useApolloClient
   result <- useUserBooks {}
   modalVisible <- useState false
-  pure $ M.getJsx $ jsxFromUser result.state client modalVisible
+  pure $ M.getJsx $ jsxFromUser props.navigation.navigate result.state client modalVisible
 
 signoutIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "logout" }
 
@@ -69,13 +70,15 @@ openPrivacyPolicy = openUrl "https://app.unchart.io/privacy-policy"
 openTermsOfUse = openUrl "http://www.apple.com/legal/itunes/appstore/dev/stdeula"
 openContact = openUrl "mailto:fraser@unchart.io"
 
-jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
+jsxFromUser navigate (Just d) client (modalVisible /\ setModalVisible) = do
   portal {} $ M.childElement Subscribe.reactComponent {visible: modalVisible, onDismiss: setModalVisible \_ -> false}
   M.view {style: containerStyle} do
     title {style: M.css {marginBottom: 15}} $ M.string $ d.currentUser.firstName <> " " <> d.currentUser.lastName
     divider {style: M.css {height: 1, width: "100%"}}
     listSection {style: M.css {width: "100%"}} do
       subscription d.currentUser.isSubscribed (toMaybe d.currentUser.subscriptionEndDate) setModalVisible
+      divider {style: M.css {height: 1, width: "100%"}}
+      listItem {title: RN.string "Set Languages and Goals", onPress: RNE.capture_ $ runEffectFn2 navigate "LanguageSettings" {}, right: chevron}
       divider {style: M.css {height: 1, width: "100%"}}
       listItem {title: RN.string "Privacy Policy", onPress: RNE.capture_ $ openPrivacyPolicy, right: chevron}
       divider {style: M.css {height: 1, width: "100%"}}
@@ -86,7 +89,7 @@ jsxFromUser (Just d) client (modalVisible /\ setModalVisible) = do
       divider {style: M.css {height: 1, width: "100%"}}
       listItem {title: RN.string "Signout", right: signoutIcon, onPress: RNE.capture_ $ logout client}
     divider {style: M.css {height: 1, width: "100%"}}
-jsxFromUser Nothing _ _ = mempty
+jsxFromUser _ Nothing _ _ = mempty
 
 containerStyle = M.css {
   marginTop: 50,
