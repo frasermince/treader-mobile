@@ -92,7 +92,6 @@ import tokenizer from 'sbd';
     phrase = phrase.trim().replace(/(\r\n|\n|\r)/gm, "");
     sentenceOffset -= sentenceWhitespaceLength;
     phraseOffset -= phraseWhitespaceLength;
-    debugger
     return {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength};
   }
 
@@ -319,6 +318,7 @@ import tokenizer from 'sbd';
           break;
         }
         case "reportLocation": {
+          debugger
           if (rendition) {
             rendition.reportLocation();
           } else {
@@ -655,12 +655,39 @@ import tokenizer from 'sbd';
       rendition.on("relocated", function(location){
         console.log("RELOCATED", location);
         //renditionHandler(rendition, options.location);
+        const idref = book.packaging.spine[location.start.index].idref;
+        const overlay = book.packaging.manifest[idref].overlay;
+        const smil = book.packaging.manifest[overlay].href;
+        if(smil) {
+          book.load(smil).then(function(smilFile) {
+            let parser = new DOMParser();
+            let xmlDoc = parser.parseFromString(smilFile, "text/xml");
+            let sequences = xmlDoc.children[0].children[0].children[0];
+            let startWord = rendition.getRange(location.start.cfi).commonAncestorContainer.parentNode.id
+            let endWord = rendition.getRange(location.end.cfi).commonAncestorContainer.parentNode.id
+            let startRefs = {paragraph: startWord.slice(0, 7), sentence: startWord.slice(7, 14), word: startWord.slice(14, 21)};
+            let endRefs = {paragraph: endWord.slice(0, 7), sentence: endWord.slice(7, 14), word: endWord.slice(14, 21)};
+            debugger
+            let documentName = sequences.attributes["epub:textref"].value;
+            let startSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${startWord}]`)
+            let endSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${endWord}]`)
+            debugger
+            let pageBegin = startSequence.querySelector("audio").getAttribute("clipBegin")
+            let pageEnd = endSequence.querySelector("audio").getAttribute("clipEnd")
+            let index = parseInt(overlay.replace("smil-", ""), 10);
+            debugger
+            sendMessageWithoutCache({method:"relocated", location: location, pageBegin: pageBegin, pageEnd: pageEnd, smilChapter: index});
+          });
+        }
+        else {
+          sendMessageWithoutCache({method:"relocated", location: location, pageBegin: null, pageEnd: null});
+        }
         const [chapterTitle, language] = findTitlesAndLanguage(rendition, options.location);
         sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
-        sendMessageWithoutCache({method:"relocated", location: location});
       });
 
       rendition.on("selected", function({cfi, range, context}, contents, t) {
+        debugger
         let span = range.startContainer;
         let text = range.toString();
         let svg = document.getElementById("select-box");

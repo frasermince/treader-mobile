@@ -11,7 +11,7 @@ import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Exception (message)
 import Type.Proxy (Proxy(..))
 import EpubRn (epub, createStreamer, startStream, streamGet, killStream, CFI, compare, toCfi)
-import Effect.Uncurried (mkEffectFn1)
+import Effect.Uncurried (mkEffectFn4, EffectFn4)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
 import Effect.Aff (Aff, launchAff_, delay, forkAff, Milliseconds(..), try)
 import Data.Either (Either(..))
@@ -106,8 +106,13 @@ query =
   }
 """
 
-locationChange :: Maybe String -> ((VisibleLocation -> VisibleLocation) -> Effect Unit) -> (Tuple (Maybe LastAdvanced) ((Maybe LastAdvanced -> Maybe LastAdvanced) -> Effect Unit)) -> ((Int -> Int) -> Effect Unit) -> EffectFn1 VisibleLocation Unit
-locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn1 e
+locationChange
+  :: Maybe String
+  -> ((VisibleLocation -> VisibleLocation) -> Effect Unit)
+  -> (Tuple (Maybe LastAdvanced) ((Maybe LastAdvanced -> Maybe LastAdvanced) -> Effect Unit))
+  -> ((Int -> Int) -> Effect Unit)
+  -> EffectFn4 VisibleLocation (Nullable String) (Nullable String) (Nullable Int) Unit
+locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn4 e
   where
   shouldIncrement :: LastAdvanced -> DateTime -> CFI -> Boolean
   shouldIncrement lastAdvanced now cfi = isAdvancing && isThirtySecondsApart
@@ -123,12 +128,15 @@ locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced
         liftEffect $ setPagesRead \p -> p + 1
         liftEffect $ setPageLastAdvanced \_ -> Just $ {time: spy "ADVANCED" now, cfi: cfi}
     | otherwise = liftEffect $ setPageLastAdvanced \_ -> Just $ lastAdvanced {cfi = cfi}
-  e :: VisibleLocation -> Effect Unit
-  e event =
+  e :: VisibleLocation -> Nullable String -> Nullable String -> Nullable Int -> Effect Unit
+  e event startPageTime endPageTime audioIndex =
     launchAff_ do
       now <- liftEffect nowDateTime
       incrementPages pageLastAdvanced now (toCfi (spy "EVENT" event).start.cfi)
       traverse_ (\t -> setItem t event.start.cfi) title
+      liftEffect $ log $ "***START" <> (show $ toMaybe $ startPageTime)
+      liftEffect $ log $ "***END" <> (show $ toMaybe $ endPageTime)
+      liftEffect $ log $ "***Index" <> (show $ toMaybe $ audioIndex)
       liftEffect $ setVisibleLocation \_ -> event
 
 locationsReady setSliderDisabled = mkEffectFn1 e
