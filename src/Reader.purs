@@ -37,7 +37,8 @@ import Debug.Trace (spy)
 import AppState (useAppState)
 import Navigation (useFocusEffect)
 import Subscribe as Subscribe
-import Paper (portal)
+import Paper (portal, fab)
+import React.Basic.Native.Events as RNE
 import ComponentTypes
 import Data.DateTime (DateTime, diff)
 import Data.Time.Duration (fromDuration)
@@ -47,6 +48,7 @@ import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..
 import Segment (track, screen)
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
+type AudioInformation = {startPageTime :: String, endPageTime :: String, index :: Int}
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
 
@@ -108,11 +110,12 @@ query =
 
 locationChange
   :: Maybe String
+  -> ((Maybe AudioInformation -> Maybe AudioInformation) -> Effect Unit)
   -> ((VisibleLocation -> VisibleLocation) -> Effect Unit)
   -> (Tuple (Maybe LastAdvanced) ((Maybe LastAdvanced -> Maybe LastAdvanced) -> Effect Unit))
   -> ((Int -> Int) -> Effect Unit)
   -> EffectFn4 VisibleLocation (Nullable String) (Nullable String) (Nullable Int) Unit
-locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn4 e
+locationChange title setAudioInformation setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced) setPagesRead = mkEffectFn4 e
   where
   shouldIncrement :: LastAdvanced -> DateTime -> CFI -> Boolean
   shouldIncrement lastAdvanced now cfi = isAdvancing && isThirtySecondsApart
@@ -134,6 +137,11 @@ locationChange title setVisibleLocation (pageLastAdvanced /\ setPageLastAdvanced
       now <- liftEffect nowDateTime
       incrementPages pageLastAdvanced now (toCfi (spy "EVENT" event).start.cfi)
       traverse_ (\t -> setItem t event.start.cfi) title
+      liftEffect $ setAudioInformation  \_ -> do
+        start <- toMaybe $ startPageTime
+        end <- toMaybe $ endPageTime
+        index <- toMaybe $ audioIndex
+        pure $ {startPageTime: start, endPageTime: end, index: index}
       liftEffect $ log $ "***START" <> (show $ toMaybe $ startPageTime)
       liftEffect $ log $ "***END" <> (show $ toMaybe $ endPageTime)
       liftEffect $ log $ "***Index" <> (show $ toMaybe $ audioIndex)
@@ -429,7 +437,7 @@ getBookId result = do
   r <- result
   pure $ r.bookId
 buildJsx props = React.do
-
+  audioInformation /\ setAudioInformation <- useState (Nothing :: Maybe AudioInformation)
   { setLoading, setError } <- useContext dataStateContext
   loaded /\ setLoaded <- useState false
   flow /\ setFlow <- useState "paginated"
@@ -502,7 +510,7 @@ buildJsx props = React.do
                 , src: src
                 , flow: flow
                 , location: props.location
-                , onLocationChange: locationChange props.title props.setVisibleLocation pageLastAdvanced setPagesRead
+                , onLocationChange: locationChange props.title setAudioInformation props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }
@@ -514,6 +522,14 @@ buildJsx props = React.do
                 , origin: origin
                 , onError: error
                 }
+            fab
+              { icon: "play"
+              , small: true
+              , style: M.css {width: 40, position: "absolute", bottom: 5, right: 5, zIndex: 2}
+              , onPress: RNE.capture_ $ traverse_ playAudioBook audioInformation
+              }
+
+
             M.childElement BottomContent.tabs
               { translation: (fst stateChangeListeners.translation)
               , morphology: (fst stateChangeListeners.morphology)
