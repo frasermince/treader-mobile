@@ -16,3 +16,6 @@ type Sentence
   = {text :: String, translation :: String, flashcardExistence :: FlashcardExistence, audioUrl :: String}
 
 type Flashcard = {id :: String, word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int, hoursPassed :: Number}
+
+type BookViewQuery
+  = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String, audioChapters :: Array {audioUrl :: String, chapter :: Int} } }

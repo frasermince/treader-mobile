@@ -383,7 +383,7 @@ PODS:
     - RNSound/Core (= 0.11.0)
   - RNSound/Core (0.11.0):
     - React
-  - RNVectorIcons (6.6.0):
+  - RNVectorIcons (7.0.0):
     - React
   - RNZipArchive (5.0.0):
     - React
@@ -664,7 +664,7 @@ SPEC CHECKSUMS:
   RNScreens: cf198f915f8a2bf163de94ca9f5bfc8d326c3706
   RNSentry: df6946b5fe880a9097f6994c9028f939710b3000
   RNSound: da030221e6ac7e8290c6b43f2b5f2133a8e225b0
-  RNVectorIcons: 0bb4def82230be1333ddaeee9fcba45f0b288ed4
+  RNVectorIcons: da6fe858f5a65d7bbc3379540a889b0b12aa5976
   RNZipArchive: be636657a6630e9771d4a3223dc8fd0bd0137b55
   SDWebImage: 84000f962cbfa70c07f19d2234cbfcf5d779b5dc
   SDWebImageWebPCoder: 36f8f47bd9879a8aea6044765c1351120fd8e3a8

@@ -16,7 +16,7 @@ exports._requestSubscription = function(sku) {
 
 exports._purchaseUpdatedListener = function(fn) {
   return function () {
-    return module.purchaseUpdatedListener(fn);
+    //return module.purchaseUpdatedListener(fn);
   }
 }
 

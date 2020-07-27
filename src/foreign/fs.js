@@ -2,6 +2,7 @@ var RNFS = require('react-native-fs');
 var absinthe = require('apollo-absinthe-upload-link')
 exports.bookDir = RNFS.DocumentDirectoryPath + "/www";
 exports.audioDir = RNFS.DocumentDirectoryPath;
+exports.audioBookDir = RNFS.DocumentDirectoryPath + "/audiobooks";
 exports._exists = function(path) {
   return function () {
     return RNFS.exists(path);
@@ -13,6 +14,15 @@ exports._readDirectory = function(path) {
     return RNFS.readDir(path);
   }
 }
+
+exports._mkdir = function(path) {
+  return function(options) {
+    return function() {
+      return RNFS.mkdir(path, options);
+    }
+  }
+}
+
 exports._unlink = function(path) {
   return function() {
     return RNFS.unlink(path);

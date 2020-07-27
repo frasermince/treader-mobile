@@ -2,12 +2,12 @@ module Reader where
 
 import Prelude
 import Context (dataStateContext)
+import ComponentTypes (BookViewQuery)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
 import React.Basic.Native as RN
 import React.Basic.Hooks as React
-import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Exception (message)
 import Type.Proxy (Proxy(..))
 import EpubRn (epub, createStreamer, startStream, streamGet, killStream, CFI, compare, toCfi)
@@ -37,7 +37,7 @@ import Debug.Trace (spy)
 import AppState (useAppState)
 import Navigation (useFocusEffect)
 import Subscribe as Subscribe
-import Paper (portal, fab)
+import Paper (portal)
 import React.Basic.Native.Events as RNE
 import ComponentTypes
 import Data.DateTime (DateTime, diff)
@@ -61,6 +61,7 @@ type Props
     , toggleBars :: Effect Unit
     , setToc :: (Array String -> Array String) -> Effect Unit
     , setTitle :: (Maybe String -> Maybe String) -> Effect Unit
+    , bookData :: Maybe BookViewQuery
     , title :: Maybe String
     , setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit
     , setLocation :: (String -> String) -> Effect Unit
@@ -87,26 +88,6 @@ styles =
     , zIndex: 1
     }
   }
-
-type Query
-  = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String } }
-
-query =
-  gql
-    """
-  query routes_Book_Query($book: String) {
-    currentUser(book: $book) {
-      firstName
-      lastName
-      email
-    }
-    book(slug: $book) {
-      id
-      epubUrl
-      processedEpubUrl
-    }
-  }
-"""
 
 locationChange
   :: Maybe String
@@ -186,21 +167,20 @@ reactComponent =
         component "Reader" $ buildJsx
 
 newtype UseStreamer h
-  = UseStreamer (UseEffect (Maybe String) (UseState String (UseState String (UseData Query h))))
+  = UseStreamer (UseEffect (Maybe String) (UseState String (UseState String h)))
 
 derive instance ntUseStreamer :: Newtype (UseStreamer h) _
 
-useStreamer :: ((Boolean -> Boolean) -> Effect Unit) -> (Effect Unit) -> String -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String, bookId :: String })
-useStreamer setLoaded toggleBars book =
+useStreamer :: Maybe BookViewQuery -> ((Boolean -> Boolean) -> Effect Unit) -> (Effect Unit) -> Hook UseStreamer (Maybe { src :: String, origin :: String, url :: String, bookId :: String })
+useStreamer bookData setLoaded toggleBars =
   coerceHook
     $ React.do
-        result <- useData (Proxy :: Proxy Query) query { variables: { book: book }, errorPolicy: "all" }
         src /\ setSrc <- useState ""
         origin /\ setOrigin <- useState ""
         let
           streamer = createStreamer
         let
-          maybeUrl = bookUrl <$> result.state
+          maybeUrl = bookUrl <$> bookData
         let
           affFn = \url -> launchAff_ $ (streamerAff toggleBars streamer setOrigin setSrc url)
         useEffect maybeUrl
@@ -208,7 +188,7 @@ useStreamer setLoaded toggleBars book =
               traverse_ affFn maybeUrl
               pure $ killStream streamer
         --pure $ streamerResult (Just {book: {epubUrl: toNullable $ Just $ "https://s3.amazonaws.com/epubjs/books/moby-dick.epub", processedEpubUrl: null}}) src origin
-        pure $ streamerResult result.state src origin
+        pure $ streamerResult bookData src origin
   where
   streamerResult d src origin = do
      bookResult <- d
@@ -459,7 +439,7 @@ buildJsx props = React.do
           liftEffect $ setHighlightAdjectives \_ -> adjective
         pure mempty
 
-  streamResult <- useStreamer setLoaded props.toggleBars $ props.slug
+  streamResult <- useStreamer props.bookData setLoaded props.toggleBars
 
   let addToPages = launchAff_ do
         liftEffect $ log $ "PAGES READ: " <> show pagesRead
@@ -522,13 +502,6 @@ buildJsx props = React.do
                 , origin: origin
                 , onError: error
                 }
-            fab
-              { icon: "play"
-              , small: true
-              , style: M.css {width: 40, position: "absolute", bottom: 5, right: 5, zIndex: 2}
-              , onPress: RNE.capture_ $ traverse_ playAudioBook audioInformation
-              }
-
 
             M.childElement BottomContent.tabs
               { translation: (fst stateChangeListeners.translation)

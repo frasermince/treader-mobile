@@ -12,7 +12,9 @@ type File
 
 foreign import bookDir :: String
 foreign import audioDir :: String
+foreign import audioBookDir :: String
 
+foreign import _mkdir :: String -> {} -> Effect (Promise Unit)
 foreign import _exists :: String -> Effect (Promise Boolean)
 
 foreign import _readDirectory :: String -> Effect (Promise (Array File))
@@ -21,6 +23,9 @@ foreign import _writeFile :: String -> String -> String -> Effect (Promise Unit)
 foreign import _readFile :: String -> String -> Effect (Promise String)
 foreign import _unlink :: String -> Effect (Promise Unit)
 foreign import absintheFile :: {uri :: String, name :: String, type :: String} -> String
+
+mkdir :: String -> {} -> Aff Unit
+mkdir path options = (liftEffect (_mkdir path options) >>= Promise.toAff)
 
 unlink :: String -> Aff Unit
 unlink s = (liftEffect (_unlink s) >>= Promise.toAff)

@@ -2,6 +2,8 @@ module BookView where
 
 import Effect (Effect)
 import Prelude
+import Type.Proxy (Proxy(..))
+import ComponentTypes (BookViewQuery)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
@@ -27,6 +29,7 @@ import Paper (navigationOptions)
 import ApolloHooks (useQuery, gql)
 import Data.Either (either)
 import Reader as Reader
+import QueryHooks (useData, UseData, stripGraphqlError)
 
 containerStyles =
   { flex: 1
@@ -46,6 +49,22 @@ type JSProps
 
 type Props
   = {  route :: { params :: { slug :: Maybe String } }, navigation :: { navigate :: EffectFn2 String {} Unit }}
+
+query =
+  gql
+    """
+  query routes_Book_Query($book: String) {
+    book(slug: $book) {
+      id
+      epubUrl
+      processedEpubUrl
+      audioChapters {
+        chapter
+        audioUrl
+      }
+    }
+  }
+"""
 
 convertProps props =
   { route: { params: { slug: slug} },
@@ -73,6 +92,7 @@ buildJsx jsProps = React.do
     props = convertProps jsProps
   let
     route = props.route
+  bookData <- useData (Proxy :: Proxy BookViewQuery) query { variables: { book: fromMaybe "" route.params.slug }, errorPolicy: "all" }
   location /\ setLocation <- useState "0"
   toc /\ setToc <- useState []
   height /\ setHeight <- useState 0.0
@@ -107,6 +127,7 @@ buildJsx jsProps = React.do
           , visibleLocation
           , setHeight
           , setWidth
+          , bookData: bookData.state
           , showBars
           , setShowBars
           , setLocation
@@ -120,19 +141,12 @@ buildJsx jsProps = React.do
             , onLeftButtonPressed: capture_ $ runEffectFn2 props.navigation.navigate "BookIndex" {}
             , onRightButtonPressed: capture_ $ setShowNav \_ -> true
             }
-        M.view
-          { style: M.css $ Record.merge (barStyles showBars) { bottom: 0 }
-          } do
-          M.childElement BottomBar.reactComponent
+
+        M.childElement BottomBar.reactComponent
             { disabled: sliderDisabled
             , value: visibleLocation.start.percentage
+            , bookData: bookData.state
             , shown: showBars
             , onSlidingComplete: \number -> setLocation \_ -> show number
+            , slug: slug
             }
-          M.view {} do
-            M.childElement nav
-              { shown: showNav
-              , setShowNav: mkEffectFn1 \s -> setShowNav \_ -> s
-              , display: mkEffectFn1 \loc -> setLocation \_ -> loc
-              , toc: toc
-              }
