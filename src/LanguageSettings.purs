@@ -23,6 +23,7 @@ import FirebaseMessaging (requestPermission)
 import CefrLevels (levels)
 import TranslateLanguages (languages)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1, EffectFn2, runEffectFn2)
+import Effect.Class (liftEffect)
 
 type Props = {navigation :: { navigate :: EffectFn2 String {} Unit }}
 
@@ -46,7 +47,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Introduction" $ buildJsx
+        component "LanguageSettings" $ buildJsx
 
 radio Nothing choice p = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
 radio (Just selected) choice p
@@ -66,10 +67,11 @@ next ref = do
   result <- readRefMaybe ref
   traverse_ (\s -> runEffectFn1 s.scrollBy 1) result
 
-proceed mutationFn (Just dailyGoalId) (Just levelGoal) (Just language) (Just currentLevel) (Just nativeLanguageSelection) = launchAff_ do
+proceed navigate mutationFn (Just dailyGoalId) (Just levelGoal) (Just language) (Just currentLevel) (Just nativeLanguageSelection) = launchAff_ do
   requestPermission
-  mutationFn {variables: {input: {iosVersion: "1.4.6", dailyGoalId, levelGoal, language: language, startingLevel: currentLevel, nativeLanguage: nativeLanguageSelection}}}
-proceed mutationFn _ _ _ _ _ = mempty
+  _ <- mutationFn {variables: {input: {dailyGoalId, levelGoal, language: language, startingLevel: currentLevel, nativeLanguage: nativeLanguageSelection}}}
+  liftEffect $ runEffectFn2 navigate "Settings" {}
+proceed _ mutationFn _ _ _ _ _ = mempty
 
 slide buttonText onPress textComponent = do
   textComponent
@@ -190,15 +192,16 @@ buildJsx props = React.do
               M.view {style: M.css {flex: 2, alignItems: "center", height: "100%"}} do
                 title {style: M.css {marginBottom: 20}} $ M.string "Choose Your Current Level"
                 subheading {style: textStyle} $ M.string "This will help us keep track of your progress"
-              M.view {style: M.css {flex: 6, alignItems: "center", height: "100%", width: "100%"}} do
-                  goalChoice 6 currentLevel setCurrentLevel
-                  goalChoice 0 currentLevel setCurrentLevel
-                  goalChoice 1 currentLevel setCurrentLevel
-                  goalChoice 2 currentLevel setCurrentLevel
-                  goalChoice 3 currentLevel setCurrentLevel
-                  goalChoice 4 currentLevel setCurrentLevel
-                  goalChoice 5 currentLevel setCurrentLevel
-                  divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
+              M.view {style: M.css {flex: 8, height: "100%", width: "100%"}} do
+                M.scrollView {style: M.css {height: "100%", width: "100%", flex: 1}, contentContainerStyle: M.css {flex: 1, alignItems: "center"}} do
+                    goalChoice 6 currentLevel setCurrentLevel
+                    goalChoice 0 currentLevel setCurrentLevel
+                    goalChoice 1 currentLevel setCurrentLevel
+                    goalChoice 2 currentLevel setCurrentLevel
+                    goalChoice 3 currentLevel setCurrentLevel
+                    goalChoice 4 currentLevel setCurrentLevel
+                    goalChoice 5 currentLevel setCurrentLevel
+                    divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between", marginBottom: 20, marginTop: 30}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
             button { disabled: isNothing currentLevel, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ next ref } $ M.string "Next"
@@ -235,7 +238,7 @@ buildJsx props = React.do
                   divider {style: M.css {height: 1, width: "100%", color: "#66aab1"}}
           M.view {style: M.css {flex: 1, alignItems: "center", flexDirection: "row", alignContent: "space-between", marginBottom: 20, marginTop: 30}} do
             button { style: endButtonStyle, mode: "outlined", onPress: RNE.capture_ $ previous ref } $ M.string "Back"
-            button { disabled: isNothing dailySelection || isNothing goalSelection || isNothing currentLevel || isNothing nativeLanguageSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed mutationFn dailySelection goalSelection languageSelection currentLevel nativeLanguageSelection} $ M.string "Get started"
+            button { disabled: isNothing dailySelection || isNothing goalSelection || isNothing currentLevel || isNothing nativeLanguageSelection, mode: "contained", style: endButtonStyle, onPress: RNE.capture_ $ proceed props.navigation.navigate mutationFn dailySelection goalSelection languageSelection currentLevel nativeLanguageSelection} $ M.string "Get started"
 
 
 mainButtonStyle = M.css
