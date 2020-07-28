@@ -174,6 +174,7 @@ buildJsx props = React.do
   timesIncorrect /\ setTimesIncorrect <- useState (Map.empty :: Map String Int)
   idsInStack /\ setIdsInStack <- useState (empty :: Set String)
 
+
   let swipeLeft = do
         result <- readRefMaybe swipeRef
         traverse_ (\s -> s.swipeLeft) result
@@ -217,5 +218,6 @@ buildJsx props = React.do
           M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
             cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
+
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
         cardsMarkup (spy "LIST" cardList) flashcardsResult.state

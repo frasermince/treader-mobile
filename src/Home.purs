@@ -19,6 +19,7 @@ import FirebaseMessaging (requestPermission)
 import Effect.Aff (Aff, launchAff_, try)
 import Data.Interpolate (i)
 import CefrLevels (levels)
+import LanguageModal as LanguageModal
 
 type Props = { navigation :: { navigate :: EffectFn2 String {} Unit } }
 
@@ -85,12 +86,6 @@ nextLevelIndex flashcardCount startingLevel = findIndex moreThanCreated levels
            l <- levels !! startingLevel
            pure $ l.wordsNeeded
 
-selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
-  where select = do
-          setLanguage \_ -> value
-          dismiss
-
-
 buildJsx props = React.do
   let redirectBook = runEffectFn2 props.navigation.navigate "Read" {}
   let redirectCreate = runEffectFn2 props.navigation.navigate "Create" {}
@@ -99,7 +94,6 @@ buildJsx props = React.do
   languageModalVisible /\ setLanguageModalVisible <- useState false
   language /\ setLanguage <- useState (Nothing :: Maybe String)
   user <- useData (Proxy :: Proxy Query) query {fetchPolicy: "cache-and-network"}
-  let dismiss = setLanguageModalVisible \_ -> false
 
   useEffect user.state do
      setLanguage \_ -> do
@@ -119,18 +113,12 @@ buildJsx props = React.do
     Nothing -> mempty
     Just u ->
       pure $ M.getJsx do
-          portal {} $ dialog {visible: languageModalVisible, onDismiss: setLanguageModalVisible \_ -> false} do
-            dialogTitle {} $ M.string "Choose Language"
-            dialogContent {style: M.css {height: 280}} do
-                selectableItem language setLanguage (Just "fr") "French" dismiss
-                selectableItem language setLanguage (Just "es") "Spanish" dismiss
-                selectableItem language setLanguage (Just "it") "Italian" dismiss
-                selectableItem language setLanguage (Just "de") "German" dismiss
-                selectableItem language setLanguage (Just "ru") "Russian" dismiss
-                selectableItem language setLanguage (Just "en") "English" dismiss
-            dialogActions {} do
-                button {onPress: RNE.capture_ $ dismiss} $ M.string "Cancel"
-
+          M.childElement LanguageModal.reactComponent
+            { visible: languageModalVisible
+            , setVisible: setLanguageModalVisible
+            , language: language
+            , setLanguage: setLanguage
+            }
           surface { style: M.css { flex: 1 } } do
             M.safeAreaView { style: M.css { flex: 1 } } do
               M.view {style: M.css { flex: 1, flexDirection: "row", paddingTop: 20 }} do
