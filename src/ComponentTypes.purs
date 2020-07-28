@@ -19,3 +19,4 @@ type Flashcard = {id :: String, word :: String, sentence :: {text :: String, tra
 
 type BookViewQuery
   = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String, audioChapters :: Array {audioUrl :: String, chapter :: Int} } }
+type AudioInformation = {startPageTime :: String, endPageTime :: String, index :: Int}

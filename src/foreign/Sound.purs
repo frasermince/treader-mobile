@@ -8,6 +8,7 @@ type Sound = {}
 foreign import _createSound :: String -> EffectFnAff Sound
 foreign import _play :: Sound -> EffectFnAff Unit
 foreign import _stop :: Sound -> EffectFnAff Sound
+foreign import _setCurrentTime :: Sound -> Number -> EffectFnAff Sound
 foreign import release :: Sound -> Effect Unit
 
 createSound :: String -> Aff Sound
@@ -15,6 +16,9 @@ createSound = fromEffectFnAff <<< _createSound
 
 stop :: Sound -> Aff Sound
 stop = fromEffectFnAff <<< _stop
+
+setCurrentTime :: Sound -> Number -> Aff Sound
+setCurrentTime sound timestamp = fromEffectFnAff $ _setCurrentTime sound timestamp
 
 play :: Sound -> Aff Unit
 play = fromEffectFnAff <<< _play

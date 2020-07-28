@@ -2,7 +2,7 @@ module Reader where
 
 import Prelude
 import Context (dataStateContext)
-import ComponentTypes (BookViewQuery)
+import ComponentTypes (BookViewQuery, AudioInformation, Translation, Context)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Data.Tuple (Tuple)
@@ -39,7 +39,6 @@ import Navigation (useFocusEffect)
 import Subscribe as Subscribe
 import Paper (portal)
 import React.Basic.Native.Events as RNE
-import ComponentTypes
 import Data.DateTime (DateTime, diff)
 import Data.Time.Duration (fromDuration)
 import Effect.Now (nowDateTime)
@@ -48,7 +47,6 @@ import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..
 import Segment (track, screen)
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
-type AudioInformation = {startPageTime :: String, endPageTime :: String, index :: Int}
 type VisibleLocation
   = { start :: { percentage :: Int, cfi :: String } }
 
@@ -71,6 +69,7 @@ type Props
     , setShowBars :: (Boolean -> Boolean) -> Effect Unit
     , setHeight :: (Number -> Number) -> Effect Unit
     , setWidth :: (Number -> Number) -> Effect Unit
+    , setAudioInformation :: ((Maybe AudioInformation -> Maybe AudioInformation) -> Effect Unit)
     , slug :: String
     }
 
@@ -417,7 +416,6 @@ getBookId result = do
   r <- result
   pure $ r.bookId
 buildJsx props = React.do
-  audioInformation /\ setAudioInformation <- useState (Nothing :: Maybe AudioInformation)
   { setLoading, setError } <- useContext dataStateContext
   loaded /\ setLoaded <- useState false
   flow /\ setFlow <- useState "paginated"
@@ -490,7 +488,7 @@ buildJsx props = React.do
                 , src: src
                 , flow: flow
                 , location: props.location
-                , onLocationChange: locationChange props.title setAudioInformation props.setVisibleLocation pageLastAdvanced setPagesRead
+                , onLocationChange: locationChange props.title props.setAudioInformation props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
                 , themes: { highlighted: merge (setTheme highlightVerbs highlightNouns highlightAdjectives) defaultTheme }

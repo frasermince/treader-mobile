@@ -3,7 +3,7 @@ module BookView where
 import Effect (Effect)
 import Prelude
 import Type.Proxy (Proxy(..))
-import ComponentTypes (BookViewQuery)
+import ComponentTypes (BookViewQuery, AudioInformation)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
@@ -101,6 +101,7 @@ buildJsx jsProps = React.do
   sliderDisabled /\ setSliderDisabled <- useState true
   showBars /\ setShowBars <- useState true
   visibleLocation /\ setVisibleLocation <- useState { start: { percentage: 0, cfi: "0" } }
+  audioInformation /\ setAudioInformation <- useState (Nothing :: Maybe AudioInformation)
   showNav /\ setShowNav <- useState false
   let
     toggleBars = setShowBars $ \_ -> not $ showBars
@@ -125,6 +126,7 @@ buildJsx jsProps = React.do
           , setSliderDisabled
           , setVisibleLocation
           , visibleLocation
+          , setAudioInformation
           , setHeight
           , setWidth
           , bookData: bookData.state
@@ -149,4 +151,5 @@ buildJsx jsProps = React.do
             , shown: showBars
             , onSlidingComplete: \number -> setLocation \_ -> show number
             , slug: slug
+            , audioInformation
             }

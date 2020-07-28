@@ -31,6 +31,19 @@ exports._play = function (sound) {
   }
 }
 
+exports._setCurrentTime = function (sound) {
+  return function(seconds) {
+    return function (onError, onSuccess) { // and callbacks
+      sound.setCurrentTime(seconds);
+      onSuccess(sound);
+
+      return function (cancelError, cancelerError, cancelerSuccess) {
+        cancelerSuccess(); // invoke the success callback for the canceler
+      };
+    }
+  }
+}
+
 exports._stop = function (sound) {
   return function (onError, onSuccess) { // and callbacks
     return sound.stop(() => {
