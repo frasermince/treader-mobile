@@ -35,7 +35,6 @@ mutation createGoals($input: CreateGoalsInput!) {
   createGoals(input: $input) {
     user {
       id
-      iosVersion
       nativeLanguage
       startingLevel
     }
