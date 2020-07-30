@@ -27,7 +27,7 @@ import Data.Interpolate (i)
 import FS (audioBookDir, mkdir, exists)
 import Data.Foldable (foldl)
 import Effect.Class (liftEffect)
-import Sound (play, Sound, release, stop, createSound, setCurrentTime)
+import Sound (play, Sound, release, stop, createSound, setCurrentTime, pause)
 import Data.Number (fromString)
 import Data.Int (floor)
 import Data.String (split, Pattern(..))
@@ -49,10 +49,13 @@ type Props
     , audioInformation :: Maybe AudioInformation
     }
 
-barStyles showBars fade =
+data PlayState = Paused | NotStarted | Playing
+derive instance eqPlayState :: Eq PlayState
+
+barStyles showBars fade showAudio =
   { left: 0
   , right: 0
-  , height: 110
+  , height: if showAudio then 110 else 55
   , position: "absolute"
   , bottom: 0
   , opacity: fade
@@ -113,20 +116,38 @@ opacity = SProxy :: SProxy "opacity"
 fileForChapter slug chapter = (dirForBook slug) <> "/" <> "chapter-" <> show chapter <> ".mp3"
 dirForBook slug = audioBookDir <> "/" <> slug
 
-playPage :: String -> Maybe AudioInformation -> Effect Unit
-playPage slug Nothing = mempty
-playPage slug (Just audioInformation) = launchAff_ do
-  let path = fileForChapter slug audioInformation.index
-  sound <- createSound path
-  sound <- setCurrentTime sound seconds
-  play sound
-  where segments = split (Pattern ":") audioInformation.startPageTime
-        seconds = fromMaybe 0.0 do
-          hours <- (segments !! 0) >>= fromString
-          minutes <- (segments !! 1) >>= fromString
-          seconds <- (segments !! 2) >>= fromString
-          pure $ (hours * 3600.0) + (minutes * 60.0) + seconds
+playPage :: String -> Maybe AudioInformation -> SoundData -> ((SoundData -> SoundData) -> Effect Unit) -> Effect Unit
+playPage slug Nothing soundData setSoundData = mempty
+playPage slug (Just audioInformation) {sound, isPlaying} setSoundData =
+  case spy "ISPLAYING" isPlaying of
+    NotStarted -> setTimeAndPlay
+    Paused -> launchAff_ $ do
+       liftEffect $ setSoundData \_ -> {sound, isPlaying: Playing}
+       traverse_ play sound
+    Playing -> mempty
+  where setTimeAndPlay = launchAff_ do
+          let path = fileForChapter slug audioInformation.index
+          sound <- createSound path
+          sound <- setCurrentTime sound $ seconds
+          liftEffect $ setSoundData \_ -> {sound: Just sound, isPlaying: Playing}
+          play sound
+          where segments = split (Pattern ":") audioInformation.startPageTime
+                seconds = fromMaybe 0.0 do
+                  hours <- (segments !! 0) >>= fromString
+                  minutes <- (segments !! 1) >>= fromString
+                  seconds <- (segments !! 2) >>= fromString
+                  pure $ (hours * 3600.0) + (minutes * 60.0) + seconds
 
+pauseSound :: SoundData -> ((SoundData -> SoundData) -> Effect Unit) -> Effect Unit
+pauseSound {sound: Just sound, isPlaying} setSoundData =
+  case isPlaying of
+    NotStarted -> mempty
+    Paused -> mempty
+    Playing -> launchAff_ do
+       pause sound
+       liftEffect $ setSoundData \_ -> {sound: Just sound, isPlaying: Paused}
+
+pauseSound {sound: Nothing, isPlaying} setSoundData = mempty
 
 checkChaptersDownloaded :: ((Boolean -> Boolean) -> Effect Unit) -> String -> Maybe BookViewQuery -> Effect Unit
 checkChaptersDownloaded setFilesDownloaded slug bookData = launchAff_ do
@@ -142,7 +163,7 @@ checkChaptersDownloaded setFilesDownloaded slug bookData = launchAff_ do
 fetchFiles :: ((Boolean -> Boolean) -> Effect Unit) -> String -> Maybe BookViewQuery -> Effect Unit
 fetchFiles setFilesDownloaded slug bookData = launchAff_ do
   mkdir path {}
-  traverse_ (\b -> foldl downloadChapter mempty $ spy "CHAPTERS" b.book.audioChapters) $ spy "DATA" bookData
+  traverse_ (\b -> foldl downloadChapter mempty $ b.book.audioChapters) $ bookData
   liftEffect $ setFilesDownloaded \_ -> true
   where path = dirForBook slug
         downloadChapter :: Aff Unit -> {chapter :: Int, audioUrl :: String} -> Aff Unit
@@ -150,10 +171,15 @@ fetchFiles setFilesDownloaded slug bookData = launchAff_ do
           _ <- fetch {fileCache: true, path: fileForChapter slug chapterData.chapter} "GET" chapterData.audioUrl {}
           pure unit
 
+audioExists Nothing = false
+audioExists (Just bookData) = not $ bookData.book.audioChapters == []
+
+type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 --buildJsx :: Props -> JSX
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
   filesDownloaded /\ setFilesDownloaded <- useState false
+  soundData /\ setSoundData <- useState $ {sound: Nothing :: Maybe Sound, isPlaying: NotStarted}
   useEffect unit do
      checkChaptersDownloaded setFilesDownloaded props.slug props.bookData
      pure mempty
@@ -162,18 +188,25 @@ buildJsx props = React.do
     pure mempty
   pure $ M.getJsx $ do
      view
-        { style: M.css $ barStyles props.shown fade
+        { style: M.css $ barStyles props.shown fade (audioExists props.bookData)
         } do
             M.view { style: M.css $ footerStyles fade } do
               slider { style: M.css $ sliderStyles fade, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete, maximumTrackTintColor: "#707070" }
-            view { style: M.css $ footerStyles fade } do
+            if not $ audioExists props.bookData then mempty else view { style: M.css $ footerStyles fade } do
               if not filesDownloaded
                 then M.touchableOpacity {style: M.css {flex: 1, flexDirection: "row"}, onPress: RNE.capture_ $ fetchFiles setFilesDownloaded props.slug props.bookData} do
                   icon {style: M.css {flex: 2, marginLeft: 10}, name: "file-download", size: 20}
                   M.text {style: M.css {flex: 5}} $ M.string "Tap to download audio"
-              else fab
-                { icon: "play"
-                , small: true
-                , style: M.css {width: 40}
-                , onPress: RNE.capture_ $ playPage props.slug props.audioInformation
-                }
+                else M.view {} do
+                   if soundData.isPlaying == Playing then fab
+                      { icon: "pause"
+                      , small: true
+                      , style: M.css {width: 40}
+                      , onPress: RNE.capture_ $ pauseSound soundData setSoundData
+                      }
+                   else fab
+                      { icon: "play"
+                      , small: true
+                      , style: M.css {width: 40}
+                      , onPress: RNE.capture_ $ playPage props.slug props.audioInformation soundData setSoundData
+                      }

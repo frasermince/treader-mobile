@@ -153,7 +153,7 @@ ready setTitle setToc setLocation = mkEffectFn1 e
     Effect Unit
   e book = do
     setTitle \_ -> Just book.package.metadata.title
-    setToc \_ -> book.navigation.toc
+    setToc \_ -> spy "TOC" book.navigation.toc
     launchAff_ do
       l <- getItem book.package.metadata.title
       liftEffect $ setLocation \_ -> fromMaybe "0" l

@@ -7,6 +7,7 @@ import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 type Sound = {}
 foreign import _createSound :: String -> EffectFnAff Sound
 foreign import _play :: Sound -> EffectFnAff Unit
+foreign import _pause :: Sound -> EffectFnAff Unit
 foreign import _stop :: Sound -> EffectFnAff Sound
 foreign import _setCurrentTime :: Sound -> Number -> EffectFnAff Sound
 foreign import release :: Sound -> Effect Unit
@@ -22,6 +23,9 @@ setCurrentTime sound timestamp = fromEffectFnAff $ _setCurrentTime sound timesta
 
 play :: Sound -> Aff Unit
 play = fromEffectFnAff <<< _play
+
+pause :: Sound -> Aff Unit
+pause = fromEffectFnAff <<< _pause
 
 stopAndPlay :: Sound -> Aff Unit
 stopAndPlay sound = do
