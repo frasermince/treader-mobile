@@ -21,9 +21,9 @@ exports._createSound = function (music) { // accepts a request
 
 exports._play = function (sound) {
   return function (onError, onSuccess) { // and callbacks
-    return sound.play(() => {
-      onSuccess(sound);
+    sound.play(() => {
     });
+    onSuccess(sound);
 
     return function (cancelError, cancelerError, cancelerSuccess) {
       cancelerSuccess(); // invoke the success callback for the canceler
@@ -55,6 +55,19 @@ exports._setCurrentTime = function (sound) {
     }
   }
 }
+
+exports._getCurrentTime = function (sound) {
+  return function (onError, onSuccess) { // and callbacks
+    sound.getCurrentTime(function(seconds) {
+      onSuccess(seconds);
+    });
+
+    return function (cancelError, cancelerError, cancelerSuccess) {
+      cancelerSuccess(); // invoke the success callback for the canceler
+    };
+  }
+}
+
 
 exports._stop = function (sound) {
   return function (onError, onSuccess) { // and callbacks

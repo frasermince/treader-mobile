@@ -5,7 +5,7 @@ import Prelude
 import Data.Array ((!!))
 import Data.Traversable (traverse_)
 import Debug.Trace (spy)
-import Effect.Aff (Aff, launchAff_)
+import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..))
 import ComponentTypes (BookViewQuery, AudioInformation)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import React.Basic.Hooks as React
@@ -27,8 +27,9 @@ import Data.Interpolate (i)
 import FS (audioBookDir, mkdir, exists)
 import Data.Foldable (foldl)
 import Effect.Class (liftEffect)
-import Sound (play, Sound, release, stop, createSound, setCurrentTime, pause)
+import Sound (play, Sound, release, stop, createSound, setCurrentTime, pause, getCurrentTime)
 import Data.Number (fromString)
+import Data.Number.Approximate (eqApproximate)
 import Data.Int (floor)
 import Data.String (split, Pattern(..))
 
@@ -47,6 +48,7 @@ type Props
     , bookData :: Maybe BookViewQuery
     , slug :: String
     , audioInformation :: Maybe AudioInformation
+    , visibleLocation :: { start :: { percentage :: Int, cfi :: String } }
     }
 
 data PlayState = Paused | NotStarted | Playing
@@ -116,14 +118,27 @@ opacity = SProxy :: SProxy "opacity"
 fileForChapter slug chapter = (dirForBook slug) <> "/" <> "chapter-" <> show chapter <> ".mp3"
 dirForBook slug = audioBookDir <> "/" <> slug
 
-playPage :: String -> Maybe AudioInformation -> SoundData -> ((SoundData -> SoundData) -> Effect Unit) -> Effect Unit
-playPage slug Nothing soundData setSoundData = mempty
-playPage slug (Just audioInformation) {sound, isPlaying} setSoundData =
+timeSame Nothing b = false
+timeSame (Just a) b = eqApproximate a b
+trackTime :: ((Maybe Number -> Maybe Number) -> Effect Unit) -> Maybe Number -> Sound -> Aff Unit
+trackTime setTime time sound = do
+  delay $ Milliseconds 250.0
+  currentTime <- getCurrentTime sound
+  liftEffect $ setTime \_ -> Just $ spy "CURRENT TIME" currentTime
+  if timeSame time currentTime then mempty else trackTime setTime (Just currentTime) sound
+
+playPage :: String -> Maybe AudioInformation -> SoundData -> ((SoundData -> SoundData) -> Effect Unit) -> ((Maybe Number -> Maybe Number) -> Effect Unit) -> Effect Unit
+playPage slug Nothing soundData setSoundData setTime = mempty
+playPage slug (Just audioInformation) {sound, isPlaying} setSoundData setTime =
   case spy "ISPLAYING" isPlaying of
     NotStarted -> setTimeAndPlay
     Paused -> launchAff_ $ do
        liftEffect $ setSoundData \_ -> {sound, isPlaying: Playing}
-       traverse_ play sound
+       case sound of
+          Just s -> do
+             play s
+             trackTime setTime Nothing s
+          Nothing -> mempty
     Playing -> mempty
   where setTimeAndPlay = launchAff_ do
           let path = fileForChapter slug audioInformation.index
@@ -131,6 +146,7 @@ playPage slug (Just audioInformation) {sound, isPlaying} setSoundData =
           sound <- setCurrentTime sound $ seconds
           liftEffect $ setSoundData \_ -> {sound: Just sound, isPlaying: Playing}
           play sound
+          trackTime setTime Nothing sound
           where segments = split (Pattern ":") audioInformation.startPageTime
                 seconds = fromMaybe 0.0 do
                   hours <- (segments !! 0) >>= fromString
@@ -178,6 +194,7 @@ type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 --buildJsx :: Props -> JSX
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
+  time /\ setTime <- useState (Nothing :: Maybe Number)
   filesDownloaded /\ setFilesDownloaded <- useState false
   soundData /\ setSoundData <- useState $ {sound: Nothing :: Maybe Sound, isPlaying: NotStarted}
   useEffect unit do
@@ -186,6 +203,10 @@ buildJsx props = React.do
   useEffect props.shown do
     launchAff_ $ runAnimation props.shown fade
     pure mempty
+
+  useEffect props.visibleLocation do
+     if soundData.isPlaying == Playing then mempty else setSoundData \_ -> {sound: soundData.sound, isPlaying: NotStarted}
+     pure mempty
   pure $ M.getJsx $ do
      view
         { style: M.css $ barStyles props.shown fade (audioExists props.bookData)
@@ -208,5 +229,5 @@ buildJsx props = React.do
                       { icon: "play"
                       , small: true
                       , style: M.css {width: 40}
-                      , onPress: RNE.capture_ $ playPage props.slug props.audioInformation soundData setSoundData
+                      , onPress: RNE.capture_ $ playPage props.slug props.audioInformation soundData setSoundData setTime
                       }

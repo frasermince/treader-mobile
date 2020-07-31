@@ -152,4 +152,5 @@ buildJsx jsProps = React.do
             , onSlidingComplete: \number -> setLocation \_ -> show number
             , slug: slug
             , audioInformation
+            , visibleLocation
             }
