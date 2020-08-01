@@ -101,6 +101,7 @@ buildJsx jsProps = React.do
   sliderDisabled /\ setSliderDisabled <- useState true
   showBars /\ setShowBars <- useState true
   visibleLocation /\ setVisibleLocation <- useState { start: { percentage: 0, cfi: "0" } }
+  audioTime /\ setAudioTime <- useState (Nothing :: Maybe Number)
   audioInformation /\ setAudioInformation <- useState (Nothing :: Maybe AudioInformation)
   showNav /\ setShowNav <- useState false
   let
@@ -133,6 +134,7 @@ buildJsx jsProps = React.do
           , showBars
           , setShowBars
           , setLocation
+          , audioTime
           }
         M.view
           { style: M.css $ Record.merge (barStyles showBars) { top: 0 }
@@ -153,4 +155,6 @@ buildJsx jsProps = React.do
             , slug: slug
             , audioInformation
             , visibleLocation
+            , setAudioTime
+            , audioTime
             }

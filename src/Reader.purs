@@ -71,6 +71,7 @@ type Props
     , setWidth :: (Number -> Number) -> Effect Unit
     , setAudioInformation :: ((Maybe AudioInformation -> Maybe AudioInformation) -> Effect Unit)
     , slug :: String
+    , audioTime :: Maybe Number
     }
 
 styles =
@@ -499,6 +500,7 @@ buildJsx props = React.do
                 , fontSize: "20px"
                 , origin: origin
                 , onError: error
+                , audioTime: toNullable props.audioTime
                 }
 
             M.childElement BottomContent.tabs

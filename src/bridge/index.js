@@ -280,6 +280,10 @@ import tokenizer from 'sbd';
           }
           break;
         }
+        case "currentAudioTime": {
+          var audioTime = decoded.args.length && decoded.args[0];
+          console.log("BRIDGE TIME", audioTime);
+        }
         case "flow": {
           var direction = decoded.args.length && decoded.args[0];
           axis = (direction === "paginated") ? "horizontal" : "vertical";

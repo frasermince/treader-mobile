@@ -49,6 +49,8 @@ type Props
     , slug :: String
     , audioInformation :: Maybe AudioInformation
     , visibleLocation :: { start :: { percentage :: Int, cfi :: String } }
+    , setAudioTime :: ((Maybe Number -> Maybe Number) -> Effect Unit)
+    , audioTime :: Maybe Number
     }
 
 data PlayState = Paused | NotStarted | Playing
@@ -194,7 +196,6 @@ type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 --buildJsx :: Props -> JSX
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1
-  time /\ setTime <- useState (Nothing :: Maybe Number)
   filesDownloaded /\ setFilesDownloaded <- useState false
   soundData /\ setSoundData <- useState $ {sound: Nothing :: Maybe Sound, isPlaying: NotStarted}
   useEffect unit do
@@ -229,5 +230,5 @@ buildJsx props = React.do
                       { icon: "play"
                       , small: true
                       , style: M.css {width: 40}
-                      , onPress: RNE.capture_ $ playPage props.slug props.audioInformation soundData setSoundData setTime
+                      , onPress: RNE.capture_ $ playPage props.slug props.audioInformation soundData setSoundData props.setAudioTime
                       }
