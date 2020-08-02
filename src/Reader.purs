@@ -464,6 +464,12 @@ buildJsx props = React.do
      props.setTitle \_ -> Nothing
      pure mempty
 
+  useEffect props.audioTime do
+    result <- readRefMaybe ref
+    traverse_ (\s -> runEffectFn1 s.setAudioTime $ toNullable props.audioTime) result
+    pure mempty
+
+
   useEffect (fst stateChangeListeners.highlightedContent)
     $ do
         log $ "listeners: " <> (fromMaybe "Nothing" ((_.text) <$> fst stateChangeListeners.highlightedContent))
@@ -500,7 +506,6 @@ buildJsx props = React.do
                 , fontSize: "20px"
                 , origin: origin
                 , onError: error
-                , audioTime: toNullable props.audioTime
                 }
 
             M.childElement BottomContent.tabs

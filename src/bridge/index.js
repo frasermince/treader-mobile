@@ -226,6 +226,8 @@ import tokenizer from 'sbd';
     var isChrome = /Chrome/.test(navigator.userAgent);
     var isWebkit = !isChrome && /AppleWebKit/.test(navigator.userAgent);
 
+    let pageBegin = null;
+    let pageEnd = null;
     function onMessage(e) {
       var message = e.data;
       handleMessage(message);
@@ -281,8 +283,17 @@ import tokenizer from 'sbd';
           break;
         }
         case "currentAudioTime": {
-          var audioTime = decoded.args.length && decoded.args[0];
-          console.log("BRIDGE TIME", audioTime);
+          var args = decoded.args && decoded.args.length && decoded.args[0];
+          console.log("BRIDGE TIME", args.audioTime);
+          let segments = pageEnd.split(":");
+          let hours = parseFloat(segments[0])
+          let minutes = parseFloat(segments[1])
+          let seconds = parseFloat(segments[2])
+          let endTime = (hours * 3600.0) + (minutes * 60.0) + seconds
+          if (args.audioTime > endTime) {
+            rendition.next();
+          }
+          break;
         }
         case "flow": {
           var direction = decoded.args.length && decoded.args[0];
@@ -322,7 +333,6 @@ import tokenizer from 'sbd';
           break;
         }
         case "reportLocation": {
-          debugger
           if (rendition) {
             rendition.reportLocation();
           } else {
@@ -667,19 +677,23 @@ import tokenizer from 'sbd';
             let parser = new DOMParser();
             let xmlDoc = parser.parseFromString(smilFile, "text/xml");
             let sequences = xmlDoc.children[0].children[0].children[0];
-            let startWord = rendition.getRange(location.start.cfi).commonAncestorContainer.parentNode.id
-            let endWord = rendition.getRange(location.end.cfi).commonAncestorContainer.parentNode.id
+            let startWord = rendition.getRange(location.start.cfi).commonAncestorContainer.parentNode.id || "p000001s000001w000001";
+            let endNode = rendition.getRange(location.end.cfi).commonAncestorContainer;
+            let endWord = null;
+            if (endNode.parentNode.classList.contains("sentence") || endNode.parentNode.classList.contains("paragraph")) {
+              endWord = endNode.previousSibling.id;
+            }
+            else {
+              endWord = endNode.parentNode.id;
+            }
             let startRefs = {paragraph: startWord.slice(0, 7), sentence: startWord.slice(7, 14), word: startWord.slice(14, 21)};
             let endRefs = {paragraph: endWord.slice(0, 7), sentence: endWord.slice(7, 14), word: endWord.slice(14, 21)};
-            debugger
             let documentName = sequences.attributes["epub:textref"].value;
             let startSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${startWord}]`)
             let endSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${endWord}]`)
-            debugger
-            let pageBegin = startSequence.querySelector("audio").getAttribute("clipBegin")
-            let pageEnd = endSequence.querySelector("audio").getAttribute("clipEnd")
+            pageBegin = startSequence.querySelector("audio").getAttribute("clipBegin")
+            pageEnd = endSequence.querySelector("audio").getAttribute("clipEnd")
             let index = parseInt(overlay.replace("smil-", ""), 10);
-            debugger
             sendMessageWithoutCache({method:"relocated", location: location, pageBegin: pageBegin, pageEnd: pageEnd, smilChapter: index});
           });
         }
@@ -691,7 +705,6 @@ import tokenizer from 'sbd';
       });
 
       rendition.on("selected", function({cfi, range, context}, contents, t) {
-        debugger
         let span = range.startContainer;
         let text = range.toString();
         let svg = document.getElementById("select-box");
