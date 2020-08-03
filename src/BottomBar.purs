@@ -32,6 +32,7 @@ import Data.Number (fromString)
 import Data.Number.Approximate (eqApproximate)
 import Data.Int (floor)
 import Data.String (split, Pattern(..))
+import Math (abs)
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -145,16 +146,17 @@ playPage slug (Just audioInformation) {sound, isPlaying} setSoundData setTime =
   where setTimeAndPlay = launchAff_ do
           let path = fileForChapter slug audioInformation.index
           sound <- createSound path
-          sound <- setCurrentTime sound $ seconds
+          sound <- setCurrentTime sound $ audioSeconds audioInformation
           liftEffect $ setSoundData \_ -> {sound: Just sound, isPlaying: Playing}
           play sound
           trackTime setTime Nothing sound
-          where segments = split (Pattern ":") audioInformation.startPageTime
-                seconds = fromMaybe 0.0 do
-                  hours <- (segments !! 0) >>= fromString
-                  minutes <- (segments !! 1) >>= fromString
-                  seconds <- (segments !! 2) >>= fromString
-                  pure $ (hours * 3600.0) + (minutes * 60.0) + seconds
+
+audioSeconds audioInformation = fromMaybe 0.0 do
+  hours <- (segments !! 0) >>= fromString
+  minutes <- (segments !! 1) >>= fromString
+  seconds <- (segments !! 2) >>= fromString
+  pure $ (hours * 3600.0) + (minutes * 60.0) + seconds
+  where segments = split (Pattern ":") audioInformation.startPageTime
 
 pauseSound :: SoundData -> ((SoundData -> SoundData) -> Effect Unit) -> Effect Unit
 pauseSound {sound: Just sound, isPlaying} setSoundData =
@@ -192,6 +194,14 @@ fetchFiles setFilesDownloaded slug bookData = launchAff_ do
 audioExists Nothing = false
 audioExists (Just bookData) = not $ bookData.book.audioChapters == []
 
+-- Checks if the user changes the page while the book is playing.
+-- If the audio changed the page when it reached the end this should not be hit due to the two second buffer.
+conditionallyChangeTime (Just audioInformation) (Just audioTime) (Just sound)
+  | abs (audioTime - (audioSeconds audioInformation)) > 2.0 = launchAff_ $ setCurrentTime sound $ audioSeconds audioInformation
+  | otherwise = mempty
+
+conditionallyChangeTime _ _ _ = mempty
+
 type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 --buildJsx :: Props -> JSX
 buildJsx props = React.do
@@ -205,9 +215,12 @@ buildJsx props = React.do
     launchAff_ $ runAnimation props.shown fade
     pure mempty
 
-  useEffect props.visibleLocation do
-     if soundData.isPlaying == Playing then mempty else setSoundData \_ -> {sound: soundData.sound, isPlaying: NotStarted}
+  useEffect props.audioInformation do
+     if soundData.isPlaying == Playing
+      then conditionallyChangeTime props.audioInformation props.audioTime soundData.sound
+      else setSoundData \_ -> {sound: soundData.sound, isPlaying: NotStarted}
      pure mempty
+
   pure $ M.getJsx $ do
      view
         { style: M.css $ barStyles props.shown fade (audioExists props.bookData)

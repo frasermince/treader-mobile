@@ -228,6 +228,7 @@ import tokenizer from 'sbd';
 
     let pageBegin = null;
     let pageEnd = null;
+    let pageJustTurned = false;
     function onMessage(e) {
       var message = e.data;
       handleMessage(message);
@@ -290,8 +291,10 @@ import tokenizer from 'sbd';
           let minutes = parseFloat(segments[1])
           let seconds = parseFloat(segments[2])
           let endTime = (hours * 3600.0) + (minutes * 60.0) + seconds
-          if (args.audioTime > endTime) {
+          if (args.audioTime > endTime && !pageJustTurned) {
             rendition.next();
+          } else if(pageJustTurned) {
+            pageJustTurned = false;
           }
           break;
         }
@@ -694,6 +697,7 @@ import tokenizer from 'sbd';
             pageBegin = startSequence.querySelector("audio").getAttribute("clipBegin")
             pageEnd = endSequence.querySelector("audio").getAttribute("clipEnd")
             let index = parseInt(overlay.replace("smil-", ""), 10);
+            pageJustTurned = true;
             sendMessageWithoutCache({method:"relocated", location: location, pageBegin: pageBegin, pageEnd: pageEnd, smilChapter: index});
           });
         }
