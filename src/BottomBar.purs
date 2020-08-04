@@ -215,6 +215,18 @@ buildJsx props = React.do
     launchAff_ $ runAnimation props.shown fade
     pure mempty
 
+  useEffect (_.index <$> props.audioInformation) do
+     if soundData.isPlaying == Playing
+       then launchAff_ do
+          case soundData.sound of
+               (Just sound) -> do
+                  s <- stop sound
+                  liftEffect $ release s
+               Nothing -> mempty
+          liftEffect $ playPage props.slug props.audioInformation {sound: soundData.sound, isPlaying: NotStarted} setSoundData props.setAudioTime
+       else mempty
+     pure mempty
+
   useEffect props.audioInformation do
      if soundData.isPlaying == Playing
       then conditionallyChangeTime props.audioInformation props.audioTime soundData.sound

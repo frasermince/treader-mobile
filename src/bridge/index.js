@@ -291,7 +291,7 @@ import tokenizer from 'sbd';
           let minutes = parseFloat(segments[1])
           let seconds = parseFloat(segments[2])
           let endTime = (hours * 3600.0) + (minutes * 60.0) + seconds
-          if (args.audioTime > endTime && !pageJustTurned) {
+          if (args.audioTime + 0.2 > endTime && !pageJustTurned) {
             rendition.next();
           } else if(pageJustTurned) {
             pageJustTurned = false;
