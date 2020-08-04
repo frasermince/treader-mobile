@@ -158,3 +158,12 @@ buildJsx jsProps = React.do
             , setAudioTime
             , audioTime
             }
+
+
+        M.view {} do
+          M.childElement nav
+            { shown: showNav
+            , setShowNav: mkEffectFn1 \s -> setShowNav \_ -> s
+            , display: mkEffectFn1 \loc -> setLocation \_ -> loc
+            , toc: toc
+            }
