@@ -368,9 +368,6 @@ defaultTheme =
     , "-ms-user-select": "none"
     , "user-select": "none"
     }
-  , ".active-audio": {
-      "background-color": "yellow"
-    }
   }
 
 setTheme :: Boolean -> Boolean -> Boolean -> Theme

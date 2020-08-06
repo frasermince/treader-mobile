@@ -238,9 +238,9 @@ import tokenizer from 'sbd';
     function getSmil(location, resultFn) {
       const idref = book.packaging.spine[location.start.index].idref;
       const overlay = book.packaging.manifest[idref].overlay;
-      const smil = book.packaging.manifest[overlay].href;
+      const smil = book.packaging.manifest[overlay]
       if(smil) {
-        book.load(smil).then(function(smilFile) {
+        book.load(smil.href).then(function(smilFile) {
           let parser = new DOMParser();
           let xmlDoc = parser.parseFromString(smilFile, "text/xml");
           resultFn(xmlDoc, overlay);
@@ -280,9 +280,6 @@ import tokenizer from 'sbd';
           let paragraphNumber = parseInt(s.id.slice(1, 7));
           let sentenceNumber = parseInt(s.id.slice(8, 14));
           if (paragraphNumber > startingParagraphNumber || (sentenceNumber >= startingSentenceNumber && paragraphNumber == startingParagraphNumber)) {
-            if (paragraphNumber == 14) {
-              debugger
-            }
             let sentenceEndTime = timeStampForRefLast(xmlDoc, s.id).getAttribute("clipEnd");
             let segments = sentenceEndTime.split(":");
             let hours = parseFloat(segments[0])
@@ -291,7 +288,6 @@ import tokenizer from 'sbd';
 
             let endSeconds = (hours * 3600.0) + (minutes * 60.0) + seconds
             if(endSeconds > time + 0.5) {
-              debugger
               s.classList.add("active-audio");
               return true;
             } else {
