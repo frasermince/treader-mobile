@@ -228,10 +228,82 @@ import tokenizer from 'sbd';
 
     let pageBegin = null;
     let pageEnd = null;
+    let startWord = null;
     let pageJustTurned = false;
     function onMessage(e) {
       var message = e.data;
       handleMessage(message);
+    }
+
+    function getSmil(location, resultFn) {
+      const idref = book.packaging.spine[location.start.index].idref;
+      const overlay = book.packaging.manifest[idref].overlay;
+      const smil = book.packaging.manifest[overlay].href;
+      if(smil) {
+        book.load(smil).then(function(smilFile) {
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(smilFile, "text/xml");
+          resultFn(xmlDoc, overlay);
+        });
+      } else {
+        resultFn(null);
+      }
+
+    }
+
+    function timeStampForRef(xmlDoc, ref) {
+      let sequence = sequenceForRef(xmlDoc, ref);
+      let clip = sequence.querySelector("audio")
+      return clip;
+    }
+
+    function timeStampForRefLast(xmlDoc, ref) {
+      let sequence = sequenceForRef(xmlDoc, ref);
+      let audioClips = sequence.querySelectorAll("audio")
+      return audioClips[audioClips.length - 1];
+    }
+
+    function sequenceForRef(xmlDoc, ref) {
+      let sequences = xmlDoc.children[0].children[0].children[0];
+      let documentName = sequences.attributes["epub:textref"].value;
+      let sequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${ref}]`)
+      return sequence;
+    }
+
+    function setCurrentSentence(location, time) {
+      startWord
+      let startingParagraphNumber = parseInt(startWord.slice(1, 7));
+      let startingSentenceNumber = parseInt(startWord.slice(8, 14));
+      let sentences = document.getElementsByClassName("epub-container")[0].children[0].children[0].contentWindow.document.getElementsByClassName("sentence")
+      let sentence = getSmil(location, (xmlDoc, overlay) => {
+        return Array.from(sentences).find((s) => {
+          let paragraphNumber = parseInt(s.id.slice(1, 7));
+          let sentenceNumber = parseInt(s.id.slice(8, 14));
+          if (paragraphNumber > startingParagraphNumber || (sentenceNumber >= startingSentenceNumber && paragraphNumber == startingParagraphNumber)) {
+            if (paragraphNumber == 14) {
+              debugger
+            }
+            let sentenceEndTime = timeStampForRefLast(xmlDoc, s.id).getAttribute("clipEnd");
+            let segments = sentenceEndTime.split(":");
+            let hours = parseFloat(segments[0])
+            let minutes = parseFloat(segments[1])
+            let seconds = parseFloat(segments[2])
+
+            let endSeconds = (hours * 3600.0) + (minutes * 60.0) + seconds
+            if(endSeconds > time + 0.5) {
+              debugger
+              s.classList.add("active-audio");
+              return true;
+            } else {
+              s.classList.remove("active-audio");
+              return false;
+            }
+          } else {
+            s.classList.remove("active-audio");
+            return false;
+          }
+        });
+      });
     }
 
     function handleMessage(message) {
@@ -291,6 +363,7 @@ import tokenizer from 'sbd';
           let minutes = parseFloat(segments[1])
           let seconds = parseFloat(segments[2])
           let endTime = (hours * 3600.0) + (minutes * 60.0) + seconds
+          setCurrentSentence(rendition.location, args.audioTime);
           if (args.audioTime + 0.2 > endTime && !pageJustTurned) {
             rendition.next();
           } else if(pageJustTurned) {
@@ -672,15 +745,9 @@ import tokenizer from 'sbd';
       rendition.on("relocated", function(location){
         console.log("RELOCATED", location);
         //renditionHandler(rendition, options.location);
-        const idref = book.packaging.spine[location.start.index].idref;
-        const overlay = book.packaging.manifest[idref].overlay;
-        const smil = book.packaging.manifest[overlay].href;
-        if(smil) {
-          book.load(smil).then(function(smilFile) {
-            let parser = new DOMParser();
-            let xmlDoc = parser.parseFromString(smilFile, "text/xml");
-            let sequences = xmlDoc.children[0].children[0].children[0];
-            let startWord = rendition.getRange(location.start.cfi).commonAncestorContainer.parentNode.id || "p000001s000001w000001";
+        getSmil(location, (xmlDoc, overlay) => {
+          if (xmlDoc) {
+            startWord = rendition.getRange(location.start.cfi).commonAncestorContainer.parentNode.id || "p000001s000001w000001";
             let endNode = rendition.getRange(location.end.cfi).commonAncestorContainer;
             let endWord = null;
             if (endNode.parentNode.classList.contains("sentence") || endNode.parentNode.classList.contains("paragraph")) {
@@ -689,21 +756,17 @@ import tokenizer from 'sbd';
             else {
               endWord = endNode.parentNode.id;
             }
-            let startRefs = {paragraph: startWord.slice(0, 7), sentence: startWord.slice(7, 14), word: startWord.slice(14, 21)};
-            let endRefs = {paragraph: endWord.slice(0, 7), sentence: endWord.slice(7, 14), word: endWord.slice(14, 21)};
-            let documentName = sequences.attributes["epub:textref"].value;
-            let startSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${startWord}]`)
-            let endSequence = sequences.querySelector(`seq[*|textref=${documentName}\\#${endWord}]`)
-            pageBegin = startSequence.querySelector("audio").getAttribute("clipBegin")
-            pageEnd = endSequence.querySelector("audio").getAttribute("clipEnd")
+            pageBegin = timeStampForRef(xmlDoc, startWord).getAttribute("clipBegin");
+            pageEnd = timeStampForRef(xmlDoc, endWord).getAttribute("clipEnd");
             let index = parseInt(overlay.replace("smil-", ""), 10);
             pageJustTurned = true;
             sendMessageWithoutCache({method:"relocated", location: location, pageBegin: pageBegin, pageEnd: pageEnd, smilChapter: index});
-          });
-        }
-        else {
-          sendMessageWithoutCache({method:"relocated", location: location, pageBegin: null, pageEnd: null});
-        }
+          }
+          else {
+            sendMessageWithoutCache({method:"relocated", location: location, pageBegin: null, pageEnd: null});
+          }
+        });
+
         const [chapterTitle, language] = findTitlesAndLanguage(rendition, options.location);
         sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
       });
