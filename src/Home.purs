@@ -139,7 +139,7 @@ buildJsx props = React.do
                   divider {style: M.css {height: 1, width: "100%"}}
                   listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyCreatedCards) (show u.currentUser.dailyGoal.created)) <> " Flashcards Created", onPress: RNE.capture_ redirectCreate, left: checkEmptyIcon u.currentUser.dailyCreatedCards u.currentUser.dailyGoal.created, right: chevron}
                   divider {style: M.css {height: 1, width: "100%"}}
-                  listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Sessions Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
+                  listItem {title: RN.string $ (ratioDone (show u.currentUser.dailyReviewedSessions) (show u.currentUser.dailyGoal.reviewSessions)) <> " Reviews Completed", onPress: RNE.capture_ redirectReview, left: checkEmptyIcon u.currentUser.dailyReviewedSessions u.currentUser.dailyGoal.reviewSessions, right: chevron}
                   divider {style: M.css {height: 1, width: "100%"}}
 
                 button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {position: "absolute", bottom: 5, right: 2}} $ M.string $ fromMaybe "Language" $ language
