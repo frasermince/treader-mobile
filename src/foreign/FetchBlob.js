@@ -13,3 +13,11 @@ exports._fetch = function(config) {
     }
   }
 }
+
+exports._progress = function(promise) {
+  return function(callback) {
+    return function() {
+      return promise.progress(callback);
+    }
+  }
+}

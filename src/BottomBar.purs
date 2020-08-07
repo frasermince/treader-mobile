@@ -2,7 +2,7 @@ module BottomBar where
 
 import MaterialIcon (icon)
 import Prelude
-import Data.Array ((!!))
+import Data.Array ((!!), length)
 import Data.Traversable (traverse_)
 import Debug.Trace (spy)
 import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..))
@@ -22,17 +22,22 @@ import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Paper (fab)
 import React.Basic.Native.Events as RNE
 import Data.Maybe (Maybe(..), fromMaybe)
-import FetchBlob (fetch)
+import FetchBlob (fetchWithProgress)
 import Data.Interpolate (i)
 import FS (audioBookDir, mkdir, exists)
 import Data.Foldable (foldl)
+import Data.FoldableWithIndex (foldlWithIndexDefault)
 import Effect.Class (liftEffect)
 import Sound (play, Sound, release, stop, createSound, setCurrentTime, pause, getCurrentTime)
 import Data.Number (fromString)
+import Data.Number.Format (toStringWith, fixed)
 import Data.Number.Approximate (eqApproximate)
-import Data.Int (floor)
+import Data.Int (floor, toNumber)
 import Data.String (split, Pattern(..))
 import Math (abs)
+import Control.Coroutine (connect, consumer, runProcess)
+import Control.Coroutine.Aff (produceAff, emit, close, Emitter)
+import Data.Tuple (Tuple)
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -180,15 +185,28 @@ checkChaptersDownloaded setFilesDownloaded slug bookData = launchAff_ do
         highestChapter Nothing = Nothing
         highestChapter (Just b) = Just $ foldl foldHighestChapter (-1) b.book.audioChapters
 
-fetchFiles :: ((Boolean -> Boolean) -> Effect Unit) -> String -> Maybe BookViewQuery -> Effect Unit
-fetchFiles setFilesDownloaded slug bookData = launchAff_ do
+fetchFiles :: ((Boolean -> Boolean) -> Effect Unit) -> String -> Maybe BookViewQuery -> ((Number -> Number) -> Effect Unit) -> ((Int -> Int) -> Effect Unit) -> Effect Unit
+fetchFiles setFilesDownloaded slug bookData setFilePercent setFileIndex = launchAff_ do
   mkdir path {}
-  traverse_ (\b -> foldl downloadChapter mempty $ b.book.audioChapters) $ bookData
+  let produce = produceAff \emitter -> do
+        r <- traverse_ (\b -> foldlWithIndexDefault (downloadChapter emitter) mempty $ b.book.audioChapters) $ bookData
+        close emitter unit
+  let consume =
+        consumer \(chapter /\ chapterPercentage) -> do
+          liftEffect $ setFileIndex \_ -> chapter
+          liftEffect $ setFilePercent \_ -> chapterPercentage
+          pure $ Nothing
+  runProcess $ connect produce consume
+
   liftEffect $ setFilesDownloaded \_ -> true
   where path = dirForBook slug
-        downloadChapter :: Aff Unit -> {chapter :: Int, audioUrl :: String} -> Aff Unit
-        downloadChapter accum chapterData = accum *> do
-          _ <- fetch {fileCache: true, path: fileForChapter slug chapterData.chapter} "GET" chapterData.audioUrl {}
+        downloadChapter :: Emitter Aff (Tuple Int Number) Unit -> Int -> Aff Unit -> {chapter :: Int, audioUrl :: String} -> Aff Unit
+        downloadChapter emitter index accum chapterData = accum *> do
+          let onProgress = \received total -> do
+                launchAff_ $ emit emitter (index /\ received / total * 100.0)
+
+          let request = fetchWithProgress {fileCache: true, path: fileForChapter slug chapterData.chapter} "GET" chapterData.audioUrl {} onProgress
+          _ <- request
           pure unit
 
 audioExists Nothing = false
@@ -202,9 +220,19 @@ conditionallyChangeTime (Just audioInformation) (Just audioTime) (Just sound)
 
 conditionallyChangeTime _ _ _ = mempty
 
+chapterCount maybeData = fromMaybe 1 do
+  d <- maybeData
+  pure $ length d.book.audioChapters
+
+percentageComplete filePercent chapters fileIndex =
+  toStringWith (fixed 2) $ filePercentChapter + chapterPercentage
+  where filePercentChapter = filePercent / chapters
+        chapterPercentage = toNumber fileIndex / chapters * 100.0
 type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 --buildJsx :: Props -> JSX
 buildJsx props = React.do
+  fileIndex /\ setFileIndex <- useState 0
+  filePercent /\ setFilePercent <- useState 0.0
   fade /\ setFade <- useState $ value 1
   filesDownloaded /\ setFilesDownloaded <- useState false
   soundData /\ setSoundData <- useState $ {sound: Nothing :: Maybe Sound, isPlaying: NotStarted}
@@ -232,6 +260,13 @@ buildJsx props = React.do
       then conditionallyChangeTime props.audioInformation props.audioTime soundData.sound
       else setSoundData \_ -> {sound: soundData.sound, isPlaying: NotStarted}
      pure mempty
+  let chapters = (toNumber $ chapterCount props.bookData)
+  let undowloadedComponent
+        | fileIndex == 0 && filePercent == 0.0 = M.touchableOpacity {style: M.css {flex: 1, flexDirection: "row"}, onPress: RNE.capture_ $ fetchFiles setFilesDownloaded props.slug props.bookData setFilePercent setFileIndex} do
+            icon {style: M.css {flex: 2, marginLeft: 10}, name: "file-download", size: 20}
+            M.text {style: M.css {flex: 5}} $ M.string "Tap to download audio"
+        | otherwise = M.view {} do
+            M.text {} $ M.string $ i (percentageComplete filePercent chapters fileIndex) "% complete"
 
   pure $ M.getJsx $ do
      view
@@ -241,9 +276,7 @@ buildJsx props = React.do
               slider { style: M.css $ sliderStyles fade, disabled: props.disabled, value: props.value, onSlidingComplete: mkEffectFn1 props.onSlidingComplete, maximumTrackTintColor: "#707070" }
             if not $ audioExists props.bookData then mempty else view { style: M.css $ footerStyles fade } do
               if not filesDownloaded
-                then M.touchableOpacity {style: M.css {flex: 1, flexDirection: "row"}, onPress: RNE.capture_ $ fetchFiles setFilesDownloaded props.slug props.bookData} do
-                  icon {style: M.css {flex: 2, marginLeft: 10}, name: "file-download", size: 20}
-                  M.text {style: M.css {flex: 5}} $ M.string "Tap to download audio"
+                then undowloadedComponent
                 else M.view {} do
                    if soundData.isPlaying == Playing then fab
                       { icon: "pause"
