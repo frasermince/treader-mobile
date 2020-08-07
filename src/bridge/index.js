@@ -188,7 +188,7 @@ import tokenizer from 'sbd';
   }
 
   function setTitlesAndLanguage(rendition, location) {
-    
+
     const [chapterTitle, language] = findTitlesAndLanguage(rendition, location);
     sendMessage({method:"set", key: "chapterTitle", value: chapterTitle});
     sendMessage({method:"set", key: "language", value: language});
@@ -197,12 +197,12 @@ import tokenizer from 'sbd';
 
   function setWordInformation(highlightedContent, context, epubcfi, morphology, fromTop) {
     if (highlightedContent && fromTop) {
-      sendMessage({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
+      sendMessageWithoutCache({method:"set", key: "highlightedContent", jsonValue: JSON.stringify({text: highlightedContent, fromTop: fromTop})});
     } else {
-      sendMessage({method:"set", key: "highlightedContent", value: null});
+      sendMessageWithoutCache({method:"set", key: "highlightedContent", value: null});
     }
     if (context) {
-      sendMessage({method:"set", key: "context", jsonValue: JSON.stringify(context)});
+      sendMessageWithoutCache({method:"set", key: "context", jsonValue: JSON.stringify(context)});
     }
     sendMessage({method:"set", key: "epubcfi", value: epubcfi});
     sendMessage({method:"set", key: "morphology", jsonValue: JSON.stringify(morphology)});
@@ -471,7 +471,6 @@ import tokenizer from 'sbd';
 
         contents.on("deselected", function() {
           setWordInformation(null, null, null, null, null);
-          sendMessage({method:"set", key: "translation", value: null});
           let svg = document.getElementById("select-box");
           svg.style.visibility = "hidden";
         });

@@ -260,6 +260,7 @@ useRenditionData showBars setShowBars visibleLocation bookId addToPages setError
     $ do
         launchAff_ do
            let payload = makePayload highlightedContent language context bookId
+           liftEffect $ setTranslation \_ -> Nothing
            mutateAndChangeState mutationFn payload setShowBars setTranslation setSelected
         pure mempty
   pure

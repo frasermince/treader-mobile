@@ -166,7 +166,6 @@ buildTabs props = React.do
         liftEffect $ setIndex \_ -> 0
         liftEffect $ setPlacementForAnimation \_ -> props.wordPlacement
         if visible then pure unit else do
-          liftEffect $ props.setTranslation \_ -> Nothing
           liftEffect $ props.setMorphology \_ -> Nothing
      pure mempty
 
