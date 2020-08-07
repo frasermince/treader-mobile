@@ -235,8 +235,17 @@ mutation =
   }
 """
 
+dailySelectionQuery = gql """
+  query getSelections {
+    dailySelections {
+      id
+    }
+  }
+"""
+
+
 useRenditionData showBars setShowBars visibleLocation bookId addToPages setError = React.do
-  mutationFn /\ result <- useMutation mutation {}
+  mutationFn /\ result <- useMutation mutation {refetchQueries: [{query: dailySelectionQuery}]}
   translation /\ setTranslation <- useState $ (Nothing :: Maybe Translation)
   highlightedContent /\ setHighlightedContent <- useState $ (Nothing :: Maybe HighlightedContent)
   selected /\ setSelected <- useState false

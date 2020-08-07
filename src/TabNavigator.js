@@ -17,6 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { gql } from 'apollo-boost';
+import { useQuery } from '@apollo/react-hooks';
 
 ReviewNavigator = () => {
   const Stack = createStackNavigator();
@@ -60,6 +62,14 @@ FlashcardNavigator = () => {
       </Stack.Navigator>
   );
 }
+const query = gql `
+  query getSelections {
+    dailySelections {
+      id
+    }
+  }
+`
+
 export default TabNavigator = () => {
   const Tab = createMaterialBottomTabNavigator();
   let homeIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"home"} size={25} />;
@@ -67,13 +77,15 @@ export default TabNavigator = () => {
   let accountIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"account-box"} size={25} />
   let flashcardIcon = ({focused, color}) => <CommunityIcon style={[{color: color}]} name={"card-bulleted-outline"} size={25} />
   let reviewIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"layers"} size={25} />
+  const {loading, error, data, refetch} = useQuery(query);
+  let selectionCount = data.length != 0  ? data.dailySelections.length : false
   return (
     <NavigationContainer>
       <Tab.Navigator barStyle={{backgroundColor: "black"}}>
         <Tab.Screen name="Home" component={HomeScreen} options={{tabBarIcon:  homeIcon}} />
         <Tab.Screen name="Read" component={BookNavigator} options={{tabBarIcon:  bookIcon}} />
         <Tab.Screen name="Review" component={ReviewNavigator} options={{tabBarIcon: reviewIcon}} />
-        <Tab.Screen name="Create" component={FlashcardNavigator} options={{tabBarIcon: flashcardIcon}} />
+        <Tab.Screen name="Create" component={FlashcardNavigator} options={{tabBarIcon: flashcardIcon, tabBarBadge: selectionCount}} />
         <Tab.Screen name="Account" component={AccountNavigator} options={{tabBarIcon: accountIcon}} />
       </Tab.Navigator>
     </NavigationContainer>
