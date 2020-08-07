@@ -1,7 +1,7 @@
 module FlashcardBuilder.ImageChoice where
 
 import Prelude
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon, subheading, caption)
 import Effect (Effect)
 import Record.Unsafe.Union (unsafeUnion)
 import ImageSearch (imageSearch, Image)
@@ -59,6 +59,7 @@ import Segment (track)
 import Debug.Trace (spy)
 import WiktionaryModal as WiktionaryModal
 import FetchAudio (useAudio, defaultAudioFile)
+import Data.Interpolate (i)
 
 data Payload = NewSentencePayload
   (String -> {variables :: {input :: { a :: Number
@@ -326,6 +327,8 @@ buildJsx props = React.do
 
     M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
       surface { style: M.css { flex: 1 } } do
+         M.view {style: M.css {alignItems: "center"}} do
+           caption {} $ M.string "Build a visual, fill in the blank flashcard to help your memory"
          M.view {style: M.css {flex: 2, justifyContent: "flex-end", marginLeft: 15}} do
             M.view {style: M.css {flexDirection: "row"}} do
               M.view {style: M.css {flex: 1}} do
@@ -335,12 +338,13 @@ buildJsx props = React.do
                 button {style: M.css {marginTop: 15, marginLeft: 10}, onPress: RNE.capture_ $ setShowDefinition \_ -> true} $ M.string "Get Definition"
          M.view {style: M.css {flex: 6}} do
            M.view {style: M.css {flex: 1}} do
-            divider {style: M.css {height: 1, width: "100%"}}
-            M.view {style: M.css {paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
-              fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ (spy "PLAY" playText) params.range selection.book.language}
-              listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
-            --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
-            fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
+              divider {style: M.css {height: 1, width: "100%"}}
+              M.view {style: M.css {flex: 7, paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
+                fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ (spy "PLAY" playText) params.range $ spy "***LANGUAGE" selection.book.language}
+                listItem {titleNumberOfLines: 5, onPress: RNE.capture_ $ setShowTranslation \t -> not t, title: paragraphItem params showTranslation, right: translateIcon, style: M.css {paddingTop: 10}}
+              --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
+              subheading {style: M.css {marginLeft: 25, flex: 1}} $ M.string $ i "Searching for images of \"" search "\""
+              fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
            M.view {style: M.css {flex: 1, justifyContent: "flex-end", zIndex: 2}} do
             M.flatList {
               data: images imagesResult,

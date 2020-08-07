@@ -2,7 +2,7 @@ module FlashcardBuilder.WordSelection where
 
 import Prelude
 import Markup as M
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, listIcon, portal, dialogTitle, dialogActions, dialogContent, dialog)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, listIcon, portal, dialogTitle, dialogActions, dialogContent, dialog, caption)
 import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext, element, useLayoutEffect, Render, UseState)
 import Effect.Unsafe (unsafePerformEffect)
 import Record.Unsafe.Union (unsafeUnion)
@@ -100,6 +100,8 @@ buildJsx props = React.do
         Just {sentence: { flashcardExistence: {with, without}, text, translation, audioUrl}} ->
           M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
             surface { style: M.css { flex: 1 } } do
+              M.view {style: M.css {alignItems: "center"}} do
+                caption {style: M.css {}} $ M.string "Optionally create more flashcards from words in the sentence"
               M.childElement WordGrid.reactComponent {words: sortWith _.offset without, redirect: redirectFn text translation params.selection audioUrl, header: M.getJsx $ header showTranslation translation text}
     where redirectFn text translation selection audio word wordTranslation offset =
             runEffectFn2 props.navigation.push "ImageChoice" $
