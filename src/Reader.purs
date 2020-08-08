@@ -76,6 +76,8 @@ styles =
     { flex: 1
     , alignSelf: "stretch"
     , backgroundColor: "#3F3F3C"
+    , marginTop: 20
+    , marginBottom: 20
     }
   , wrapper:
     { flex: 1
@@ -324,8 +326,8 @@ layoutEvent setHeight setWidth = mkEffectFn1 e
   e event = do
     let
       { x, y, width, height } = (spy "event" event).nativeEvent.layout
-    _ <- setHeight \_ -> height
-    _ <- setWidth \_ -> width
+    _ <- setHeight \_ -> height - 20.0
+    _ <- setWidth \_ -> width - 20.0
     pure unit
 
 getPosStates = do
@@ -359,10 +361,10 @@ type Theme
 
 defaultTheme =
   { p:
-    { "line-height": 1.5
+    { "line-height": 1.8
     }
   , body:
-    { "font-family": "'Libre Baskerville', serif"
+    { "font-family": "'Roboto', sans-serif"
     , "-webkit-touch-callout": "none"
     , "-webkit-user-select": "none"
     , "-khtml-user-select": "none"

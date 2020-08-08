@@ -369,6 +369,8 @@ PODS:
     - React
   - RNIap (4.4.2):
     - React
+  - RNLocalize (1.4.0):
+    - React
   - RNReanimated (1.9.0):
     - React
   - RNScreens (2.7.0):
@@ -452,6 +454,7 @@ DEPENDENCIES:
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNIap (from `../node_modules/react-native-iap`)
+  - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
@@ -574,6 +577,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNIap:
     :path: "../node_modules/react-native-iap"
+  RNLocalize:
+    :path: "../node_modules/react-native-localize"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -654,6 +659,7 @@ SPEC CHECKSUMS:
   RNFS: 0d4191b1052bef9ce70deff00a5b4169c62bbd9b
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNIap: 4a353600facc146dfc771250b2382f2c25aa22ee
+  RNLocalize: b6df30cc25ae736d37874f9bce13351db2f56796
   RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
   RNScreens: cf198f915f8a2bf163de94ca9f5bfc8d326c3706
   RNSentry: df6946b5fe880a9097f6994c9028f939710b3000
@@ -669,4 +675,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3bdaac784e3c6e5545f72ec1f1697d36d69174a4
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.3
