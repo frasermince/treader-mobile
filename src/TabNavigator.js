@@ -78,7 +78,8 @@ export default TabNavigator = () => {
   let flashcardIcon = ({focused, color}) => <CommunityIcon style={[{color: color}]} name={"card-bulleted-outline"} size={25} />
   let reviewIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"layers"} size={25} />
   const {loading, error, data, refetch} = useQuery(query);
-  let selectionCount = data.dailySelections.length != 0  ? data.dailySelections.length : false
+  console.log("selections", {loading, error, data, refetch});
+  let selectionCount = data && data.dailySelections.length != 0  ? data.dailySelections.length : false
 
   return (
     <NavigationContainer>

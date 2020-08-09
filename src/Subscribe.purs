@@ -9,7 +9,6 @@ import Markup as M
 import Swiper (swiper)
 import React.Basic.Native.Events as RNE
 import Effect (Effect)
-import Icon (icon)
 import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransaction)
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)

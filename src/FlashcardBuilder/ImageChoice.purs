@@ -25,7 +25,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import FlashcardBuilder.Util(underlineWord)
 import Data.Array (replicate, modifyAt, (!!))
 import Data.Int (floor)
-import MaterialIcon (icon)
+import Icon (materialIcon)
 import Data.Map (fromFoldable, lookup)
 import Data.Traversable (traverse_, traverse)
 import Data.FoldableWithIndex (foldlWithIndexDefault)
@@ -163,7 +163,7 @@ determineSelection setSelected index =
 selectableImage selected setSelected i = pure $ M.getJsx do
   let index = floor i.index
   M.touchableOpacity {onPress: RNE.capture_ $ determineSelection setSelected index} do
-    if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 10, top: 2, right: 10, backgroundColor: "#66aab1" }} $ icon {color: "white", name: "check", size: 14} else mempty
+    if isSelected selected index then badge {style: M.css {position: "absolute", zIndex: 10, top: 2, right: 10, backgroundColor: "#66aab1" }} $ materialIcon {color: "white", name: "check", size: 14} else mempty
     image {style: M.css $ imageStyle (isSelected selected index), source: {uri: i.item.thumbnailLink}}
 
 makePayload :: Selection -> String -> String -> Int -> Array String -> String -> Boolean -> Payload

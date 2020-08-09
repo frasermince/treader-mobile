@@ -16,7 +16,7 @@ import Record as Record
 import Platform as Platform
 import Effect (Effect)
 import Data.Symbol (SProxy(..))
-import Icon (icon)
+import Icon (evilIcon)
 import Effect.Uncurried (EffectFn1)
 import React.Basic.Native.Events (NativeSyntheticEvent)
 import Paper (menu, menuItem, iconButton)
@@ -112,8 +112,8 @@ buildJsx props = React.do
   pure $ M.getJsx
     $ view { style: headerStyles fade } do
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onLeftButtonPressed } do
-          M.childElement icon { name: "chevron-left", size: 34 }
+          M.childElement evilIcon { name: "chevron-left", size: 34 }
         M.text { numberOfLines: 1.0, style: M.css styles.title } do
           M.string $ fromMaybe "Loading" props.title
         M.touchableOpacity { style: M.css styles.backButton, onPress: props.onRightButtonPressed} do
-          M.childElement icon { name: "navicon", size: 34 }
+          M.childElement evilIcon { name: "navicon", size: 34 }

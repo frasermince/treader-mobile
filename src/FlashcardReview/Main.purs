@@ -4,7 +4,7 @@ import Prelude
 import React.Basic.Hooks as React
 import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext, keyed)
 import Context (dataStateContext, Context)
 import Data.Traversable (traverse_)
 import Effect (Effect)
@@ -99,7 +99,22 @@ query =
 """
 
 cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
-  \active -> M.childElement CardItem.reactComponent {setIsFlipped: setIsFlipped, isFlipped: isFlipped, imageUrl: flashcard.imageUrl, word: flashcard.word, sentence: flashcard.sentence.text, offset: flashcard.startOffset, onPressLeft: swipeLeft, onPressRight: swipeRight, index: i, audioUrl: flashcard.sentence.audioUrl, sentenceId: flashcard.sentence.id, active: active, translation: flashcard.sentence.translation}
+  \active ->
+    M.childElement CardItem.reactComponent $
+      { setIsFlipped: setIsFlipped
+      , isFlipped: isFlipped
+      , imageUrl: flashcard.imageUrl
+      , word: flashcard.word
+      , sentence: flashcard.sentence.text
+      , offset: flashcard.startOffset
+      , onPressLeft: swipeLeft
+      , onPressRight: swipeRight
+      , index: i
+      , audioUrl: flashcard.sentence.audioUrl
+      , sentenceId: flashcard.sentence.id
+      , active: active
+      , translation: flashcard.sentence.translation
+      }
   where flashcard = cardData.x
 
 reactComponent :: ReactComponent Props
@@ -174,7 +189,6 @@ buildJsx props = React.do
   timesIncorrect /\ setTimesIncorrect <- useState (Map.empty :: Map String Int)
   idsInStack /\ setIdsInStack <- useState (empty :: Set String)
 
-
   let swipeLeft = do
         result <- readRefMaybe swipeRef
         traverse_ (\s -> s.swipeLeft) result
@@ -209,14 +223,22 @@ buildJsx props = React.do
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe = do
+        handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
   let cardsMarkup [] (Just d) =
         M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
           M.text {style: M.css {}} $ M.string "Create cards to review them here"
       cardsMarkup [] Nothing = mempty
       cardsMarkup cards state = whiteImageBackground {style: M.css imageBackgroundStyles} do
           M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-            cardStack {onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i, onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i, verticalSwipe: false, horizontalSwipe: isFlipped, ref: swipeRef, renderNoMoreCards: (\_ -> false)} $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
+            cardStack
+              { onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i
+              , onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i
+              , verticalSwipe: false
+              , horizontalSwipe: isFlipped
+              , ref: swipeRef
+              , renderNoMoreCards: (\_ -> false)
+              } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
 
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do

@@ -1,3 +1,7 @@
-var icon = require('react-native-vector-icons/EvilIcons');
+var evilIcon = require('react-native-vector-icons/EvilIcons');
+var fontAwesome = require('react-native-vector-icons/FontAwesome');
+var material = require('react-native-vector-icons/MaterialIcons');
 
-exports.icon = icon.default;
+exports._materialIcon = material.default;
+exports.evilIcon = evilIcon.default;
+exports._fontAwesomeIcon = fontAwesome.default;

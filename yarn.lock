@@ -12932,7 +12932,7 @@ react-native-card-flip@^1.0.6:
 
 react-native-card-stack-swiper@frasermince/react-native-card-stack-swiper:
   version "1.2.4"
-  resolved "https://codeload.github.com/frasermince/react-native-card-stack-swiper/tar.gz/8126d49a4ed665bbe6ad403fd4aa6fca23f1967b"
+  resolved "https://codeload.github.com/frasermince/react-native-card-stack-swiper/tar.gz/a812eeb0cd524149d0e7694313db339a52e9ecf1"
   dependencies:
     prop-types "15.5.10"
     react-lifecycles-compat "^3.0.4"

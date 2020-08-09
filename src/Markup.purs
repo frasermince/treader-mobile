@@ -98,6 +98,7 @@ parentWithCallbacks component = takesChildCallbacks (H.element component)
 parentElement component = parent (H.element component)
 
 childElement component = child (H.element component)
+childElementKeyed component = child $ H.elementKeyed component
 
 css :: forall css. { | css } -> CSS
 css = unsafeCoerce

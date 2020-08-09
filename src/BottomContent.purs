@@ -47,7 +47,7 @@ import Effect.Console (log)
 import HTMLView (htmlView)
 import Data.Foldable (foldl)
 import Data.Interpolate (i)
-import Icon (icon)
+import Icon (evilIcon)
 import Data.Map (fromFoldable, lookup) as Map
 import Debug.Trace (spy)
 import FetchAudio (useAudio)
@@ -143,7 +143,7 @@ renderTabBarJsx removeContent props = React.do
   pure $ M.getJsx do
      M.view {style: M.css {flexDirection: "row"}} do
       M.touchableOpacity {style: M.css {flex: 1, elevation: 4, backgroundColor: "white", shadowColor: "black", shadowOpacity: 0.1}, onPress: RNE.capture_ removeContent} do
-        M.childElement icon { name: "close", size: 28, style: M.css {paddingTop: 12, flex: 1, paddingRight: 10}}
+        M.childElement evilIcon { name: "close", size: 28, style: M.css {paddingTop: 12, flex: 1, paddingRight: 10}}
       tabBar $ unsafeUnion props {
         style: M.css {backgroundColor: "white", color: "black", flex: 11},
         indicatorStyle: M.css {backgroundColor: "#66aab1" },

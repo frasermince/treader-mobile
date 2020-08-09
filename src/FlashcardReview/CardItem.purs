@@ -9,6 +9,7 @@ import Effect (Effect)
 import StackSwiper (cardStack, card)
 import Dimensions (window)
 import Markup as M
+import Icon (fontAwesomeIcon)
 import Data.Array (head)
 import Effect.Unsafe (unsafePerformEffect)
 import Data.Maybe (fromMaybe)
@@ -31,6 +32,42 @@ import FS (audioDir, writeFile, exists, unlink, absintheFile)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Data.String (stripPrefix, Pattern(..))
 import Global (encodeURIComponent, decodeURIComponent)
+import Blur (blurView, vibrancyView)
+import AsyncStorage (getItem, setItem)
+
+blurStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center"
+  }
+
+frontBlurTextStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  fontSize: 18
+}
+
+backBlurTextStyle = {
+  position: "absolute",
+  top: -60,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  fontSize: 18
+}
 
 gray = "#757E90"
 containerCardItem = {
@@ -81,7 +118,21 @@ descriptionCardItem = {
   fontSize: 20
 }
 
-type Props = {active :: Boolean, word :: String, sentence :: String, offset :: Int, imageUrl :: Array String, onPressLeft :: Effect Unit, onPressRight :: Effect Unit, index :: Int, audioUrl :: String, sentenceId :: String, setIsFlipped :: (Boolean -> Boolean) -> Effect Unit, isFlipped :: Boolean, translation :: String}
+type Props =
+  { active :: Boolean
+  , word :: String
+  , sentence :: String
+  , offset :: Int
+  , imageUrl :: Array String
+  , onPressLeft :: Effect Unit
+  , onPressRight :: Effect Unit
+  , index :: Int
+  , audioUrl :: String
+  , sentenceId :: String
+  , setIsFlipped :: (Boolean -> Boolean) -> Effect Unit
+  , isFlipped :: Boolean
+  , translation :: String
+  }
 
 imageJsx imageCount accum imageUrl = accum <> do
   M.view {style: M.css {flex: 1}} do
@@ -101,10 +152,42 @@ flipEnd setIsFlipped sound = launchAff_ do
   liftEffect $ setIsFlipped \_ -> true
   traverse_ stopAndPlay sound
 
+frontTutorial setBlurVisible = do
+  vibrancyView {style: M.css blurStyle, blurType: "light", blurAmount: 2}
+  M.touchableOpacity {style: M.css frontBlurTextStyle, onPressIn: blurPress} do
+    fontAwesomeIcon {name: "hand-pointer-o", size: 18}
+    M.text {style: M.css {marginTop: 10}} $ M.string "Tap card to reveal answer"
+
+  where blurPress = RNE.capture_ do
+          setBlurVisible \_ -> false
+
+backTutorial setBlurVisible hasSwipedBefore setHasSwipedBefore = do
+  vibrancyView {style: M.css blurStyle, blurType: "light", blurAmount: 2}
+  M.touchableOpacity {style: M.css backBlurTextStyle, onPressIn: blurPress} do
+    M.view {style: M.css {flexDirection: "row", alignItems: "center"}} do
+      M.view {style: M.css {flex: 1, alignItems: "center"}} do
+        fontAwesomeIcon {name: "angle-left", size: 18}
+      M.view {style: M.css {flex: 1, alignItems: "center"}} do
+        fontAwesomeIcon {name: "hand-pointer-o", size: 18}
+      M.view {style: M.css {flex: 1, alignItems: "center"}} do
+        fontAwesomeIcon {name: "angle-right", size: 18}
+    M.text {style: M.css {marginTop: 10}} $ M.string "Swipe to continue"
+
+  where blurPress = RNE.capture_ do
+          launchAff_ if not hasSwipedBefore
+                       then do
+                         setItem "HasSwiped" "true"
+                         liftEffect $ setHasSwipedBefore \_ -> true
+                       else mempty
+          setBlurVisible \_ -> false
+
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
   showTranslation /\ setShowTranslation <- useState false
+  frontBlurVisible /\ setFrontBlurVisible <- useState false
+  backBlurVisible /\ setBackBlurVisible <- useState false
+  hasSwipedBefore /\ setHasSwipedBefore <- useState true
   flipRef <- useRef null
   let flip = do
         result <- readRefMaybe flipRef
@@ -134,6 +217,19 @@ buildJsx props = React.do
         if e then unlink $ fromMaybe "" decodedPath else mempty
 
 
+  useEffect unit do
+     launchAff_ do
+       item <- getItem "HasSwiped"
+       case item of
+            Just i -> liftEffect $ setHasSwipedBefore \_ -> i == "true"
+            Nothing -> liftEffect $ setHasSwipedBefore \_ -> false
+     pure mempty
+
+  useEffect hasSwipedBefore do
+     setBackBlurVisible \_ -> not hasSwipedBefore
+     setFrontBlurVisible \_ -> not hasSwipedBefore
+     pure mempty
+
   useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
         let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
@@ -152,6 +248,7 @@ buildJsx props = React.do
             M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
+            if frontBlurVisible then frontTutorial setFrontBlurVisible else mempty
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css promptStyle} $ M.string props.word
             iconButton {style: M.css {position: "absolute", top: 7, right: 0},icon: "google-translate", size: 20, onPress: toggleTranslation}
@@ -164,3 +261,5 @@ buildJsx props = React.do
             M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
+
+            if backBlurVisible then backTutorial setBackBlurVisible hasSwipedBefore setHasSwipedBefore else mempty
