@@ -64,6 +64,7 @@ mutation updateCurrentUser($input: UserInput!) {
       appleReceipt
       isSubscribed
       isPermitted
+      isGuest
     }
   }
 }
@@ -86,11 +87,15 @@ buildJsx props = React.do
   androidMutationFn /\ r1 <- useMutation subscribeMutation {}
   iosMutationFn /\ r2 <- useMutation subscribeMutation {}
   { setLoading, setError } <- useContext dataStateContext
+  queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
+  let isGuest = fromMaybe true do
+        r <- queryResult.state
+        pure $ r.currentUser.isGuest
   useEffect unit do
      purchaseErrorListener $ \e -> launchAff_ do
         liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do
-        if isJust $ toMaybe $  p.transactionReceipt then do
+        if (isJust $ toMaybe $ p.transactionReceipt) && not isGuest then do
             let iosPayload = {variables: {input: {appleReceipt: p.transactionReceipt} }}
             let androidPayload = {variables: {input: {androidReceipt: p.transactionReceipt}}}
             result <- try $ Platform.select {
@@ -107,7 +112,6 @@ buildJsx props = React.do
      pure mempty
 
   mutationFn /\ result <- useMutation mutation {}
-  queryResult <- useUserBooks {fetchPolicy: "cache-and-network"}
   pure $ M.getJsx $ traverse_ (authOrApp (dismiss mutationFn)) (spy "RESULT" queryResult).state
 
 authOrApp :: Effect Unit -> User -> M.Markup Unit
