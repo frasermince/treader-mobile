@@ -201,6 +201,12 @@ buildJsx props = React.do
         pure $ s
 
   useEffect (props.active /\ sound) do
+     launchAff_ do
+       item <- getItem "HasSwiped"
+       case item of
+            Just i -> liftEffect $ setHasSwipedBefore \_ -> i == "true"
+            Nothing -> liftEffect $ setHasSwipedBefore \_ -> false
+
      if not props.active then
         props.setIsFlipped \_ -> false
      else mempty
@@ -215,15 +221,6 @@ buildJsx props = React.do
         let decodedPath = audioPath >>= decodeURIComponent
         e <- fileExists $ decodedPath
         if e then unlink $ fromMaybe "" decodedPath else mempty
-
-
-  useEffect unit do
-     launchAff_ do
-       item <- getItem "HasSwiped"
-       case item of
-            Just i -> liftEffect $ setHasSwipedBefore \_ -> i == "true"
-            Nothing -> liftEffect $ setHasSwipedBefore \_ -> false
-     pure mempty
 
   useEffect hasSwipedBefore do
      setBackBlurVisible \_ -> not hasSwipedBefore
