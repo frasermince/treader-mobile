@@ -104,8 +104,8 @@ buildJsx props = React.do
   where
   redirect slug = runEffectFn2 props.navigation.navigate "Read" { slug: slug }
 
-  bookIcon :: forall p. Record p -> JSX
-  bookIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "book" }
+  bookIcon :: forall p. Boolean -> Record p -> JSX
+  bookIcon hasAudio p = element listIcon $ unsafeUnion p { color: "#000", icon: if hasAudio then "book-music" else "book" }
 
   cloudState book Nothing p = mempty
 
@@ -118,13 +118,13 @@ buildJsx props = React.do
   item :: Maybe String -> Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit
   item language files accum book =
     case language of
-         Nothing -> newList
-         Just l -> if book.language == l then newList else accum
+         Nothing -> newList book
+         Just l -> if book.language == l then newList book else accum
 
-    where newList = accum
+    where newList book = accum
             <> ( listItem
                   { title: RN.string book.name
-                  , left: bookIcon
+                  , left: bookIcon (book.audioChapters /= [])
                   , right: cloudState book files
                   , onPress: RNE.capture_ $ redirect book.slug
                   }
