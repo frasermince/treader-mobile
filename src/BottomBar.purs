@@ -1,6 +1,6 @@
 module BottomBar where
 
-import MaterialIcon (icon)
+import Icon (materialIcon)
 import Prelude
 import Data.Array ((!!), length)
 import Data.Traversable (traverse_)
@@ -176,9 +176,9 @@ pauseSound {sound: Nothing, isPlaying} setSoundData = mempty
 
 checkChaptersDownloaded :: ((Boolean -> Boolean) -> Effect Unit) -> String -> Maybe BookViewQuery -> Effect Unit
 checkChaptersDownloaded setFilesDownloaded slug bookData = launchAff_ do
-    result <- highestExists $ highestChapter bookData
-    liftEffect $ setFilesDownloaded \_ -> result
-  where highestExists (Just chapter) = exists $ fileForChapter slug chapter
+    result <- highestExists $ spy "HIGHEST" $ highestChapter bookData
+    liftEffect $ setFilesDownloaded \_ -> spy "HIGHEST EXISTS" result
+  where highestExists (Just chapter) = exists $ spy "LARGEST FILE" $ fileForChapter slug chapter
         highestExists Nothing = pure $ false
         foldHighestChapter :: Int -> {chapter :: Int, audioUrl :: String} -> Int
         foldHighestChapter accum c = if c.chapter > accum then c.chapter else accum
@@ -201,12 +201,18 @@ fetchFiles setFilesDownloaded slug bookData setFilePercent setFileIndex = launch
   liftEffect $ setFilesDownloaded \_ -> true
   where path = dirForBook slug
         downloadChapter :: Emitter Aff (Tuple Int Number) Unit -> Int -> Aff Unit -> {chapter :: Int, audioUrl :: String} -> Aff Unit
-        downloadChapter emitter index accum chapterData = accum *> do
+        downloadChapter emitter index accum chapterData = do
+          _ <- accum
+          fileExists <- exists $ fileForChapter slug chapterData.chapter
           let onProgress = \received total -> do
                 launchAff_ $ emit emitter (index /\ received / total * 100.0)
 
           let request = fetchWithProgress {fileCache: true, path: fileForChapter slug chapterData.chapter} "GET" chapterData.audioUrl {} onProgress
-          _ <- request
+          if not fileExists
+            then do
+              _ <- request
+              pure unit
+            else mempty
           pure unit
 
 audioExists Nothing = false
@@ -263,7 +269,7 @@ buildJsx props = React.do
   let chapters = (toNumber $ chapterCount props.bookData)
   let undowloadedComponent
         | fileIndex == 0 && filePercent == 0.0 = M.touchableOpacity {style: M.css {flex: 1, flexDirection: "row"}, onPress: RNE.capture_ $ fetchFiles setFilesDownloaded props.slug props.bookData setFilePercent setFileIndex} do
-            icon {style: M.css {flex: 2, marginLeft: 10}, name: "file-download", size: 20}
+            materialIcon {style: M.css {flex: 2, marginLeft: 10}, name: "file-download", size: 20}
             M.text {style: M.css {flex: 5}} $ M.string "Tap to download audio"
         | otherwise = M.view {} do
             M.text {} $ M.string $ i (percentageComplete filePercent chapters fileIndex) "% complete"
