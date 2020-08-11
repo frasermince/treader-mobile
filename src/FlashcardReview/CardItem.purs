@@ -245,7 +245,7 @@ buildJsx props = React.do
             M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
-            if frontBlurVisible then frontTutorial setFrontBlurVisible else mempty
+            if frontBlurVisible && props.active then frontTutorial setFrontBlurVisible else mempty
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css promptStyle} $ M.string props.word
             iconButton {style: M.css {position: "absolute", top: 7, right: 0},icon: "google-translate", size: 20, onPress: toggleTranslation}
