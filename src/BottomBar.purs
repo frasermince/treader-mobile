@@ -10,7 +10,7 @@ import ComponentTypes (BookViewQuery, AudioInformation)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
-import Animated (view, timing, value)
+import Animated (view, timing, value, interpolate)
 import Effect.Unsafe (unsafePerformEffect)
 import Record as Record
 import Platform as Platform
@@ -76,11 +76,11 @@ barStyles showBars fade showAudio =
   , shadowOffset: { height: 5, width: 10 }
   }
   where
-  zIndex :: Int
+  zIndex :: Number
   zIndex =
-    fade.interpolate
-      { inputRange: [ 0, 1 ]
-      , outputRange: [ -1, 9 ]
+    interpolate fade
+      { inputRange: [ 0.0, 1.0 ]
+      , outputRange: [ -1.0, 9.0 ]
       }
 
 
@@ -110,11 +110,11 @@ sliderStyles fade =
   , marginRight: 50
   }
   where
-  zIndex :: Int
+  zIndex :: Number
   zIndex =
-    fade.interpolate
-      { inputRange: [ 0, 1 ]
-      , outputRange: [ -1, 9 ]
+    interpolate fade
+      { inputRange: [ 0.0, 1.0 ]
+      , outputRange: [ -1.0, 9.0 ]
       }
 
 runAnimation true fade = timing fade { toValue: 1, duration: 20 }
@@ -239,7 +239,7 @@ type SoundData = {sound :: Maybe Sound, isPlaying :: PlayState}
 buildJsx props = React.do
   fileIndex /\ setFileIndex <- useState 0
   filePercent /\ setFilePercent <- useState 0.0
-  fade /\ setFade <- useState $ value 1
+  fade /\ setFade <- useState $ value 1.0
   filesDownloaded /\ setFilesDownloaded <- useState false
   soundData /\ setSoundData <- useState $ {sound: Nothing :: Maybe Sound, isPlaying: NotStarted}
   useEffect unit do

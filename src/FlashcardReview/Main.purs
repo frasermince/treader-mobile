@@ -24,8 +24,8 @@ import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
 import ApolloHooks (useMutation, gql)
 import Debug.Trace (spy)
 import Effect.Console (log)
-import Effect.Uncurried (mkEffectFn1)
-import ComponentTypes (Flashcard)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
+import ComponentTypes (Flashcard, StateChange)
 import Ebisu (lowest, randomLow, updateRecall, nRandom)
 import Data.Either (Either(..))
 import Data.Array.NonEmpty (fromArray, toArray)
@@ -38,6 +38,11 @@ import Navigation (useFocusEffect)
 import Data.Map (Map, update, lookup)
 import Data.Map as Map
 import Segment (track, screen)
+import Dimensions (window)
+import Icon (materialIcon)
+import Animated as Animated
+import Animated (AnimationXY, interpolate, value)
+import Data.Tuple.Native (T2, t2)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
@@ -175,6 +180,78 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
               liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
           | otherwise = mempty
 
+leftCircleStyle drag =
+  { width: 60
+  , height: 60
+  , borderRadius: 60/2
+  , borderWidth: 2
+  , borderColor: "red"
+  , position: "absolute"
+  , left: 0
+  , backgroundColor: "white"
+  , top: window.height / 3.0
+  , zIndex: 2
+  , justifyContent: "center"
+  , opacity: interpolate drag
+      { inputRange: [-500.0, 0.0]
+      , outputRange: [2.0, 0.0]
+      , extrapolate: "clamp"
+      }
+  , alignItems: "center"
+  , transform: t2
+       { translateX: interpolate (spy "DRAG" drag)
+          { inputRange: [-500.0, 0.0]
+          , outputRange: [200.0, 0.0]
+          , extrapolate: "clamp"
+          }
+       }
+       { scale: interpolate drag
+            { inputRange: [-500.0, 0.0]
+            , outputRange: [1.75, 1.0]
+            , extrapolate: "clamp"
+            }
+        }
+
+  }
+
+rightCircleStyle drag =
+  { width: 60
+  , height: 60
+  , borderRadius: 60/2
+  , borderColor: "green"
+  , borderWidth: 2
+  , position: "absolute"
+  , right: 0
+  , backgroundColor: "white"
+  , top: window.height / 3.0
+  , opacity: interpolate drag
+      { inputRange: [0.0, 500.0]
+      , outputRange: [0.0, 2.0]
+      , extrapolate: "clamp"
+      }
+
+  , zIndex: 2
+  , justifyContent: "center"
+  , alignItems: "center"
+  , transform: t2
+      {
+        translateX: interpolate (spy "DRAG" drag)
+          { inputRange: [0.0, 500.0]
+          , outputRange: [0.0, -200.0]
+          , extrapolate: "clamp"
+          }
+      }
+      { scale: interpolate drag
+            { inputRange: [0.0, 500.0]
+            , outputRange: [1.0, 1.75]
+            , extrapolate: "clamp"
+            }
+        }
+  }
+
+dragFn :: StateChange (Maybe AnimationXY) -> AnimationXY -> Effect Unit
+dragFn setDrag drag = setDrag \_ -> Just $ spy "DRAG" drag
+
 
 buildJsx props = React.do
   swipeRef <- useRef null
@@ -188,6 +265,7 @@ buildJsx props = React.do
   isFlipped /\ setIsFlipped <- useState false
   timesIncorrect /\ setTimesIncorrect <- useState (Map.empty :: Map String Int)
   idsInStack /\ setIdsInStack <- useState (empty :: Set String)
+  drag /\ setDrag <- useState (Nothing :: Maybe AnimationXY)
 
   let swipeLeft = do
         result <- readRefMaybe swipeRef
@@ -230,16 +308,20 @@ buildJsx props = React.do
           M.text {style: M.css {}} $ M.string "Create cards to review them here"
       cardsMarkup [] Nothing = mempty
       cardsMarkup cards state = whiteImageBackground {style: M.css imageBackgroundStyles} do
+          Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+             M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
+          Animated.view {style: M.css $ rightCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+             materialIcon {name: "check", color: "green", size: 26}
           M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
             cardStack
               { onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i
               , onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i
+              , setDrag: mkEffectFn1 $ dragFn setDrag
               , verticalSwipe: false
               , horizontalSwipe: isFlipped
               , ref: swipeRef
               , renderNoMoreCards: (\_ -> false)
               } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
-
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
         cardsMarkup (spy "LIST" cardList) flashcardsResult.state

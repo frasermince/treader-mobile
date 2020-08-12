@@ -24,6 +24,14 @@ exports._timing = function(animation) {
 exports._view = native.Animated.View
 exports._scrollView = native.Animated.ScrollView
 
+exports.interpolate = function(union) {
+  return function(animation) {
+    return function(options) {
+      return animation.interpolate(options);
+    }
+  }
+}
+
 exports.getNode = function (component) {
   return component.getNode();
 }

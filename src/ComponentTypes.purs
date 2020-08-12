@@ -1,6 +1,8 @@
 module ComponentTypes where
+import Prelude
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
+import Effect (Effect)
 
 type NullableContext = {sentence :: Nullable String, phrase :: Nullable String, surrounding :: Nullable String, sentenceOffset :: Nullable Int, phraseOffset :: Nullable Int, wordLength :: Int}
 
@@ -20,3 +22,5 @@ type Flashcard = {id :: String, word :: String, sentence :: {text :: String, tra
 type BookViewQuery
   = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String, audioChapters :: Array {audioUrl :: String, chapter :: Int} } }
 type AudioInformation = {startPageTime :: String, endPageTime :: String, index :: Int}
+
+type StateChange a = (a -> a) -> Effect Unit

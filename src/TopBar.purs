@@ -9,7 +9,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Markup as M
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
-import Animated (view, timing, value)
+import Animated (view, timing, value, interpolate)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Native.Events (capture_)
 import Record as Record
@@ -55,11 +55,11 @@ headerStyles fade =
   , elevation: zIndex
   }
   where
-  zIndex :: Int
+  zIndex :: Number
   zIndex =
-    fade.interpolate
-      { inputRange: [ 0, 1 ]
-      , outputRange: [ -1, 9 ]
+    interpolate fade
+      { inputRange: [ 0.0, 1.0 ]
+      , outputRange: [ -1.0, 9.0 ]
       }
 
 styles =
@@ -103,7 +103,7 @@ reactComponent =
         (component "TopBar") buildJsx
 
 buildJsx props = React.do
-  fade /\ setFade <- useState $ value 1
+  fade /\ setFade <- useState $ value 1.0
   client <- useApolloClient
   menuVisible /\ setMenuVisible <- useState false
   useEffect props.shown do

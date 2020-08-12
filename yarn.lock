@@ -3973,9 +3973,9 @@ aws-sign2@~0.7.0:
   integrity sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
 
 aws4@^1.8.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.10.0.tgz#a17b3a8ea811060e74d47d306122400ad4497ae2"
-  integrity sha512-3YDiu347mtVtjpyV3u5kVqQLP242c06zwDOgpeRnybmXlYYsLbtTrUBUm8i8srONt+FWobl5aibnU1030PeeuA==
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.10.1.tgz#e1e82e4f3e999e2cfd61b161280d16a111f86428"
+  integrity sha512-zg7Hz2k5lI8kb7U32998pRRFin7zJlkfezGJjUc2heaD4Pw2wObakCDVzkKztTm/Ln7eiVvYsjqak0Ed4LkMDA==
 
 babel-code-frame@^6.22.0:
   version "6.26.0"
@@ -12941,7 +12941,7 @@ react-native-card-flip@^1.0.6:
 
 react-native-card-stack-swiper@frasermince/react-native-card-stack-swiper:
   version "1.2.4"
-  resolved "https://codeload.github.com/frasermince/react-native-card-stack-swiper/tar.gz/a812eeb0cd524149d0e7694313db339a52e9ecf1"
+  resolved "https://codeload.github.com/frasermince/react-native-card-stack-swiper/tar.gz/8cedd58af72f118ea352e4d775405656a30cc512"
   dependencies:
     prop-types "15.5.10"
     react-lifecycles-compat "^3.0.4"

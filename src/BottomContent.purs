@@ -8,7 +8,7 @@ import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\
 import Effect.Class (liftEffect)
 import React.Basic.Hooks as React
 import React.Basic.Native as RN
-import Animated (scrollView, timing, value, getNode, scrollTo)
+import Animated (scrollView, timing, value, getNode, scrollTo, interpolate)
 import Effect.Unsafe (unsafePerformEffect)
 import Record as Record
 import Platform as Platform
@@ -158,7 +158,7 @@ tabs = unsafePerformEffect
 
 buildTabs props = React.do
   index /\ setIndex <- useState 0
-  fade /\ setFade <- useState $ value 1
+  fade /\ setFade <- useState $ value 1.0
   placementForAnimation /\ setPlacementForAnimation <- useState props.wordPlacement
   useEffect props.wordPlacement do
      launchAff_ $ do
@@ -246,11 +246,11 @@ styles fade =
   , shadowOffset: { height: 5, width: 10 }
   }
   where
-  zIndex :: Int
+  zIndex :: Number
   zIndex =
-    fade.interpolate
-      { inputRange: [ 0, 1 ]
-      , outputRange: [ -1, 9 ]
+    interpolate fade
+      { inputRange: [ 0.0, 1.0 ]
+      , outputRange: [ -1.0, 9.0 ]
       }
 
 titleStyles =
