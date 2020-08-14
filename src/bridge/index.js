@@ -55,12 +55,18 @@ import tokenizer from 'sbd';
     let paragraphRange = new Range();
     let sentenceOffset = 0;
     let phraseOffset = 0;
-    paragraphRange.setStart(range.startContainer.parentElement, 0);
+    paragraphRange.setStart(range.startContainer.closest("p"), 0);
     paragraphRange.setEnd(range.startContainer, 0);
     let paragraphText = range.commonAncestorContainer.parentElement.textContent.trim().replace(/(\r\n|\n|\r)/gm, "");
-    let sentences = tokenizer.sentences(paragraphText, {"sanitize": true});
+    let sentences = Array.from(range.startContainer.closest("p").getElementsByClassName("sentence")).map((e) => e.textContent);
+    let sentenceSpan = true
+    if (sentences.length == 0) {
+      sentences = tokenizer.sentences(paragraphText, {"sanitize": true});
+      let sentenceSpan = false
+    }
     let sentenceCharacters = ltrim(paragraphRange.toString()).length;
     let characterIteration = 0;
+    debugger
     let sentence = sentences.find((sentence) => {
       // + 1 for the space that has been removed
       let total = characterIteration + sentence.length;
@@ -71,9 +77,10 @@ import tokenizer from 'sbd';
         characterIteration = total + 1;
       }
     });
+    debugger
     let phrases = sentence.split(/(,|;|–)/g);
     let phrase = phrases.find((phrase) => {
-      if (characterIteration + phrase.length > sentenceCharacters) {
+      if (characterIteration + phrase.length >= sentenceCharacters) {
         phraseOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
