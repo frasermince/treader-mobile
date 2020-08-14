@@ -25,7 +25,7 @@ import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, ti
 import BindThis (bindThis)
 import FlashcardBuilder.Util (clozeWord, underlineWordMarkup)
 import FetchBlob (fetch)
-import Effect.Aff (Aff, launchAff_, try)
+import Effect.Aff (Aff, launchAff_, try, delay, Milliseconds(..))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile)
@@ -34,15 +34,17 @@ import Data.String (stripPrefix, Pattern(..))
 import Global (encodeURIComponent, decodeURIComponent)
 import Blur (blurView, vibrancyView)
 import AsyncStorage (getItem, setItem)
+import Animated (value, timing)
 
-blurStyle = {
+blurStyle visible = {
   position: "absolute",
   top: 0,
   left: 0,
   bottom: 0,
   right: 0,
   justifyContent: "center",
-  alignItems: "center"
+  alignItems: "center",
+  display: if visible then "flex" else "none"
   }
 
 frontBlurTextStyle = {
@@ -57,16 +59,17 @@ frontBlurTextStyle = {
   fontSize: 18
 }
 
-backBlurTextStyle = {
+backBlurTextStyle visible = {
   position: "absolute",
-  top: -60,
+  top: 100,
   left: 0,
   bottom: 0,
   right: 0,
   justifyContent: "center",
   alignItems: "center",
   height: "100%",
-  fontSize: 18
+  fontSize: 18,
+  display: if visible then "flex" else "none"
 }
 
 gray = "#757E90"
@@ -152,18 +155,9 @@ flipEnd setIsFlipped sound = launchAff_ do
   liftEffect $ setIsFlipped \_ -> true
   traverse_ stopAndPlay sound
 
-frontTutorial setBlurVisible = do
-  vibrancyView {style: M.css blurStyle, blurType: "light", blurAmount: 2}
-  M.touchableOpacity {style: M.css frontBlurTextStyle, onPressIn: blurPress} do
-    fontAwesomeIcon {name: "hand-pointer-o", size: 18}
-    M.text {style: M.css {marginTop: 10}} $ M.string "Tap card to reveal answer"
-
-  where blurPress = RNE.capture_ do
-          setBlurVisible \_ -> false
-
-backTutorial setBlurVisible hasSwipedBefore setHasSwipedBefore = do
-  vibrancyView {style: M.css blurStyle, blurType: "light", blurAmount: 2}
-  M.touchableOpacity {style: M.css backBlurTextStyle, onPressIn: blurPress} do
+backTutorial hasSwipedBefore setTutorialVisible tutorialVisible = do
+  vibrancyView {style: M.css $ blurStyle tutorialVisible, blurType: "light", blurAmount: 2}
+  M.touchableOpacity {style: M.css $ backBlurTextStyle tutorialVisible, onPressIn: blurPress} do
     M.view {style: M.css {flexDirection: "row", alignItems: "center"}} do
       M.view {style: M.css {flex: 1, alignItems: "center"}} do
         fontAwesomeIcon {name: "angle-left", size: 18}
@@ -174,20 +168,14 @@ backTutorial setBlurVisible hasSwipedBefore setHasSwipedBefore = do
     M.text {style: M.css {marginTop: 10}} $ M.string "Swipe to continue"
 
   where blurPress = RNE.capture_ do
-          launchAff_ if not hasSwipedBefore
-                       then do
-                         setItem "HasSwiped" "true"
-                         liftEffect $ setHasSwipedBefore \_ -> true
-                       else mempty
-          setBlurVisible \_ -> false
+          setTutorialVisible \_ -> false
 
 buildJsx props = React.do
   audioPath /\ setAudioPath <- useState (Nothing :: Maybe String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
   showTranslation /\ setShowTranslation <- useState false
-  frontBlurVisible /\ setFrontBlurVisible <- useState false
-  backBlurVisible /\ setBackBlurVisible <- useState false
   hasSwipedBefore /\ setHasSwipedBefore <- useState true
+  tutorialVisible /\ setTutorialVisible <- useState $ false
   flipRef <- useRef null
   let flip = do
         result <- readRefMaybe flipRef
@@ -201,12 +189,6 @@ buildJsx props = React.do
         pure $ s
 
   useEffect (props.active /\ sound) do
-     launchAff_ do
-       item <- getItem "HasSwiped"
-       case item of
-            Just i -> liftEffect $ setHasSwipedBefore \_ -> i == "true"
-            Nothing -> liftEffect $ setHasSwipedBefore \_ -> false
-
      if not props.active then
         props.setIsFlipped \_ -> false
      else mempty
@@ -222,10 +204,23 @@ buildJsx props = React.do
         e <- fileExists $ decodedPath
         if e then unlink $ fromMaybe "" decodedPath else mempty
 
-  useEffect hasSwipedBefore do
-     setBackBlurVisible \_ -> not hasSwipedBefore
-     setFrontBlurVisible \_ -> not hasSwipedBefore
-     pure mempty
+  useEffect (props.active /\ props.index) do
+    launchAff_ do
+       item <- getItem "HasSwiped"
+       case item of
+            Just i -> liftEffect $ setHasSwipedBefore \_ -> i == "true"
+            Nothing -> liftEffect $ setHasSwipedBefore \_ -> false
+    pure mempty
+
+  useEffect (tutorialVisible /\ props.active /\ hasSwipedBefore /\ props.index) do
+    let hideTutorial = hasSwipedBefore || props.index /= 0
+    case tutorialVisible of
+      true -> if hideTutorial then setTutorialVisible \_ -> false else mempty
+      false -> if hideTutorial
+                 then mempty else launchAff_ do
+                    delay $ Milliseconds 5000.0
+                    liftEffect $ setTutorialVisible \_ -> true
+    pure mempty
 
   useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
@@ -237,15 +232,14 @@ buildJsx props = React.do
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 
   pure $ M.getJsx do
-     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound , key: props.active} do
+     card {index: props.index, style: M.css {width: window.width}, ref: flipRef, onFlipEnd: flipEnd props.setIsFlipped sound, key: props.active} do
         M.touchableOpacity {style: M.css containerCardItem, onPress: RNE.capture_ $ flip} do
             M.text {style: M.css promptStyle} $ M.string "What word goes in the blank"
-            M.text {style: M.css {flexWrap:"wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 5}} do
+            M.text {style: M.css {flexWrap: "wrap", flexDirection: "row", marginRight: 5, marginLeft: 5, flex: 5}} do
                clozeWord props.sentence props.offset props.word $ M.css descriptionCardItem
             M.view {style: M.css {flexDirection: "column", flex: 2, width: window.width - 60.0, justifyContent: "flex-end"}} do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
-            if frontBlurVisible && props.active then frontTutorial setFrontBlurVisible else mempty
         M.view {style: M.css containerCardItem} do
             M.text {style: M.css promptStyle} $ M.string props.word
             iconButton {style: M.css {position: "absolute", top: 7, right: 0},icon: "google-translate", size: 20, onPress: toggleTranslation}
@@ -259,4 +253,4 @@ buildJsx props = React.do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
 
-            if backBlurVisible then backTutorial setBackBlurVisible hasSwipedBefore setHasSwipedBefore else mempty
+            backTutorial hasSwipedBefore setTutorialVisible tutorialVisible

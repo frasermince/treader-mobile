@@ -43,6 +43,7 @@ import Icon (materialIcon)
 import Animated as Animated
 import Animated (AnimationXY, interpolate, value)
 import Data.Tuple.Native (T2, t2)
+import AsyncStorage (getItem, setItem)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
@@ -138,6 +139,7 @@ imageBackgroundStyles = {
 handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
 
 handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
+  setItem "HasSwiped" "true"
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else spy "FIRST" idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
@@ -194,20 +196,20 @@ leftCircleStyle drag =
   , justifyContent: "center"
   , opacity: interpolate drag
       { inputRange: [-500.0, 0.0]
-      , outputRange: [2.0, 0.0]
+      , outputRange: [0.6, 0.0]
       , extrapolate: "clamp"
       }
   , alignItems: "center"
   , transform: t2
        { translateX: interpolate (spy "DRAG" drag)
           { inputRange: [-500.0, 0.0]
-          , outputRange: [200.0, 0.0]
+          , outputRange: [80.0, 0.0]
           , extrapolate: "clamp"
           }
        }
        { scale: interpolate drag
             { inputRange: [-500.0, 0.0]
-            , outputRange: [1.75, 1.0]
+            , outputRange: [1.2, 1.0]
             , extrapolate: "clamp"
             }
         }
@@ -226,7 +228,7 @@ rightCircleStyle drag =
   , top: window.height / 3.0
   , opacity: interpolate drag
       { inputRange: [0.0, 500.0]
-      , outputRange: [0.0, 2.0]
+      , outputRange: [0.0, 0.6]
       , extrapolate: "clamp"
       }
 
@@ -237,13 +239,13 @@ rightCircleStyle drag =
       {
         translateX: interpolate (spy "DRAG" drag)
           { inputRange: [0.0, 500.0]
-          , outputRange: [0.0, -200.0]
+          , outputRange: [0.0, -80.0]
           , extrapolate: "clamp"
           }
       }
       { scale: interpolate drag
             { inputRange: [0.0, 500.0]
-            , outputRange: [1.0, 1.75]
+            , outputRange: [1.0, 1.2]
             , extrapolate: "clamp"
             }
         }
@@ -301,8 +303,7 @@ buildJsx props = React.do
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = do
-        handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe = handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
   let cardsMarkup [] (Just d) =
         M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
           M.text {style: M.css {}} $ M.string "Create cards to review them here"
