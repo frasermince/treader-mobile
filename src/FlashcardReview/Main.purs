@@ -195,15 +195,15 @@ leftCircleStyle drag =
   , zIndex: 2
   , justifyContent: "center"
   , opacity: interpolate drag
-      { inputRange: [-500.0, 0.0]
-      , outputRange: [0.6, 0.0]
+      { inputRange: [-500.0, -90.0, 0.0]
+      , outputRange: [0.0, 0.6, 0.0]
       , extrapolate: "clamp"
       }
   , alignItems: "center"
   , transform: t2
        { translateX: interpolate (spy "DRAG" drag)
-          { inputRange: [-500.0, 0.0]
-          , outputRange: [80.0, 0.0]
+          { inputRange: [-500.0, -90.0, 0.0]
+          , outputRange: [0.0, 80.0, 0.0]
           , extrapolate: "clamp"
           }
        }
@@ -227,8 +227,8 @@ rightCircleStyle drag =
   , backgroundColor: "white"
   , top: window.height / 3.0
   , opacity: interpolate drag
-      { inputRange: [0.0, 500.0]
-      , outputRange: [0.0, 0.6]
+      { inputRange: [0.0, 90.0, 500.0]
+      , outputRange: [0.0, 0.6, 0.0]
       , extrapolate: "clamp"
       }
 
@@ -238,8 +238,8 @@ rightCircleStyle drag =
   , transform: t2
       {
         translateX: interpolate (spy "DRAG" drag)
-          { inputRange: [0.0, 500.0]
-          , outputRange: [0.0, -80.0]
+          { inputRange: [0.0, 90.0, 500.0]
+          , outputRange: [0.0, -80.0, 0.0]
           , extrapolate: "clamp"
           }
       }

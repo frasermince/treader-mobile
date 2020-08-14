@@ -27,6 +27,9 @@ exports._scrollView = native.Animated.ScrollView
 exports.interpolate = function(union) {
   return function(animation) {
     return function(options) {
+      animation.addListener((value) => {
+        console.log(value);
+      })
       return animation.interpolate(options);
     }
   }
