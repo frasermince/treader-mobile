@@ -18,7 +18,7 @@ import Slider (slider)
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Markup as M
-import Paper (surface, switch, title, toggleButton, caption, fab)
+import Paper (surface, switch, title, toggleButton, caption, fab, listItem)
 import Record (get, merge)
 import Data.Symbol (class IsSymbol, reflectSymbol, reifySymbol)
 import Foreign.Object (lookup, Object, fold)
@@ -297,10 +297,10 @@ buildJsx props = React.do
         fab
           { icon: "volume-medium"
           , small: true
-          , style: M.css {width: 40, position: "absolute", right: 5, zIndex: 2}
+          , style: M.css {width: 40, position: "absolute", right: 5, top: 5, zIndex: 2}
           , onPress: RNE.capture_ $ maybePlay play props.word props.language
           }
-        translationMarker <> fromMaybe translationPlaceholder translationText
+        listItem {title: "Translation", description: fromMaybe "" $ _.text <$> props.translation, titleStyle: titleStyles, style: M.css {paddingLeft: 0, marginLeft: 0}, descriptionStyle: M.css {color: "black", fontWeight: "400"}}
         M.view {style: M.css {paddingBottom: 40}} do
           tappableTranslations mutationFn
           maybeDataMap props.morphology
@@ -343,7 +343,7 @@ buildJsx props = React.do
 
   tappableTranslations mutationFn = do
      if sentence == phrase || displaySurrounding
-       then M.childElement TranslatableOnPress.reactComponent {snippet: surrounding, labelText: "Adjacent", mutationFn: mutationFn, language: props.language}
+       then M.childElement TranslatableOnPress.reactComponent {snippet: surrounding, labelText: "Adjacent Words", mutationFn: mutationFn, language: props.language}
        else mempty
      if sentence /= phrase && displayPhrase
        then M.childElement TranslatableOnPress.reactComponent {snippet: phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
@@ -362,7 +362,7 @@ maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
   where
   dataMap d =
-    M.view { style: M.css { marginTop: 10 } } do
+    M.view { style: M.css { paddingLeft: 10, marginTop: 15, paddingTop: 15, borderTopColor: "#b2b2b2", borderTopWidth: 1 } } do
       M.text { style: titleStyles } $ M.string $ "Word Information"
       fold foldFn (mempty :: M.Markup Unit) d
 

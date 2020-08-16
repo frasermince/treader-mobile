@@ -12,6 +12,8 @@ import Control.Alt ((<|>))
 import Effect.Unsafe (unsafePerformEffect)
 import Debug.Trace (spy)
 import Effect.Console (log)
+import Paper (listItem, listIcon)
+import Record.Unsafe.Union (unsafeUnion)
 
 titleStyles =
   M.css
@@ -20,8 +22,12 @@ titleStyles =
     , marginBottom: 5
     }
 
+descriptionStyle = M.css {color: "black", fontWeight: "400"}
+
 type Payload = {variables :: {input :: {snippet :: String, language :: String}}}
 type Props = {snippet :: Maybe String, labelText :: String, mutationFn :: Payload -> Aff {translate :: {translation :: String}} , language :: Maybe String}
+
+translateIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -36,22 +42,34 @@ buildJsx props = React.do
     setTranslation \_ -> Nothing
     setShowTranslation \_ -> true
     pure mempty
-  let translationText = (M.text {} <$> M.string <$> translation)
-  let translationElement = (append translationMarker) <$> translationText
+  let translationElement = do
+        t <- translation
+        pure $ listItem
+          { titleStyle: titleStyles
+          , style: M.css {paddingLeft: 0, marginLeft: 0}
+          , descriptionStyle: descriptionStyle
+          , title: props.labelText <> " Translation"
+          , description: t
+          , right: translateIcon
+          , descriptionNumberOfLines: 5
+          }
 
   pure $ M.getJsx $
-    M.touchableOpacity { style: M.css { marginTop: 10 }, onPress: capture_ $ press props.snippet props.language translation setTranslation setShowTranslation } do
+    M.touchableOpacity { style: M.css { marginTop: 10, paddingTop: 10, borderTopColor: "#b2b2b2", borderTopWidth: 1 }, onPress: capture_ $ press props.snippet props.language translation setTranslation setShowTranslation } do
        fromMaybe mempty $ if showTranslation then (translationElement <|> textElement) else textElement
   where
 
-  textElement = (append marker) <$> sentenceText
-
-  translationMarker = M.text { style: titleStyles } $ M.string $ props.labelText <> " Translation"
-
-  marker = M.text { style: titleStyles } $ M.string $ props.labelText <> " (Tap to translate)"
-
-  sentenceText = (M.text {} <$> M.string <$> props.snippet)
-
+  textElement = do
+     s <- props.snippet
+     pure $ listItem
+       { titleStyle: titleStyles
+       , style: M.css {paddingLeft: 0, marginLeft: 0}
+       , title: props.labelText
+       , description: s
+       , descriptionStyle: descriptionStyle
+       , right: translateIcon
+       , descriptionNumberOfLines: 5
+       }
 
   press (Just snippet) (Just language) Nothing setTranslation _ =
     launchAff_
