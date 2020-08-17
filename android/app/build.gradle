@@ -4,7 +4,7 @@ apply plugin: 'com.google.gms.google-services'
 
 import com.android.build.OutputFile
 project.ext.vectoricons = [
-	iconFontNames: ['MaterialIcons.ttf'] //name of all the fonts added from node_modules in step 1.
+	iconFontNames: ['MaterialIcons.ttf', 'MaterialCommunityIcons.tff', 'FontAwesome.tff'] //name of all the fonts added from node_modules in step 1.
 ]
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

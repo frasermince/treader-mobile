@@ -156,7 +156,7 @@ flipEnd setIsFlipped sound = launchAff_ do
   traverse_ stopAndPlay sound
 
 backTutorial hasSwipedBefore setTutorialVisible tutorialVisible = do
-  vibrancyView {style: M.css $ blurStyle tutorialVisible, blurType: "light", blurAmount: 2}
+  Platform.select {ios: vibrancyView, android: blurView} $ {style: M.css $ blurStyle tutorialVisible, blurType: "light", blurAmount: 2}
   M.touchableOpacity {style: M.css $ backBlurTextStyle tutorialVisible, onPressIn: blurPress} do
     M.view {style: M.css {flexDirection: "row", alignItems: "center"}} do
       M.view {style: M.css {flex: 1, alignItems: "center"}} do
