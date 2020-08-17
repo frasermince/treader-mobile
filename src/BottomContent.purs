@@ -342,15 +342,16 @@ buildJsx props = React.do
      context.surrounding
 
   tappableTranslations mutationFn = do
-     if sentence == phrase || displaySurrounding
-       then M.childElement TranslatableOnPress.reactComponent {snippet: surrounding, labelText: "Adjacent Words", mutationFn: mutationFn, language: props.language}
-       else mempty
-     if sentence /= phrase && displayPhrase
-       then M.childElement TranslatableOnPress.reactComponent {snippet: phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
-       else mempty
-     if displaySentence && not (displayPhrase && displaySurrounding)
-       then M.childElement TranslatableOnPress.reactComponent {snippet: sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
-       else mempty
+     M.view {style: M.css {marginTop: 10}} do
+        if sentence == phrase || displaySurrounding
+          then M.childElement TranslatableOnPress.reactComponent {snippet: surrounding, labelText: "Adjacent Words", mutationFn: mutationFn, language: props.language}
+          else mempty
+        if sentence /= phrase && displayPhrase
+          then M.childElement TranslatableOnPress.reactComponent {snippet: phrase, labelText: "Phrase", mutationFn: mutationFn, language: props.language}
+          else mempty
+        if displaySentence && not (displayPhrase && displaySurrounding)
+          then M.childElement TranslatableOnPress.reactComponent {snippet: sentence, labelText: "Sentence", mutationFn: mutationFn, language: props.language}
+          else mempty
 
 
   translationMarker = M.text { style: titleStyles } $ M.string "Translation"
@@ -362,7 +363,7 @@ maybeDataMap :: Maybe (Object String) -> M.Markup Unit
 maybeDataMap morphology = fromMaybe mempty (dataMap <$> morphology)
   where
   dataMap d =
-    M.view { style: M.css { paddingLeft: 10, marginTop: 15, paddingTop: 15, borderTopColor: "#b2b2b2", borderTopWidth: 1 } } do
+    M.view { style: M.css { paddingLeft: 10, paddingTop: 10, borderTopColor: "#b2b2b2", borderTopWidth: 1 } } do
       M.text { style: titleStyles } $ M.string $ "Word Information"
       fold foldFn (mempty :: M.Markup Unit) d
 

@@ -55,7 +55,7 @@ buildJsx props = React.do
           }
 
   pure $ M.getJsx $
-    M.touchableOpacity { style: M.css { marginTop: 10, paddingTop: 10, borderTopColor: "#b2b2b2", borderTopWidth: 1 }, onPress: capture_ $ press props.snippet props.language translation setTranslation setShowTranslation } do
+    M.touchableOpacity { style: M.css { paddingTop: 2, borderTopColor: "#b2b2b2", borderTopWidth: 1 }, onPress: capture_ $ press props.snippet props.language translation setTranslation setShowTranslation } do
        fromMaybe mempty $ if showTranslation then (translationElement <|> textElement) else textElement
   where
 
