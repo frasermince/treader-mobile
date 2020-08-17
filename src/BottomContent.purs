@@ -300,7 +300,7 @@ buildJsx props = React.do
           , style: M.css {width: 40, position: "absolute", right: 5, top: 5, zIndex: 2}
           , onPress: RNE.capture_ $ maybePlay play props.word props.language
           }
-        listItem {title: "Translation", description: fromMaybe "" $ _.text <$> props.translation, titleStyle: titleStyles, style: M.css {paddingLeft: 0, marginLeft: 0}, descriptionStyle: M.css {color: "black", fontWeight: "400"}}
+        listItem {title: "Translation", description: fromMaybe " " $ _.text <$> props.translation, titleStyle: titleStyles, style: M.css {paddingLeft: 0, marginLeft: 0}, descriptionStyle: M.css {color: "black", fontWeight: "400"}}
         M.view {style: M.css {paddingBottom: 40}} do
           tappableTranslations mutationFn
           maybeDataMap props.morphology
