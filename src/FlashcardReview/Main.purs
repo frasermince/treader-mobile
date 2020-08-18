@@ -10,7 +10,7 @@ import Data.Traversable (traverse_)
 import Effect (Effect)
 import StackSwiper (cardStack, card)
 import Markup as M
-import Data.Array (mapWithIndex, (!!), snoc, take, (:))
+import Data.Array (mapWithIndex, (!!), snoc, take, (:), length)
 import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Data.FoldableWithIndex (foldlWithIndexDefault)
@@ -33,7 +33,7 @@ import Data.Array as Array
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
-import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty)
+import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty, size)
 import Navigation (useFocusEffect)
 import Data.Map (Map, update, lookup)
 import Data.Map as Map
@@ -44,6 +44,7 @@ import Animated as Animated
 import Animated (AnimationXY, interpolate, value)
 import Data.Tuple.Native (T2, t2)
 import AsyncStorage (getItem, setItem)
+import Data.Interpolate (i)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
@@ -326,3 +327,7 @@ buildJsx props = React.do
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
         cardsMarkup (spy "LIST" cardList) flashcardsResult.state
+        if isEmpty idsNeedingReview then mempty else
+          M.view { style: M.css {width: "100%", bottom: 0, position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "white", height: 45}} do
+            M.text {style: M.css {marginBottom: 5, marginTop: 5}} $ M.string $ i (30 - (size idsNeedingReview)) " / 30 cards completed"
+
