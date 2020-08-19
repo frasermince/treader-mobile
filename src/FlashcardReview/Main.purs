@@ -28,7 +28,7 @@ import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
 import ComponentTypes (Flashcard, StateChange)
 import Ebisu (lowest, randomLow, updateRecall, nRandom)
 import Data.Either (Either(..))
-import Data.Array.NonEmpty (fromArray, toArray)
+import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
 import Data.Array as Array
 import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
@@ -47,7 +47,7 @@ import AsyncStorage (getItem, setItem)
 import Data.Interpolate (i)
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {flashcardIds :: Maybe (Array String)}} }
+  = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard)}} }
 
 type Query = {flashcards :: Array Flashcard}
 
@@ -80,29 +80,6 @@ mutationForIncrement = gql """
       result
     }
   }
-"""
-
-query =
-  gql
-    """
-    query getFlashcards {
-      flashcards {
-        id
-        imageUrl
-        a
-        b
-        t
-        startOffset
-        word
-        hoursPassed
-        sentence {
-          id
-          audioUrl
-          text
-          translation
-        }
-      }
-    }
 """
 
 cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
@@ -259,7 +236,6 @@ dragFn setDrag drag = setDrag \_ -> Just $ spy "DRAG" drag
 buildJsx props = React.do
   swipeRef <- useRef null
   { setLoading, setError } <- useContext dataStateContext
-  flashcardsResult <- useData (Proxy :: Proxy Query) query { errorPolicy: "all", fetchPolicy: "network-only" }
 
   mutate /\ d1 <- useMutation mutation { errorPolicy: "all" }
   incrementMutation /\ d2 <- useMutation mutationForIncrement { errorPolicy: "all" }
@@ -282,12 +258,12 @@ buildJsx props = React.do
      launchAff_ $ do
         screen "Flashcard Review" {}
      pure mempty
-  useEffect (isJust flashcardsResult.state) $ do
-    case (_.flashcards <$> flashcardsResult.state) >>= fromArray of
+  useEffect (isJust props.route.params.flashcards) $ do
+    case props.route.params.flashcards of
          Nothing -> mempty
          Just flashcards -> do
           flashcardArray <-
-            case props.route.params.flashcardIds of
+            case props.route.params.existingIds of
                  Nothing -> do
                     flashcardsToReview <- nRandom 30 flashcards
                     pure $ Array.fromFoldable flashcardsToReview
@@ -305,11 +281,7 @@ buildJsx props = React.do
     pure mempty
 
   let afterSwipe = handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
-  let cardsMarkup [] (Just d) =
-        M.view {style: M.css {flex: 1, justifyContent: "center", alignItems: "center"}} do
-          M.text {style: M.css {}} $ M.string "Create cards to review them here"
-      cardsMarkup [] Nothing = mempty
-      cardsMarkup cards state = whiteImageBackground {style: M.css imageBackgroundStyles} do
+  let cardsMarkup cards = whiteImageBackground {style: M.css imageBackgroundStyles} do
           Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
              M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
           Animated.view {style: M.css $ rightCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
@@ -326,7 +298,7 @@ buildJsx props = React.do
               } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-        cardsMarkup (spy "LIST" cardList) flashcardsResult.state
+        cardsMarkup (spy "LIST" cardList)
         if isEmpty idsNeedingReview then mempty else
           M.view { style: M.css {width: "100%", bottom: 0, position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "white", height: 45}} do
             M.text {style: M.css {marginBottom: 5, marginTop: 5}} $ M.string $ i (30 - (size idsNeedingReview)) " / 30 cards completed"
