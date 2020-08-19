@@ -114,20 +114,29 @@ imageBackgroundStyles = {
   height: window.height
 }
 
-handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack Nothing result index = mempty
-
-handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack (Just {x: flashcard, y: prediction}) result index = launchAff_ do
+setSwipeState result idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack {x: flashcard, y: prediction} = do
   setItem "HasSwiped" "true"
   let reviewWithoutCurrent = if result then delete flashcard.id idsNeedingReview else spy "FIRST" idsNeedingReview
   let stackWithoutCurrent = delete flashcard.id idsInStack
   liftEffect $ setIdsNeedingReview \_ -> reviewWithoutCurrent
   liftEffect $ setIdsInStack \_ -> stackWithoutCurrent
+  pure $ {stackWithoutCurrent, reviewWithoutCurrent}
+
+conditionallyUpdateRecall result timesIncorrect setTimesIncorrect {x: flashcard, y: prediction} = do
   liftEffect $ if result then mempty else setTimesIncorrect (\incorrectMap -> incrementIncorrect flashcard incorrectMap)
   let flashcardEbisu = flashcard.a /\ flashcard.b /\ flashcard.t
-  let (a /\ b /\ t) = if not result && threeIncorrect flashcard timesIncorrect
+  let recall = if not result && threeIncorrect flashcard timesIncorrect
     then flashcardEbisu
     else updateRecall flashcardEbisu result flashcard.hoursPassed
-  responseOrError <- try $ mutate
+  pure $ recall
+
+  where incrementIncorrect flashcard incorrectMap = update (\value -> Just $ value + 1) flashcard.id incorrectMap
+        threeIncorrect flashcard timesIncorrect = fromMaybe false do
+            incorrectForFlashcard <- lookup flashcard.id timesIncorrect
+            pure $ incorrectForFlashcard >= 3
+
+saveRecall mutate (a /\ b /\ t) stackWithoutCurrent reviewWithoutCurrent {x: flashcard, y: prediction} = do
+  try $ mutate
     {
       variables:
         {
@@ -142,13 +151,12 @@ handleSwipe redirect mutate incrementSessionsMutation setError setTimesIncorrect
           }
         }
     }
+
+handleResponse incrementSessionsMutation responseOrError redirect setError stackWithoutCurrent idsInStack setIdsInStack setCardList = do
   case responseOrError of
       Left error -> liftEffect $ runEffectFn1 setError $ stripGraphqlError $ message error
       Right resp -> addCard (fromArray (spy "RESP" resp).updateFlashcard.flashcards) stackWithoutCurrent
-  where incrementIncorrect flashcard incorrectMap = update (\value -> Just $ value + 1) flashcard.id incorrectMap
-        threeIncorrect flashcard timesIncorrect = fromMaybe false do
-          incorrectForFlashcard <- lookup flashcard.id timesIncorrect
-          pure $ incorrectForFlashcard >= 3
+  where
         addCard (Just cards) stack = do
           newCard <- liftEffect $ randomLow cards
           traverse_ (\n -> liftEffect $ setIdsInStack \s -> insert n.x.id s) newCard
@@ -280,7 +288,12 @@ buildJsx props = React.do
           setCardList \_ -> firstThree
     pure mempty
 
-  let afterSwipe = handleSwipe props.navigation.navigate mutate incrementMutation setError setTimesIncorrect timesIncorrect setCardList idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack
+  let afterSwipe Nothing result index = mempty
+      afterSwipe (Just card) result index = launchAff_ do
+        {stackWithoutCurrent, reviewWithoutCurrent} <- setSwipeState result idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack card
+        recall <- conditionallyUpdateRecall result timesIncorrect setTimesIncorrect card
+        response <- saveRecall mutate recall stackWithoutCurrent reviewWithoutCurrent card
+        handleResponse incrementMutation response props.navigation.navigate setError stackWithoutCurrent idsInStack setIdsInStack setCardList
   let cardsMarkup cards = whiteImageBackground {style: M.css imageBackgroundStyles} do
           Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
              M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
@@ -302,4 +315,3 @@ buildJsx props = React.do
         if isEmpty idsNeedingReview then mempty else
           M.view { style: M.css {width: "100%", bottom: 0, position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "white", height: 45}} do
             M.text {style: M.css {marginBottom: 5, marginTop: 5}} $ M.string $ i (30 - (size idsNeedingReview)) " / 30 cards completed"
-
