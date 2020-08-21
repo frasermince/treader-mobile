@@ -47,6 +47,7 @@ import tokenizer from 'sbd';
   function ltrim(str) {
     if(!str) return str;
     str = str.replace(/(\r\n|\n|\r)/gm, "");
+    str = str.replace(/(\s\s)/gm, " ");
     return str.replace(/^\s+/g, '');
   }
 
@@ -66,18 +67,16 @@ import tokenizer from 'sbd';
     }
     let sentenceCharacters = ltrim(paragraphRange.toString()).length;
     let characterIteration = 0;
-    debugger
     let sentence = sentences.find((sentence) => {
       // + 1 for the space that has been removed
       let total = characterIteration + sentence.length;
-      if (total > sentenceCharacters) {
+      if (total >= sentenceCharacters) {
         sentenceOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
         characterIteration = total + 1;
       }
     });
-    debugger
     let phrases = sentence.split(/(,|;|–)/g);
     let phrase = phrases.find((phrase) => {
       if (characterIteration + phrase.length >= sentenceCharacters) {
@@ -92,7 +91,7 @@ import tokenizer from 'sbd';
     multiRange = getNextWord(multiRange, true);
     multiRange = getNextWord(multiRange, false);
     multiRange = getNextWord(multiRange, false);
-    let surrounding = multiRange.toString()
+    let surrounding = ltrim(multiRange.toString());
     let sentenceWhitespaceLength = sentence.length - ltrim(sentence).length
     let phraseWhitespaceLength = phrase.length - ltrim(phrase).length
     sentence = sentence.trim().replace(/(\r\n|\n|\r)/gm, "");
