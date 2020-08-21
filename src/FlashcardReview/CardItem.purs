@@ -28,7 +28,7 @@ import FetchBlob (fetch)
 import Effect.Aff (Aff, launchAff_, try, delay, Milliseconds(..))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Effect.Class (liftEffect)
-import FS (audioDir, writeFile, exists, unlink, absintheFile)
+import FS (audioDir, writeFile, exists, unlink, absintheFile, readDirectory)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Data.String (stripPrefix, Pattern(..))
 import Global (encodeURIComponent, decodeURIComponent)
@@ -60,7 +60,7 @@ frontBlurTextStyle = {
 }
 
 backBlurTextStyle visible = {
-  position: "absolute",
+  position: if visible then "absolute" else "relative",
   top: 100,
   left: 0,
   bottom: 0,
@@ -183,7 +183,7 @@ buildJsx props = React.do
 
   let setAudioInformation :: String -> Aff Sound
       setAudioInformation path = do
-        s <- createSound path
+        s <- createSound $ path
         liftEffect $ setAudioPath \_ -> Just path
         liftEffect $ setSound \_ -> Just $ s
         pure $ s
@@ -224,10 +224,10 @@ buildJsx props = React.do
 
   useEffect (props.audioUrl /\ props.index) do
      launchAff_ do
-        let file = audioDir <> "/sentence-" <> props.sentenceId <> ".mp3"
+        let file = audioDir <> "/sentence_" <> props.sentenceId <> ".mp3"
         result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
         path <- liftEffect result.path
-        traverse_ setAudioInformation $ encodeURIComponent path
+        traverse_ setAudioInformation $ Platform.select {ios: encodeURIComponent path, android: Just path}
      pure mempty
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 

@@ -1,8 +1,10 @@
 var RNFS = require('react-native-fs');
+var RNFetchBlob = require('rn-fetch-blob').default
 var absinthe = require('apollo-absinthe-upload-link')
-exports.bookDir = RNFS.DocumentDirectoryPath + "/www";
-exports.audioDir = RNFS.DocumentDirectoryPath;
-exports.audioBookDir = RNFS.DocumentDirectoryPath + "/audiobooks";
+let dirs = RNFetchBlob.fs.dirs
+exports.bookDir = dirs.DocumentDir + "/www";
+exports.audioDir = dirs.DocumentDir;
+exports.audioBookDir = dirs.DocumentDir + "/audiobooks";
 exports._exists = function(path) {
   return function () {
     return RNFS.exists(path);
