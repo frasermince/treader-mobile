@@ -1,7 +1,7 @@
 var fastImage = require('react-native-fast-image');
 
-exports._image = fastImage.default;
+exports._image = fastImage;
 
-exports.contain = fastImage.default.resizeMode.contain
+exports.contain = fastImage.resizeMode.contain
 
-exports.cover = fastImage.default.resizeMode.cover
+exports.cover = fastImage.resizeMode.cover
