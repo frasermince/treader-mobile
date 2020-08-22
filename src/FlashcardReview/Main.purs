@@ -42,7 +42,7 @@ import Dimensions (window)
 import Icon (materialIcon)
 import Animated as Animated
 import Animated (AnimationXY, interpolate, value)
-import Data.Tuple.Native (T2, t2)
+import Data.Tuple.Native (t3)
 import AsyncStorage (getItem, setItem)
 import Data.Interpolate (i)
 
@@ -178,27 +178,29 @@ leftCircleStyle drag =
   , left: 0
   , backgroundColor: "white"
   , top: window.height / 3.0
-  , zIndex: 2
+  , zIndex: 3
+  , elevation: 4
   , justifyContent: "center"
   , opacity: interpolate drag
       { inputRange: [-500.0, -90.0, 0.0]
-      , outputRange: [0.0, 0.6, 0.0]
+      , outputRange: [-0.1, 0.6, -0.1]
       , extrapolate: "clamp"
       }
   , alignItems: "center"
-  , transform: t2
+  , transform: t3
        { translateX: interpolate (spy "DRAG" drag)
           { inputRange: [-500.0, -90.0, 0.0]
-          , outputRange: [0.0, 80.0, 0.0]
+          , outputRange: [0.1, 80.0, 0.1]
           , extrapolate: "clamp"
           }
        }
        { scale: interpolate drag
             { inputRange: [-500.0, 0.0]
-            , outputRange: [1.2, 1.0]
+            , outputRange: [1.4, 1.0]
             , extrapolate: "clamp"
             }
         }
+        { perspective: 1000}
 
   }
 
@@ -214,27 +216,28 @@ rightCircleStyle drag =
   , top: window.height / 3.0
   , opacity: interpolate drag
       { inputRange: [0.0, 90.0, 500.0]
-      , outputRange: [0.0, 0.6, 0.0]
+      , outputRange: [-0.1, 0.6, -0.1]
       , extrapolate: "clamp"
       }
-
-  , zIndex: 2
+  , zIndex: 3
+  , elevation: 4
   , justifyContent: "center"
   , alignItems: "center"
-  , transform: t2
+  , transform: t3
       {
         translateX: interpolate (spy "DRAG" drag)
           { inputRange: [0.0, 90.0, 500.0]
-          , outputRange: [0.0, -80.0, 0.0]
+          , outputRange: [0.1, -80.0, 0.1]
           , extrapolate: "clamp"
           }
       }
       { scale: interpolate drag
             { inputRange: [0.0, 500.0]
-            , outputRange: [1.0, 1.2]
+            , outputRange: [1.0, 1.4]
             , extrapolate: "clamp"
             }
-        }
+       }
+       { perspective: 1000}
   }
 
 dragFn :: StateChange (Maybe AnimationXY) -> AnimationXY -> Effect Unit

@@ -28,12 +28,12 @@ foreign import getNode :: forall opts. Node -> Node
 
 foreign import scrollTo :: Node -> Int -> Effect Unit
 
-type InterpolateOptions
-  = ( inputRange :: Array Number, outputRange :: Array Number, extrapolate :: String )
+type InterpolateOptions a
+  = ( inputRange :: Array Number, outputRange :: Array a, extrapolate :: String, easing :: Number -> a )
 
 foreign import interpolate ::
-  forall opts _opts.
-  (Union opts _opts InterpolateOptions) =>
+  forall opts _opts a.
+  (Union opts _opts (InterpolateOptions a)) =>
   Animation ->
   Record opts ->
   Number
