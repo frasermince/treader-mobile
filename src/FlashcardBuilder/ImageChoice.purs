@@ -336,8 +336,8 @@ buildJsx props = React.do
                 M.text {style: M.css {marginBottom: 30}} $ M.string params.wordTranslation
               M.view {style: M.css {flex: 1}} do
                 button {style: M.css {marginTop: 15, marginLeft: 10}, onPress: RNE.capture_ $ setShowDefinition \_ -> true} $ M.string "Get Definition"
-         M.view {style: M.css {flex: 6}} do
-           M.view {style: M.css {flex: 1}} do
+         M.view {style: M.css {flex: 7}} do
+           M.view {style: M.css {flex: 4}} do
               divider {style: M.css {height: 1, width: "100%"}}
               M.view {style: M.css {flex: 7, paddingTop: "5%", paddingLeft: 5, paddingRight: 5}} do
                 fab {icon: "volume-medium", small: true, style: M.css {width: 40}, onPress: RNE.capture_ $ (spy "PLAY" playText) params.range $ spy "***LANGUAGE" selection.book.language}
@@ -345,7 +345,7 @@ buildJsx props = React.do
               --paragraph {style: M.css {paddingTop: 20, paddingLeft: 5, paddingRight: 5}} $ M.string $ params.rangeTranslation
               subheading {style: M.css {marginLeft: 25, flex: 1}} $ M.string $ i "Searching for images of \"" search "\""
               fab {icon: "magnify", small: true, style: M.css {width: 40, position: "absolute", right: 2, bottom: 2}, onPress: RNE.capture_ $ setShowSearch \show -> not show}
-           M.view {style: M.css {flex: 1, justifyContent: "flex-end", zIndex: 2}} do
+           M.view {style: M.css {flex: 5, justifyContent: "flex-end", zIndex: 2}} do
             M.flatList {
               data: images imagesResult,
               renderItem: mkEffectFn1 $ selectableImage selected setSelected,
