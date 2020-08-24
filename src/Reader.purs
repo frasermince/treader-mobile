@@ -237,6 +237,17 @@ dailySelectionQuery = gql """
   query getSelections {
     dailySelections {
       id
+      word
+      sentence
+      phrase
+      phraseOffset
+      sentenceOffset
+      wordLength
+      book {
+        id
+        language
+      }
+
     }
   }
 """
