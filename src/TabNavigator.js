@@ -77,6 +77,22 @@ const query = gql `
         language
       }
     }
+    flashcards(language: $language) {
+      id
+      imageUrl
+      a
+      b
+      t
+      startOffset
+      word
+      hoursPassed
+      sentence {
+        id
+        audioUrl
+        text
+        translation
+      }
+    }
   }
 `
 
