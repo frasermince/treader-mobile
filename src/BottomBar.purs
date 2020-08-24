@@ -5,7 +5,7 @@ import Prelude
 import Data.Array ((!!), length)
 import Data.Traversable (traverse_)
 import Debug.Trace (spy)
-import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..))
+import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..), try)
 import ComponentTypes (BookViewQuery, AudioInformation)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import React.Basic.Hooks as React
@@ -210,7 +210,7 @@ fetchFiles setFilesDownloaded slug bookData setFilePercent setFileIndex = launch
           let request = fetchWithProgress {fileCache: true, path: fileForChapter slug chapterData.chapter} "GET" chapterData.audioUrl {} onProgress
           if not fileExists
             then do
-              _ <- request
+              _ <- try request
               pure unit
             else mempty
           pure unit
