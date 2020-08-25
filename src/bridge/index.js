@@ -277,10 +277,10 @@ import tokenizer from 'sbd';
     }
 
     function setCurrentSentence(location, time) {
-      startWord
       let startingParagraphNumber = parseInt(startWord.slice(1, 7));
       let startingSentenceNumber = parseInt(startWord.slice(8, 14));
-      let sentences = document.getElementsByClassName("epub-container")[0].children[0].children[0].contentWindow.document.getElementsByClassName("sentence")
+      let iframeDoc = Array.from(document.getElementsByClassName("epub-container")[0].children);
+      let sentences = iframeDoc.find((e) => e.children.length > 0).children[0].contentWindow.document.getElementsByClassName("sentence");
       let sentence = getSmil(location, (xmlDoc, overlay) => {
         return Array.from(sentences).find((s) => {
           let paragraphNumber = parseInt(s.id.slice(1, 7));
