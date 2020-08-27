@@ -47,8 +47,9 @@ import tokenizer from 'sbd';
   function ltrim(str) {
     if(!str) return str;
     str = str.replace(/(\r\n|\n|\r)/gm, "");
-    str = str.replace(/(\s\s)/gm, " ");
-    return str.replace(/^\s+/g, '');
+    str = str.replace(/\s\s+/g, ' ');
+    str = str.replace(/^\s+/g, '');
+    return str.replace(/^—/g, '');
   }
 
   function getSentence(range) {
@@ -63,23 +64,29 @@ import tokenizer from 'sbd';
     let sentenceSpan = true
     if (sentences.length == 0) {
       sentences = tokenizer.sentences(paragraphText, {"sanitize": true});
-      let sentenceSpan = false
+      sentenceSpan = false
     }
     let sentenceCharacters = ltrim(paragraphRange.toString()).length;
     let characterIteration = 0;
+    let firstSentence = true;
     let sentence = sentences.find((sentence) => {
       // + 1 for the space that has been removed
+      if (firstSentence) {
+        sentence = ltrim(sentence);
+        firstSentence = false
+      }
       let total = characterIteration + sentence.length;
       if (total >= sentenceCharacters) {
         sentenceOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
-        characterIteration = total + 1;
+        debugger
+        characterIteration = sentenceSpan ? total : total + 1;
       }
     });
     let phrases = sentence.split(/(,|;|–)/g);
     let phrase = phrases.find((phrase) => {
-      if (characterIteration + phrase.length >= sentenceCharacters) {
+      if (characterIteration + phrase.length > sentenceCharacters) {
         phraseOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
@@ -94,8 +101,8 @@ import tokenizer from 'sbd';
     let surrounding = ltrim(multiRange.toString());
     let sentenceWhitespaceLength = sentence.length - ltrim(sentence).length
     let phraseWhitespaceLength = phrase.length - ltrim(phrase).length
-    sentence = sentence.trim().replace(/(\r\n|\n|\r)/gm, "");
-    phrase = phrase.trim().replace(/(\r\n|\n|\r)/gm, "");
+    sentence = sentence.trim().replace(/(\r\n|\n|\r)/gm, "").replace(/\s\s+/g, ' ');
+    phrase = phrase.trim().replace(/(\r\n|\n|\r)/gm, "").replace(/\s\s+/g, ' ');
     sentenceOffset -= sentenceWhitespaceLength;
     phraseOffset -= phraseWhitespaceLength;
     return {sentence, phrase, surrounding, sentenceOffset, phraseOffset, wordLength};
