@@ -1,4 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
+import useAppState from "react-native-appstate-hook";
 import React from 'react';
 import { reactComponent as HomeScreen} from "../output/Home";
 import { reactComponent as BookScreen} from "../output/BookView";
@@ -63,7 +64,7 @@ FlashcardNavigator = () => {
   );
 }
 const query = gql `
-  query getSelections {
+  query getSelections($language: String) {
     dailySelections {
       id
       word
@@ -104,6 +105,7 @@ export default TabNavigator = () => {
   let flashcardIcon = ({focused, color}) => <CommunityIcon style={[{color: color}]} name={"card-bulleted-outline"} size={25} />
   let reviewIcon = ({focused, color}) => <Icon style={[{color: color}]} name={"layers"} size={25} />
   const {loading, error, data, refetch} = useQuery(query);
+  useAppState({onForeground: () => refetch()});
   console.log("selections", {loading, error, data, refetch});
   let selectionCount = data && data.dailySelections.length != 0  ? data.dailySelections.length : false
 
