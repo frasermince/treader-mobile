@@ -311,6 +311,7 @@ buildJsx props = React.do
               , horizontalSwipe: isFlipped
               , ref: swipeRef
               , renderNoMoreCards: (\_ -> false)
+              , horizontalThreshold: window.width / 3.0
               } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
