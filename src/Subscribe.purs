@@ -98,7 +98,7 @@ buildJsx props = React.do
               listItem {style: M.css {width: "100%", marginLeft: "20%"}, titleStyle: M.css {color: "black"}, title: RN.string "Upload Your Own Epub Books", left: bookIcon}
               if swipeIndex == 1 then listItem {style: M.css {width: "100%", marginLeft: "20%"}, titleStyle: M.css {color: "black"}, title: RN.string "Create Unlimited Flashcards", left: plusIcon} else mempty
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler swipeIndex setError} $ M.string "SUBSCRIBE"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler swipeIndex setError} $ M.string $ "SUBSCRIBE FOR " <> if swipeIndex == 0 then "$6.99" else "$11.99"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
               M.text {style: M.css {color: "white"}} $ M.string "By tapping the subscribe button you are enrolling in automatic payments of the listed amount that will continue until you cancel."
