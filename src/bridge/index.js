@@ -80,7 +80,6 @@ import tokenizer from 'sbd';
         sentenceOffset = sentenceCharacters - characterIteration;
         return true;
       } else {
-        debugger
         characterIteration = sentenceSpan ? total : total + 1;
       }
     });
@@ -116,14 +115,16 @@ import tokenizer from 'sbd';
       rect, i;
     // so first let's get the textNode that was clicked
     if (target.nodeType !== 3) {
-      var children = target.childNodes;
+      var children = target.getElementsByClassName("word");
+      children = children.length == 0 ? target.getElementsByTagName("span") : children;
+      children = children.length == 0 ? target.childNodes : children;
       var node = null;
       i = 0;
       while (i < children.length) {
         range.selectNode(children[i]);
         rect = range.getBoundingClientRect();
-        if (rect.left <= e.changedTouches[0].pageX && rect.right >= e.changedTouches[0].pageX &&
-          rect.top <= e.changedTouches[0].pageY && rect.bottom >= e.changedTouches[0].pageY) {
+        if (rect.left - 2 <= e.changedTouches[0].pageX && rect.right + 2 >= e.changedTouches[0].pageX &&
+          rect.top - 6 <= e.changedTouches[0].pageY && rect.bottom + 4 >= e.changedTouches[0].pageY) {
           target = children[i];
           if (target.nodeType !== 3 && target.tagName == "SPAN") {
             target = target.childNodes[0];
