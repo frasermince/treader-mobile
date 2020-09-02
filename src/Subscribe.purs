@@ -2,9 +2,11 @@ module Subscribe where
 
 import Prelude
 import React.Basic.Hooks as React
+import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
-import Paper (surface, title, divider, button, modal, subheading, headline)
-import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext)
+import Paper (surface, title, divider, button, modal, subheading, headline, listItem, listIcon)
+import Record.Unsafe.Union (unsafeUnion)
+import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext, element)
 import Markup as M
 import Swiper (swiper)
 import React.Basic.Native.Events as RNE
@@ -16,7 +18,7 @@ import Context (dataStateContext, Context)
 import Effect.Console (log)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Effect.Exception (message)
-import Effect.Uncurried (runEffectFn1, EffectFn1)
+import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 import Data.Array (head)
 import Data.Either (Either(..))
 import ApolloHooks (useMutation, gql, DocumentNode)
@@ -34,10 +36,17 @@ reactComponent =
     $ do
         component "Subscribe" $ buildJsx
 
-purchaseHandler setError = launchAff_ do
-  subs <- getSubscriptions ["io.unchart.sub"]
+purchaseHandler 0 setError = launchAff_ do
+  subs <- getSubscriptions ["io.unchart.premium"]
   let sku = _.productId <$> (head subs)
   purchase sku setError
+
+purchaseHandler 1 setError = launchAff_ do
+  subs <- getSubscriptions ["io.unchart.plus"]
+  let sku = _.productId <$> (head subs)
+  purchase sku setError
+
+purchaseHandler _ setError = liftEffect $ runEffectFn1 setError "Product not found"
 
 purchase Nothing _ = mempty
 purchase (Just sku) setError = do
@@ -46,8 +55,13 @@ purchase (Just sku) setError = do
           Left error -> liftEffect $ runEffectFn1 setError $ message error
           Right resp -> liftEffect $ (log $ "PURCHASE RESPONSE " <> (show resp))
 
+translateIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "google-translate" }
+bookIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "book" }
+plusIcon p = element listIcon $ unsafeUnion p { color: "#000", icon: "plus" }
+
 buildJsx props = React.do
   { setLoading, setError } <- useContext dataStateContext
+  swipeIndex /\ setSwipeIndex <- useState 0
   useEffect unit do
      purchaseUpdatedListener $ \p -> launchAff_ do
         if isJust $ toMaybe $  p.transactionReceipt then do
@@ -60,18 +74,31 @@ buildJsx props = React.do
       modal {visible: props.visible, contentContainerStyle: modalStyle, onDismiss: dismiss} do
           M.view {style: surfaceStyle} do
             M.view {style: benefitsSectionStyle} do
-              title {} $ M.string "Upgrade to Unchart Premium"
-              swiper {style: M.css {}, horizontal: true, autoplay: true, showButtons: true, loop: true} do
+              swiper
+                { nextButton: M.getJsx $ M.text {style: M.css {color: "#66aab1", fontSize: 40}} $ M.string "›"
+                , prevButton: M.getJsx $ M.text {style: M.css {color: "#66aab1", fontSize: 40 }} $ M.string "‹"
+                , showsButtons: true
+                , style: M.css {}
+                , horizontal: true
+                , autoplay: false
+                , showButtons: true
+                , index: swipeIndex
+                , onIndexChanged: mkEffectFn1 \index -> setSwipeIndex \_ -> index
+                , loop: false
+                } do
                   M.view {style: slideStyle} do
-                     subheading {style: textStyle} $ M.string "Translate Unlimited Words"
-                  M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Upload Your Own Epub Books"
-                  M.view {style: slideStyle} $ subheading {style: textStyle} $ M.string "Create Unlimited Flashcards"
+                     title {style: M.css {textSize: 30}} $ M.string "Upgrade to Unchart Plus for"
+                     M.text {style: priceStyle} $ M.string "$6.99/mo"
+                  M.view {style: slideStyle} do
+                     title {style: M.css {textSize: 30}} $ M.string "Upgrade to Unchart Premium for"
+                     M.text {style: priceStyle} $ M.string "$11.99/mo"
 
             M.view {style: priceSectionStyle} do
-              subheading {} $ M.string "Upgrade to Premium for"
-              M.text {style: priceStyle} $ M.string "$11.99/mo"
+              listItem {style: M.css {width: "100%", marginLeft: "20%"}, titleStyle: M.css {color: "black"}, title: RN.string "Translate Unlimited Words", left: translateIcon}
+              listItem {style: M.css {width: "100%", marginLeft: "20%"}, titleStyle: M.css {color: "black"}, title: RN.string "Upload Your Own Epub Books", left: bookIcon}
+              if swipeIndex == 1 then listItem {style: M.css {width: "100%", marginLeft: "20%"}, titleStyle: M.css {color: "black"}, title: RN.string "Create Unlimited Flashcards", left: plusIcon} else mempty
               M.view {style: bottomStyle} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler setError} $ M.string "SUBSCRIBE"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ purchaseHandler swipeIndex setError} $ M.string "SUBSCRIBE"
                 button {onPress: RNE.capture_ $ dismiss} $ M.string "NO THANKS"
           M.view {style: bottomViewStyle} do
               M.text {style: M.css {color: "white"}} $ M.string "By tapping the subscribe button you are enrolling in automatic payments of the listed amount that will continue until you cancel."
