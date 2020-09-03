@@ -23,6 +23,7 @@ import Linking (openUrl)
 import Subscribe as Subscribe
 import Data.Interpolate (i)
 import Effect (Effect)
+import Global (encodeURIComponent)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit, setOptions :: EffectFn1 {headerRight :: ReactComponent {}} Unit } }
@@ -112,7 +113,7 @@ buildJsx props = React.do
   cloudState book (Just files) p = element listIcon $ unsafeUnion p { color: "#000", icon: icon }
     where
     icon
-      | isJust $ find (\f -> f.name == book.filename || f.name == book.slug) files = "check-bold"
+      | isJust $ find (\f -> f.name == (fromMaybe book.filename $ encodeURIComponent book.filename) || f.name == book.slug) files = "check-bold"
       | otherwise = "cloud-outline"
 
   item :: Maybe String -> Maybe (Array File) -> M.Markup Unit -> Book -> M.Markup Unit

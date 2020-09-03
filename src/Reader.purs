@@ -45,6 +45,7 @@ import Effect.Now (nowDateTime)
 import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..))
 import Segment (track, screen)
+import Global (encodeURIComponent)
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
 type VisibleLocation
@@ -508,7 +509,7 @@ buildJsx props = React.do
                 , epubjs: epubjs
                 , src: src
                 , flow: flow
-                , location: spy "LOCATION" $ fromMaybe startingCfi props.location
+                , location: fromMaybe startingCfi props.location
                 , onLocationChange: locationChange props.title props.setAudioInformation props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation
