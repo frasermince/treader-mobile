@@ -37,12 +37,12 @@ reactComponent =
         component "Subscribe" $ buildJsx
 
 purchaseHandler 0 setError = launchAff_ do
-  subs <- getSubscriptions ["io.unchart.premium"]
+  subs <- getSubscriptions ["io.unchart.plus"]
   let sku = _.productId <$> (head subs)
   purchase sku setError
 
 purchaseHandler 1 setError = launchAff_ do
-  subs <- getSubscriptions ["io.unchart.plus"]
+  subs <- getSubscriptions ["io.unchart.premium"]
   let sku = _.productId <$> (head subs)
   purchase sku setError
 
