@@ -53,7 +53,7 @@ type VisibleLocation
 colors = { noun: { color: "orange" }, adjective: { color: "red" }, verb: { color: "green" }, none: { color: "black" } }
 
 type Props
-  = { location :: String
+  = { location :: Maybe String
     , height :: Number
     , width :: Number
     , toggleBars :: Effect Unit
@@ -62,7 +62,7 @@ type Props
     , bookData :: Maybe BookViewQuery
     , title :: Maybe String
     , setSliderDisabled :: (Boolean -> Boolean) -> Effect Unit
-    , setLocation :: (String -> String) -> Effect Unit
+    , setLocation :: (Maybe String -> Maybe String) -> Effect Unit
     , setVisibleLocation :: (VisibleLocation -> VisibleLocation) -> Effect Unit
     , visibleLocation :: VisibleLocation
     , showBars :: Boolean
@@ -157,7 +157,7 @@ ready setTitle setToc setLocation = mkEffectFn1 e
     setToc \_ -> spy "TOC" book.navigation.toc
     launchAff_ do
       l <- getItem book.package.metadata.title
-      liftEffect $ setLocation \_ -> fromMaybe "0" l
+      liftEffect $ setLocation \_ -> l
 
 
 reactComponent :: ReactComponent Props
@@ -438,6 +438,9 @@ buildJsx props = React.do
   highlightAdjectives /\ setHighlightAdjectives <- useState $ true
   mutationFn /\ d <- useMutation pageMutation { errorPolicy: "all" }
   modalVisible /\ setModalVisible <- useState false
+  let startingCfi = fromMaybe "0" do
+        b <- props.bookData
+        pure $ b.book.startingCfi
 
   useEffect unit
     $ do
@@ -505,7 +508,7 @@ buildJsx props = React.do
                 , epubjs: epubjs
                 , src: src
                 , flow: flow
-                , location: props.location
+                , location: spy "LOCATION" $ fromMaybe startingCfi props.location
                 , onLocationChange: locationChange props.title props.setAudioInformation props.setVisibleLocation pageLastAdvanced setPagesRead
                 , onLocationsReady: locationsReady props.setSliderDisabled
                 , onReady: ready props.setTitle props.setToc props.setLocation

@@ -58,6 +58,7 @@ query =
       id
       epubUrl
       processedEpubUrl
+      startingCfi
       audioChapters {
         chapter
         audioUrl
@@ -93,7 +94,7 @@ buildJsx jsProps = React.do
   let
     route = props.route
   bookData <- useData (Proxy :: Proxy BookViewQuery) query { variables: { book: fromMaybe "" route.params.slug }, errorPolicy: "all" }
-  location /\ setLocation <- useState "0"
+  location /\ setLocation <- useState (Nothing :: Maybe String)
   toc /\ setToc <- useState []
   height /\ setHeight <- useState 0.0
   width /\ setWidth <- useState 0.0
@@ -151,7 +152,7 @@ buildJsx jsProps = React.do
             , value: visibleLocation.start.percentage
             , bookData: bookData.state
             , shown: showBars
-            , onSlidingComplete: \number -> setLocation \_ -> show number
+            , onSlidingComplete: \number -> setLocation \_ -> Just $ show number
             , slug: slug
             , audioInformation
             , visibleLocation
@@ -164,6 +165,6 @@ buildJsx jsProps = React.do
           M.childElement nav
             { shown: showNav
             , setShowNav: mkEffectFn1 \s -> setShowNav \_ -> s
-            , display: mkEffectFn1 \loc -> setLocation \_ -> loc
+            , display: mkEffectFn1 \loc -> setLocation \_ -> Just $ loc
             , toc: toc
             }

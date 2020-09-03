@@ -20,7 +20,7 @@ type Sentence
 type Flashcard = {id :: String, word :: String, sentence :: {text :: String, translation :: String, audioUrl :: String, id :: String}, imageUrl :: Array String, a :: Number, b :: Number, t :: Number, startOffset :: Int, hoursPassed :: Number}
 
 type BookViewQuery
-  = { book :: { epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String, audioChapters :: Array {audioUrl :: String, chapter :: Int} } }
+  = { book :: { startingCfi :: String, epubUrl :: Nullable String, processedEpubUrl :: Nullable String, id :: String, audioChapters :: Array {audioUrl :: String, chapter :: Int} } }
 type AudioInformation = {startPageTime :: String, endPageTime :: String, index :: Int}
 
 type StateChange a = (a -> a) -> Effect Unit
