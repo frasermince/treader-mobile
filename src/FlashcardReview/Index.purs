@@ -1,28 +1,31 @@
 module FlashcardReview.Index where
+
 import Prelude
-import React.Basic.Hooks as React
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
-import QueryHooks (useData, UseData, stripGraphqlError)
+
 import ApolloHooks (useMutation, gql)
-import Type.Proxy (Proxy(..))
-import Effect.Unsafe (unsafePerformEffect)
-import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
-import Markup as M
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon, subheading)
-import React.Basic.Native.Events as RNE
-import Data.Array (length)
-import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
-import Navigation (useFocusEffect)
-import Data.Interpolate (i)
-import Data.Nullable (Nullable, toMaybe, toNullable, null)
-import LanguageModal as LanguageModal
-import React.Basic.Native.Events as RNE
+import ComponentTypes (Flashcard)
 import Control.Alt ((<|>))
+import Data.Array (length)
+import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
+import Data.Interpolate (i)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
+import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Traversable (traverse_)
 import Debug.Trace (spy)
-import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
-import ComponentTypes (Flashcard)
+import Effect.Console (log)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
+import Effect.Unsafe (unsafePerformEffect)
 import Icon (materialCommunityIcon)
+import LanguageModal as LanguageModal
+import Markup as M
+import Navigation (useFocusEffect)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon, subheading)
+import QueryHooks (useData, UseData, stripGraphqlError)
+import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
+import React.Basic.Hooks as React
+import React.Basic.Native.Events as RNE
+import React.Basic.Native.Events as RNE
+import Type.Proxy (Proxy(..))
 
 mainButtonStyle = M.css
   {
@@ -33,7 +36,7 @@ mainButtonStyle = M.css
   }
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard) } Unit} }
+  = { navigation :: { navigate :: EffectFn2 String {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard) } Unit}, route :: { params :: { complete :: Boolean }}}
 
 type Query = {flashcards :: Array Flashcard, currentUser :: {currentReview :: Nullable (Array Int), language :: String}}
 
@@ -106,7 +109,7 @@ buildJsx props = React.do
           M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
               title {style: M.css {marginTop: "20%", marginLeft: "5%", marginRight: "5%", textAlign: "center", flex: 2}} $ M.string $ "Finish the " <> (show $ length currentReview) <> " flashcards in your current review"
               M.view {style: M.css {flex: 3, alignItems: "center"}} do
-                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {existingIds: Just $ map show currentReview, flashcards: fromArray flashcards}} $ M.string $ "Complete Review"
+                button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 (spy "PROPS: " props).navigation.navigate "Review" {existingIds: Just $ map show currentReview, flashcards: fromArray flashcards}} $ M.string $ "Complete Review"
        Just {flashcards} ->
          pure $ M.getJsx do
            M.childElement LanguageModal.reactComponent
@@ -117,7 +120,7 @@ buildJsx props = React.do
              }
 
            M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-            title {style: M.css {marginTop: "10%", textAlign: "center", flex: 2}} $ M.string $ "Start a review of " <> (show $ min 30 (length $ spy "***FLASHCARDS" flashcards)) <> " flashcards"
+            title {style: M.css {marginTop: "10%", textAlign: "center", flex: 2}} $ M.string $ if props.route.params.complete then "Review complete!" else "Start a review of " <> (show $ min 30 (length $ spy "***FLASHCARDS" flashcards)) <> " flashcards"
             M.view {style: M.css {flex: 3, alignItems: "center"}} do
-              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {existingIds: Nothing, flashcards: fromArray flashcards}} $ M.string $ "Start Review"
+              button { mode: "contained", style: mainButtonStyle, onPress: RNE.capture_ $ runEffectFn2 props.navigation.navigate "Review" {existingIds: Nothing, flashcards: fromArray flashcards}} $ M.string $ if props.route.params.complete then "Review MOre" else "Start Review"
             button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {position: "absolute", bottom: 5, right: 2}} $ M.string $ fromMaybe "" $ currentLanguage

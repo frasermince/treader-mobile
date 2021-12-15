@@ -47,7 +47,7 @@ import AsyncStorage (getItem, setItem)
 import Data.Interpolate (i)
 
 type Props
-  = { navigation :: { navigate :: EffectFn2 String {} Unit }, route :: {params :: {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard)}} }
+  = { navigation :: { navigate :: EffectFn2 String {complete :: Boolean} Unit }, route :: {params :: {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard)}} }
 
 type Query = {flashcards :: Array Flashcard}
 
@@ -165,7 +165,7 @@ handleResponse incrementSessionsMutation responseOrError redirect setError stack
           | isEmpty stack = do
               _ <- track "Completed Session" {}
               _ <- incrementSessionsMutation {}
-              liftEffect $ runEffectFn2 redirect "ReviewComplete" {}
+              liftEffect $ runEffectFn2 redirect "ReviewEntry" {complete: true}
           | otherwise = mempty
 
 leftCircleStyle drag =

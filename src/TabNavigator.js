@@ -25,7 +25,7 @@ ReviewNavigator = () => {
   const Stack = createStackNavigator();
   return (
       <Stack.Navigator headerMode="none">
-        <Stack.Screen name="ReviewEntry" component={ReviewEntryScreen} />
+        <Stack.Screen name="ReviewEntry" component={ReviewEntryScreen} initialParams={{complete: false}}/>
         <Stack.Screen name="Review" component={ReviewScreen} options={{gestureEnabled: false}}/>
         <Stack.Screen name="ReviewComplete" component={ReviewCompleteScreen} options={{gestureEnabled: false}}/>
       </Stack.Navigator>
