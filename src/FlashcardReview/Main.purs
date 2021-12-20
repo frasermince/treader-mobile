@@ -2,13 +2,12 @@ module FlashcardReview.Main where
 
 import Prelude
 
-import Animated (AnimationXY, interpolate, value)
-import Animated as Animated
+import Reanimated (AnimationXY, interpolate, useSharedValue, useAnimatedStyle)
 import ApolloHooks (useMutation, gql)
 import AsyncStorage (getItem, setItem)
 import ComponentTypes (Flashcard, StateChange)
 import Context (dataStateContext, Context)
-import Data.Array (mapWithIndex, (!!), snoc, take, (:), length)
+import Data.Array (mapWithIndex, (!!), snoc, take, (:), length, last)
 import Data.Array as Array
 import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
 import Data.Either (Either(..))
@@ -105,7 +104,7 @@ cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
 
 reactComponent :: ReactComponent Props
 reactComponent =
-  withPerformanceMonitor "CardSwipe" $ unsafePerformEffect
+  unsafePerformEffect
     $ do
         component "Review" $ buildJsx
 
@@ -170,7 +169,7 @@ handleResponse incrementSessionsMutation responseOrError redirect setError stack
               liftEffect $ runEffectFn2 redirect "ReviewEntry" {complete: true}
           | otherwise = mempty
 
-leftCircleStyle drag =
+leftCircleStyle drag = useAnimatedStyle $ 
   { width: 60
   , height: 60
   , borderRadius: 60/2
@@ -183,20 +182,20 @@ leftCircleStyle drag =
   , zIndex: 3
   , elevation: 4
   , justifyContent: "center"
-  , opacity: interpolate drag
+  , opacity: interpolate dragX
       { inputRange: [-500.0, -90.0, 0.0]
       , outputRange: [-0.1, 0.6, -0.1]
       , extrapolate: "clamp"
       }
   , alignItems: "center"
   , transform: t3
-       { translateX: interpolate (spy "DRAG" drag)
+       { translateX: interpolate (spy "DRAG" dragX)
           { inputRange: [-500.0, -90.0, 0.0]
           , outputRange: [0.1, 80.0, 0.1]
           , extrapolate: "clamp"
           }
        }
-       { scale: interpolate drag
+       { scale: interpolate dragX
             { inputRange: [-500.0, 0.0]
             , outputRange: [1.4, 1.0]
             , extrapolate: "clamp"
@@ -205,8 +204,9 @@ leftCircleStyle drag =
         { perspective: 1000}
 
   }
+  where dragX = fromMaybe 0.0 $ _.x <$> drag
 
-rightCircleStyle drag =
+rightCircleStyle drag = useAnimatedStyle $
   { width: 60
   , height: 60
   , borderRadius: 60/2
@@ -243,7 +243,7 @@ rightCircleStyle drag =
   }
 
 dragFn :: StateChange (Maybe AnimationXY) -> AnimationXY -> Effect Unit
-dragFn setDrag drag = setDrag \_ -> Just $ spy "DRAG" drag
+dragFn setDrag drag = setDrag \_ -> Just $ drag
 
 
 buildJsx props = React.do
@@ -305,7 +305,7 @@ cardsComponent =
 
 
 cardsJsx props = React.do
-  drag /\ setDrag <- useState (Nothing :: Maybe AnimationXY)
+  drag /\ setDrag <- useSharedValue (Nothing :: Maybe AnimationXY)
   isFlipped /\ setIsFlipped <- useState false
   let swipeLeft = do
         result <- readRefMaybe props.swipeRef
@@ -315,19 +315,19 @@ cardsJsx props = React.do
         result <- readRefMaybe props.swipeRef
         traverse_ (\s -> s.swipeRight) result 
 
-  afterSwipeLeftCallback <- useMemo (spy "LENGTH" $ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
-  afterSwipeRightCallback <- useMemo (length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
+  afterSwipeLeftCallback <- useMemo ((_.word <$> _.x <$> last props.cardList) /\ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
+  afterSwipeRightCallback <- useMemo ((_.word <$> _.x <$> last props.cardList) /\ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
   dragCallback <- useMemo drag \_ -> dragFn setDrag
   pure $ M.getJsx do
     whiteImageBackground {style: M.css imageBackgroundStyles} do
-      Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+      M.view {style: M.css $ leftCircleStyle drag} do
           M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
-      Animated.view {style: M.css $ rightCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+      M.view {style: M.css $ rightCircleStyle $ fromMaybe 0.0 $ _.x <$> drag} do
           materialIcon {name: "check", color: "green", size: 26}
       M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
         cardStack
-          { onSwipedLeft: mkEffectFn1 afterSwipeLeftCallback
-          , onSwipedRight: mkEffectFn1 afterSwipeRightCallback
+          { onSwipedLeft: mkEffectFn1 \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
+          , onSwipedRight: mkEffectFn1 \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
           , setDrag: mkEffectFn1 $ dragCallback
           , verticalSwipe: false
           , horizontalSwipe: isFlipped

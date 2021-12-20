@@ -153,7 +153,7 @@ fileExists Nothing = pure false
 
 flipEnd setIsFlipped sound = launchAff_ do
   liftEffect $ setIsFlipped \_ -> true
-  traverse_ stopAndPlay sound
+  --traverse_ stopAndPlay sound
 
 backTutorial hasSwipedBefore setTutorialVisible tutorialVisible = do
   Platform.select {ios: vibrancyView $ {style: M.css $ blurStyle tutorialVisible, blurType: "light", blurAmount: 2}, android: mempty}
@@ -193,16 +193,18 @@ buildJsx props = React.do
         props.setIsFlipped \_ -> false
      else mempty
      pure $ launchAff_ do
+        liftEffect $ log "STOP SOUND NO TRANSLATION"
         liftEffect $ setShowTranslation \_ -> false
-        traverse_ stop $ sound
+        -- traverse_ stop $ sound
 
-  useEffect audioPath do
-     pure unit
-     pure $ launchAff_ do
-        liftEffect $ traverse_ release sound
-        let decodedPath = audioPath >>= decodeURIComponent
-        e <- fileExists $ decodedPath
-        if e then unlink $ fromMaybe "" decodedPath else mempty
+  -- useEffect audioPath do
+  --    pure unit
+  --    pure $ launchAff_ do
+  --       liftEffect $ log "RELEASE SOUND"
+  --       liftEffect $ traverse_ release sound
+  --       let decodedPath = audioPath >>= decodeURIComponent
+  --       e <- fileExists $ decodedPath
+  --       if e then unlink $ fromMaybe "" decodedPath else mempty
 
   useEffect (props.active /\ props.index) do
     launchAff_ do
@@ -222,13 +224,13 @@ buildJsx props = React.do
                     liftEffect $ setTutorialVisible \_ -> true
     pure mempty
 
-  useEffect (props.audioUrl /\ props.index) do
-     launchAff_ do
-        let file = audioDir <> "/sentence_" <> props.sentenceId <> ".mp3"
-        result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
-        path <- liftEffect result.path
-        traverse_ setAudioInformation $ Platform.select {ios: encodeURIComponent path, android: Just path}
-     pure mempty
+  -- useEffect (props.audioUrl /\ props.index) do
+  --    launchAff_ do
+  --       let file = audioDir <> "/sentence_" <> props.sentenceId <> ".mp3"
+  --       result <- fetch {fileCache: true, path: file} "GET" props.audioUrl {}
+  --       path <- liftEffect result.path
+  --       traverse_ setAudioInformation $ Platform.select {ios: encodeURIComponent path, android: Just path}
+  --    pure mempty
   let toggleTranslation = RNE.capture_ $ setShowTranslation \t -> not t
 
   pure $ M.getJsx do
@@ -253,4 +255,4 @@ buildJsx props = React.do
               M.view {style: M.css {flexDirection: "row"}} do
                 foldl (imageJsx $ length props.imageUrl) mempty props.imageUrl
 
-            backTutorial hasSwipedBefore setTutorialVisible tutorialVisible
+            -- backTutorial hasSwipedBefore setTutorialVisible tutorialVisible
