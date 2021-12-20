@@ -1,50 +1,52 @@
 module FlashcardReview.Main where
 
 import Prelude
-import React.Basic.Hooks as React
-import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
-import Data.Nullable (Nullable, toMaybe, toNullable, null)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext, keyed)
-import Context (dataStateContext, Context)
-import Data.Traversable (traverse_)
-import Effect (Effect)
-import StackSwiper (cardStack, card)
-import Markup as M
-import Data.Array (mapWithIndex, (!!), snoc, take, (:), length)
-import Effect.Unsafe (unsafePerformEffect)
-import FlashcardReview.CardItem as CardItem
-import Data.FoldableWithIndex (foldlWithIndexDefault)
-import Data.Foldable (foldl)
-import Dimensions (window)
-import WhiteImageBackground (whiteImageBackground)
-import QueryHooks (useData, UseData, stripGraphqlError)
-import Effect.Exception (message)
-import Type.Proxy (Proxy(..))
-import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
+
+import Animated (AnimationXY, interpolate, value)
+import Animated as Animated
 import ApolloHooks (useMutation, gql)
-import Debug.Trace (spy)
-import Effect.Console (log)
-import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
+import AsyncStorage (getItem, setItem)
 import ComponentTypes (Flashcard, StateChange)
-import Ebisu (lowest, randomLow, updateRecall, nRandom)
-import Data.Either (Either(..))
-import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
+import Context (dataStateContext, Context)
+import Data.Array (mapWithIndex, (!!), snoc, take, (:), length)
 import Data.Array as Array
-import Effect.Aff (Aff, launchAff_, try)
-import Effect.Class (liftEffect)
-import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
-import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty, size)
-import Navigation (useFocusEffect)
+import Data.Array.NonEmpty (fromArray, toArray, NonEmptyArray)
+import Data.Either (Either(..))
+import Data.Foldable (foldl)
+import Data.FoldableWithIndex (foldlWithIndexDefault)
+import Data.Interpolate (i)
 import Data.Map (Map, update, lookup)
 import Data.Map as Map
-import Segment (track, screen)
-import Dimensions (window)
-import Icon (materialIcon)
-import Animated as Animated
-import Animated (AnimationXY, interpolate, value)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
+import Data.Nullable (Nullable, toMaybe, toNullable, null)
+import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty, size)
+import Data.Traversable (traverse_)
 import Data.Tuple.Native (t3)
-import AsyncStorage (getItem, setItem)
-import Data.Interpolate (i)
+import Debug.Trace (spy)
+import Dimensions (window)
+import Dimensions (window)
+import Ebisu (lowest, randomLow, updateRecall, nRandom)
+import Effect (Effect)
+import Effect.Aff (Aff, launchAff_, try)
+import Effect.Class (liftEffect)
+import Effect.Console (log)
+import Effect.Exception (message)
+import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
+import Effect.Unsafe (unsafePerformEffect)
+import FlashcardReview.CardItem as CardItem
+import Icon (materialIcon)
+import Markup as M
+import Navigation (useFocusEffect)
+import Paper (textInput, surface, button, title, divider, listItem, paragraph, headline, badge, iconButton, fab, dialog, dialogContent, dialogActions, dialogTitle, portal, searchbar, listIcon)
+import PerformanceMonitor (withPerformanceMonitor)
+import QueryHooks (useData, UseData, stripGraphqlError)
+import React.Basic.Hooks (Hook, JSX, ReactComponent, UseEffect, UseState, coerceHook, component, element, keyed, readRef, readRefMaybe, useContext, useEffect, useMemo, useRef, useState, (/\), Ref)
+import React.Basic.Hooks as React
+import Segment (track, screen)
+import StackSwiper (cardStack, card)
+import Type.Proxy (Proxy(..))
+import WhiteImageBackground (whiteImageBackground)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String {complete :: Boolean} Unit }, route :: {params :: {existingIds :: Maybe (Array String), flashcards :: Maybe (NonEmptyArray Flashcard)}} }
@@ -103,7 +105,7 @@ cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
 
 reactComponent :: ReactComponent Props
 reactComponent =
-  unsafePerformEffect
+  withPerformanceMonitor "CardSwipe" $ unsafePerformEffect
     $ do
         component "Review" $ buildJsx
 
@@ -252,19 +254,17 @@ buildJsx props = React.do
   incrementMutation /\ d2 <- useMutation mutationForIncrement { errorPolicy: "all" }
   cardList /\ setCardList <- useState ([] :: Array {x :: Flashcard, y :: Number})
   idsNeedingReview /\ setIdsNeedingReview <- useState (empty :: Set String)
-  isFlipped /\ setIsFlipped <- useState false
   timesIncorrect /\ setTimesIncorrect <- useState (Map.empty :: Map String Int)
   idsInStack /\ setIdsInStack <- useState (empty :: Set String)
-  drag /\ setDrag <- useState (Nothing :: Maybe AnimationXY)
 
-  let swipeLeft = do
-        result <- readRefMaybe swipeRef
-        traverse_ (\s -> s.swipeLeft) result
+  let afterSwipe Nothing result index = mempty
+      afterSwipe (Just card) result index = launchAff_ do
+        {stackWithoutCurrent, reviewWithoutCurrent} <- setSwipeState result idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack card
+        recall <- conditionallyUpdateRecall result timesIncorrect setTimesIncorrect card
+        response <- saveRecall mutate recall stackWithoutCurrent reviewWithoutCurrent card
+        handleResponse incrementMutation response props.navigation.navigate setError stackWithoutCurrent idsInStack setIdsInStack setCardList
 
-  let swipeRight = do
-        result <- readRefMaybe swipeRef
-        traverse_ (\s -> s.swipeRight) result
-
+  afterSwipeCallback <- useMemo (idsNeedingReview /\ idsInStack /\ timesIncorrect) \_ -> afterSwipe
   useEffect unit do
      launchAff_ $ do
         screen "Flashcard Review" {}
@@ -289,33 +289,49 @@ buildJsx props = React.do
           setTimesIncorrect \_ -> foldl (\accum e -> Map.insert e.x.id 0 accum) Map.empty flashcardArray
           setIdsInStack \_ -> fromFoldable $ map (\e -> e.x.id) firstThree
           setCardList \_ -> firstThree
-    pure mempty
-
-  let afterSwipe Nothing result index = mempty
-      afterSwipe (Just card) result index = launchAff_ do
-        {stackWithoutCurrent, reviewWithoutCurrent} <- setSwipeState result idsNeedingReview setIdsNeedingReview idsInStack setIdsInStack card
-        recall <- conditionallyUpdateRecall result timesIncorrect setTimesIncorrect card
-        response <- saveRecall mutate recall stackWithoutCurrent reviewWithoutCurrent card
-        handleResponse incrementMutation response props.navigation.navigate setError stackWithoutCurrent idsInStack setIdsInStack setCardList
-  let cardsMarkup cards = whiteImageBackground {style: M.css imageBackgroundStyles} do
-          Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
-             M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
-          Animated.view {style: M.css $ rightCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
-             materialIcon {name: "check", color: "green", size: 26}
-          M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
-            cardStack
-              { onSwipedLeft: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i LEFT" i)) false i
-              , onSwipedRight: mkEffectFn1 \i -> afterSwipe (cards !! (spy "i RIGHT" i)) true i
-              , setDrag: mkEffectFn1 $ dragFn setDrag
-              , verticalSwipe: false
-              , horizontalSwipe: isFlipped
-              , ref: swipeRef
-              , renderNoMoreCards: (\_ -> false)
-              , horizontalThreshold: window.width / 3.0
-              } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" cards
+    pure mempty 
   pure $ M.getJsx do
      M.safeAreaView { style: M.css { flex: 1, backgroundColor: "#ffffff" } } do
-        cardsMarkup (spy "LIST" cardList)
+        M.childElement cardsComponent {cardList, swipeRef, afterSwipeCallback}
         if isEmpty idsNeedingReview then mempty else
           M.view { style: M.css {width: "100%", bottom: 0, position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "white", height: 45}} do
             M.text {style: M.css {marginBottom: 5, marginTop: 5}} $ M.string $ i (30 - (size idsNeedingReview)) " / 30 cards completed"
+
+cardsComponent :: ReactComponent {cardList :: Array {x :: Flashcard, y :: Number}, swipeRef :: Ref _, afterSwipeCallback :: Maybe {x :: Flashcard, y :: Number} -> Boolean -> Int -> Effect Unit}
+cardsComponent =
+  unsafePerformEffect
+    $ do
+        component "Cards" $ cardsJsx
+
+
+cardsJsx props = React.do
+  drag /\ setDrag <- useState (Nothing :: Maybe AnimationXY)
+  isFlipped /\ setIsFlipped <- useState false
+  let swipeLeft = do
+        result <- readRefMaybe props.swipeRef
+        traverse_ (\s -> s.swipeLeft) result
+
+  let swipeRight = do
+        result <- readRefMaybe props.swipeRef
+        traverse_ (\s -> s.swipeRight) result 
+
+  afterSwipeLeftCallback <- useMemo (spy "LENGTH" $ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
+  afterSwipeRightCallback <- useMemo (length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
+  dragCallback <- useMemo drag \_ -> dragFn setDrag
+  pure $ M.getJsx do
+    whiteImageBackground {style: M.css imageBackgroundStyles} do
+      Animated.view {style: leftCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+          M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
+      Animated.view {style: M.css $ rightCircleStyle $ fromMaybe (value 0.0) $ _.x <$> drag} do
+          materialIcon {name: "check", color: "green", size: 26}
+      M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
+        cardStack
+          { onSwipedLeft: mkEffectFn1 afterSwipeLeftCallback
+          , onSwipedRight: mkEffectFn1 afterSwipeRightCallback
+          , setDrag: mkEffectFn1 $ dragCallback
+          , verticalSwipe: false
+          , horizontalSwipe: isFlipped
+          , ref: props.swipeRef
+          , renderNoMoreCards: (\_ -> false)
+          , horizontalThreshold: window.width / 3.0
+          } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" props.cardList

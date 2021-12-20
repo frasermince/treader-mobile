@@ -78,7 +78,7 @@ currentReviewMaybe Nothing = Nothing
 currentReviewMaybe (Just d) = Just $ d {currentUser {currentReview = toMaybe d.currentUser.currentReview}}
 
 buildJsx props = React.do
-  flashcardsResult <- useData (Proxy :: Proxy Query) query {errorPolicy: "all", fetchPolicy: "cache-and-network" }
+  flashcardsResult <- useData (Proxy :: Proxy Query) query {errorPolicy: "all", fetchPolicy: "network" }
   languageModalVisible /\ setLanguageModalVisible <- useState false
   language /\ setLanguage <- useState (Nothing :: Maybe String)
   let currentLanguage = do
