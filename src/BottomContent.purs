@@ -2,7 +2,7 @@ module BottomContent where
 
 import Prelude
 import Effect.Aff (Aff, launchAff_)
-import React.Basic.DOM.Internal (CSS)
+import React.Basic.DOM (CSS)
 import React.Basic.Native.Events as RNE
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
 import Effect.Class (liftEffect)
@@ -49,7 +49,7 @@ import Data.Foldable (foldl)
 import Data.Interpolate (i)
 import Icon (evilIcon)
 import Data.Map (fromFoldable, lookup) as Map
-import Debug.Trace (spy)
+import Debug (spy)
 import FetchAudio (useAudio)
 
 languageList = Map.fromFoldable [
@@ -97,7 +97,7 @@ colorToggles props = React.do
 wordColors :: ReactComponent Props
 wordColors = unsafePerformEffect
     $ do
-        (component "WordColors") colorToggles
+        (React.reactComponent "WordColors") colorToggles
 
 definitionJsx props = React.do
   term /\ setTerm <- useState (Nothing :: Maybe String)
@@ -132,12 +132,12 @@ definitionJsx props = React.do
 definition :: ReactComponent Props
 definition = unsafePerformEffect
     $ do
-        (component "Definition") definitionJsx
+        (React.reactComponent "Definition") definitionJsx
 
 renderTabBar :: Effect Unit -> ReactComponent {}
 renderTabBar removeContent = unsafePerformEffect
     $ do
-        (component "RenderTabBar") $ renderTabBarJsx removeContent
+        (React.reactComponent "RenderTabBar") $ renderTabBarJsx removeContent
 
 renderTabBarJsx removeContent props = React.do
   pure $ M.getJsx do
@@ -154,7 +154,7 @@ renderTabBarJsx removeContent props = React.do
 tabs :: ReactComponent Props
 tabs = unsafePerformEffect
     $ do
-        (component "BottomTabs") buildTabs
+        (React.reactComponent "BottomTabs") buildTabs
 
 buildTabs props = React.do
   index /\ setIndex <- useState 0
@@ -186,7 +186,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "BottomContent") buildJsx
+        (React.reactComponent "BottomContent") buildJsx
 
 type Props
   = {

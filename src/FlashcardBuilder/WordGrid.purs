@@ -2,6 +2,7 @@ module FlashcardBuilder.WordGrid where
 import Prelude
 import Effect (Effect)
 import Markup as M
+import React.Basic.Hooks as React
 import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext, element)
 import Effect.Unsafe (unsafePerformEffect)
 import Effect.Uncurried (EffectFn1, mkEffectFn1, runEffectFn1, mkEffectFn2, runEffectFn2, EffectFn2)
@@ -13,7 +14,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "WordGrid" $ buildJsx
+        React.reactComponent "WordGrid" $ buildJsx
 
 wordElement redirect w = pure $ M.getJsx do
   M.touchableOpacity {style: M.css {padding: 20, margin: "1.5%", borderWidth: 1, flex: 1, borderColor: "gray"}, onPress: RNE.capture_ $ redirect w.item.word w.item.translation w.item.offset} do

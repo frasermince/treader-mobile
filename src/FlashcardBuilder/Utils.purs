@@ -6,9 +6,9 @@ import Data.String (splitAt, Pattern(..), trim, length)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook, useContext)
 import Markup as M
 import Markup (Markup)
-import React.Basic.DOM.Internal (CSS)
+import React.Basic.DOM (CSS)
 import Data.Maybe (fromMaybe)
-import Debug.Trace (spy)
+import Debug (spy)
 import Data.String.Utils (repeat)
 
 underlinedWord fontWeight fontSize word = M.text {style: M.css {textDecorationLine: "underline", fontWeight: fontWeight, fontSize: fontSize}} $ M.string word

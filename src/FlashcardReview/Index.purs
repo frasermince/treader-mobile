@@ -11,7 +11,7 @@ import Data.Interpolate (i)
 import Data.Maybe (Maybe(..), fromMaybe, isNothing, isJust)
 import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Traversable (traverse_)
-import Debug.Trace (spy)
+import Debug (spy)
 import Effect.Console (log)
 import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
 import Effect.Unsafe (unsafePerformEffect)
@@ -72,7 +72,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "ReviewIndex" $ buildJsx
+        React.reactComponent "ReviewIndex" $ buildJsx
 
 currentReviewMaybe Nothing = Nothing
 currentReviewMaybe (Just d) = Just $ d {currentUser {currentReview = toMaybe d.currentUser.currentReview}}

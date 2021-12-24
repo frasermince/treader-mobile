@@ -2,7 +2,7 @@ module WiktionaryModal where
 import React.Basic.Hooks as React
 import Prelude
 import Paper (surface, title, divider, button, modal, subheading, headline)
-import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext)
+import React.Basic.Hooks (JSX, ReactComponent, useState, (/\), useEffect, useContext)
 import Markup as M
 import Effect.Uncurried (EffectFn1, mkEffectFn1)
 import Effect (Effect)
@@ -52,7 +52,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "WiktionaryModal" $ buildJsx
+        React.reactComponent "WiktionaryModal" $ buildJsx
 
 buildJsx props = React.do
   term /\ setTerm <- useState (Nothing :: Maybe String)

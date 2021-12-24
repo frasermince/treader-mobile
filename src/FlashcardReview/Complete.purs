@@ -41,7 +41,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "ReviewIndex" $ buildJsx
+        React.reactComponent "ReviewIndex" $ buildJsx
 
 
 buildJsx props = React.do

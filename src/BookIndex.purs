@@ -23,7 +23,7 @@ import Linking (openUrl)
 import Subscribe as Subscribe
 import Data.Interpolate (i)
 import Effect (Effect)
-import Global (encodeURIComponent)
+import JSURI (encodeURIComponent)
 
 type Props
   = { navigation :: { navigate :: EffectFn2 String { slug :: String } Unit, setOptions :: EffectFn1 {headerRight :: ReactComponent {}} Unit } }
@@ -35,7 +35,7 @@ actionBySubscription false setModalVisible _ = setModalVisible \_ -> true
 buttonComponent :: ((Boolean -> Boolean) -> Effect Unit) -> Maybe String -> ReactComponent {}
 buttonComponent setLanguageModalVisible language = unsafePerformEffect
     $ do
-        (component "TopButton") $ buttonJsx setLanguageModalVisible language
+        (React.reactComponent "TopButton") $ buttonJsx setLanguageModalVisible language
 
 buttonJsx setLanguageModalVisible language props = React.do
   pure $ M.getJsx $ button {onPress: RNE.capture_ $ setLanguageModalVisible \_ -> true, style: M.css {position: "absolute", right: 1, marginTop: 21}} $ M.string $ fromMaybe "Language" $ language
@@ -44,7 +44,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "BookIndex") buildJsx
+        (React.reactComponent "BookIndex") buildJsx
 
 selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
   where select = do
@@ -136,7 +136,7 @@ uploadModal :: ReactComponent UploadProps
 uploadModal =
   unsafePerformEffect
     $ do
-        (component "UploadModal") uploadModalDom
+        (React.reactComponent "UploadModal") uploadModalDom
 
 uploadModalDom props = React.do
   pure $ M.getJsx $

@@ -56,7 +56,7 @@ import QueryHooks (useData, UseData, stripGraphqlError)
 import Type.Proxy (Proxy(..))
 import Data.Nullable (null)
 import Segment (track)
-import Debug.Trace (spy)
+import Debug (spy)
 import WiktionaryModal as WiktionaryModal
 import FetchAudio (useAudio, defaultAudioFile)
 import Data.Interpolate (i)
@@ -153,7 +153,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "ImageChoice" $ buildJsx
+        React.reactComponent "ImageChoice" $ buildJsx
 
 imageStyle isSelected = {height: window.width / 4.5, width: window.width / 4.5, margin: "1.5%", borderColor: "#66aab1", borderWidth: if isSelected then 1 else 0}
 

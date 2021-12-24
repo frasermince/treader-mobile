@@ -7,7 +7,7 @@ import Effect.Aff (Aff)
 import Effect (Effect)
 import Data.Nullable (toMaybe, Nullable)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Debug.Trace (spy)
+import Debug (spy)
 import Effect.Uncurried (runEffectFn1, EffectFn1, mkEffectFn1)
 
 type Purchase = {transactionReceipt :: Nullable String, transactionId :: String}

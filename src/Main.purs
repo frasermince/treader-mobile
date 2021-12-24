@@ -1,7 +1,7 @@
 module Main where
 
 import Prelude
-import Debug.Trace
+import Debug (spy)
 import Effect (Effect)
 import Effect.Unsafe (unsafePerformEffect)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useEffect, (/\), useContext)
@@ -27,7 +27,6 @@ import Introduction as Introduction
 import SignIn as SignIn
 import Paper (portal)
 import Effect.Aff (Aff, launchAff_, try)
-import Debug.Trace (spy)
 import ApolloHooks (useMutation, gql, DocumentNode)
 import Effect.Class (liftEffect)
 import InAppPurchases (requestSubscription, getSubscriptions, purchaseUpdatedListener, purchaseErrorListener, finishTransaction)
@@ -81,7 +80,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "Main") buildJsx
+        (React.reactComponent "Main") buildJsx
 
 buildJsx props = React.do
   androidMutationFn /\ r1 <- useMutation subscribeMutation {}

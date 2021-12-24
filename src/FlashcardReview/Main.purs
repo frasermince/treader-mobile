@@ -21,7 +21,7 @@ import Data.Nullable (Nullable, toMaybe, toNullable, null)
 import Data.Set (fromFoldable, delete, member, Set, empty, toUnfoldable, insert, difference, isEmpty, size)
 import Data.Traversable (traverse_)
 import Data.Tuple.Native (t3)
-import Debug.Trace (spy)
+import Debug (spy)
 import Dimensions (window)
 import Dimensions (window)
 import Ebisu (lowest, randomLow, updateRecall, nRandom)
@@ -106,7 +106,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Review" $ buildJsx
+        React.reactComponent "Review" $ buildJsx
 
 imageBackgroundStyles = {
   flex: 1,
@@ -301,7 +301,7 @@ cardsComponent :: ReactComponent {cardList :: Array {x :: Flashcard, y :: Number
 cardsComponent =
   unsafePerformEffect
     $ do
-        component "Cards" $ cardsJsx
+        React.reactComponent "Cards" $ cardsJsx
 
 
 cardsJsx props = React.do

@@ -3,7 +3,7 @@ module TopBar where
 import Prelude
 import Platform as Platform
 import Effect.Aff (Aff, launchAff_)
-import React.Basic.DOM.Internal (CSS)
+import React.Basic.DOM (CSS)
 import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useRef, readRefMaybe, useEffect)
 import Unsafe.Coerce (unsafeCoerce)
 import Markup as M
@@ -100,7 +100,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "TopBar") buildJsx
+        (React.reactComponent "TopBar") buildJsx
 
 buildJsx props = React.do
   fade /\ setFade <- useState $ value 1.0

@@ -20,7 +20,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "LanguageModal") buildJsx
+        (React.reactComponent "LanguageModal") buildJsx
 
 selectableItem language setLanguage value label dismiss = listItem {title: label, onPress: RNE.capture_ $ select}
   where select = do

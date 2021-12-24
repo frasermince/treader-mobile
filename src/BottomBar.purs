@@ -4,7 +4,7 @@ import Icon (materialIcon)
 import Prelude
 import Data.Array ((!!), length)
 import Data.Traversable (traverse_)
-import Debug.Trace (spy)
+import Debug (spy)
 import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..), try)
 import ComponentTypes (BookViewQuery, AudioInformation)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect)
@@ -43,7 +43,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "BottomBar") buildJsx
+        (React.reactComponent "BottomBar") buildJsx
 
 type Props
   =

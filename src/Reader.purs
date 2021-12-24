@@ -33,7 +33,7 @@ import AsyncStorage (getItem, setItem)
 import Data.Tuple (fst, snd)
 import BottomContent as BottomContent
 import Foreign.Object (Object)
-import Debug.Trace (spy)
+import Debug (spy)
 import AppState (useAppState)
 import Navigation (useFocusEffect)
 import Subscribe as Subscribe
@@ -45,7 +45,7 @@ import Effect.Now (nowDateTime)
 import QueryHooks (useData, UseData, stripGraphqlError)
 import Effect.Aff.Retry (recovering, constantDelay, limitRetries, RetryStatus(..))
 import Segment (track, screen)
-import Global (encodeURIComponent)
+import JSURI (encodeURIComponent)
 
 type LastAdvanced = {time :: DateTime, cfi :: CFI}
 type VisibleLocation
@@ -165,7 +165,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Reader" $ buildJsx
+        React.reactComponent "Reader" $ buildJsx
 
 newtype UseStreamer h
   = UseStreamer (UseEffect (Maybe String) (UseState String (UseState String h)))

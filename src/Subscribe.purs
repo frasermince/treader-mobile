@@ -6,7 +6,7 @@ import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
 import Paper (surface, title, divider, button, modal, subheading, headline, listItem, listIcon)
 import Record.Unsafe.Union (unsafeUnion)
-import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useEffect, useContext, element)
+import React.Basic.Hooks (JSX, ReactComponent, reactComponent, useState, (/\), useEffect, useContext, element)
 import Markup as M
 import Swiper (swiper)
 import React.Basic.Native.Events as RNE
@@ -34,7 +34,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Subscribe" $ buildJsx
+        React.reactComponent "Subscribe" $ buildJsx
 
 purchaseHandler 0 setError = launchAff_ do
   subs <- getSubscriptions ["io.unchart.plus"]

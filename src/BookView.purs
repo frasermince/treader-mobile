@@ -82,7 +82,7 @@ reactComponent = navigationOptions c { headerShown: false }
   c =
     unsafePerformEffect
       $ do
-          (component "BookView") buildJsx
+          (React.reactComponent "BookView") buildJsx
 
 callShow ref = do
   r <- readRefMaybe ref

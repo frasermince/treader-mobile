@@ -64,7 +64,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "SentenceChoice" $ buildJsx
+        React.reactComponent "SentenceChoice" $ buildJsx
 
 sentenceListItem range offset word translation redirect leftIcon = listItem {
     title: underlineWord range offset word (M.css {fontWeight: "bold"}) "bold" 16,

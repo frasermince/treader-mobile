@@ -19,7 +19,7 @@ import Data.Array (sortWith)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import FlashcardBuilder.WordGrid as WordGrid
 import Effect (Effect)
-import Debug.Trace (spy)
+import Debug (spy)
 
 type NavigateFn = String -> {} -> Effect Unit
 type ImageNavigation =
@@ -63,7 +63,7 @@ query =
 buttonComponent :: (String -> {} -> Effect Unit) -> ReactComponent {}
 buttonComponent navigate = unsafePerformEffect
     $ do
-        (component "CloseButton") $ buttonJsx navigate
+        (React.reactComponent "CloseButton") $ buttonJsx navigate
 
 buttonJsx navigate props = React.do
   pure $ M.getJsx do
@@ -75,7 +75,7 @@ reactComponent :: ReactComponent (Props)
 reactComponent =
   unsafePerformEffect
     $ do
-        component "WordSelection" $ buildJsx
+        React.reactComponent "WordSelection" $ buildJsx
 
 headlineItem text translation false = M.getJsx $ paragraph {} $ M.string $ text
 headlineItem text translation true = M.getJsx $ paragraph {} $ M.string $ translation

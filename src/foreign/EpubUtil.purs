@@ -11,7 +11,7 @@ import React.Basic.Hooks (ReactComponent)
 import Data.Tuple (Tuple)
 import Data.Nullable (toMaybe, toNullable, Nullable)
 import Data.Tuple.Native (T2, t2)
-import Debug.Trace (spy)
+import Debug (spy)
 import ComponentTypes
 
 foreign import bridgeFile :: String

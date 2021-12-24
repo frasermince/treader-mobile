@@ -15,7 +15,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import FlatList (flatList)
 import Effect.Uncurried (runEffectFn2, EffectFn2)
 import React.Basic.Native.Events as RNE
-import Debug.Trace
+import Debug (spy)
 import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useRef, readRefMaybe, useEffect, readRef, UseEffect, UseState, Hook, coerceHook)
 import Navigation (useFocusEffect)
 import Icon (materialIcon)
@@ -31,7 +31,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "DailySelection" $ buildJsx
+        React.reactComponent "DailySelection" $ buildJsx
 
 type Query
   = { dailySelections :: Array DailySelection }

@@ -10,7 +10,7 @@ import Effect.Class (liftEffect)
 import React.Basic.Native.Events (capture_)
 import Control.Alt ((<|>))
 import Effect.Unsafe (unsafePerformEffect)
-import Debug.Trace (spy)
+import Debug (spy)
 import Effect.Console (log)
 import Paper (listItem, listIcon)
 import Record.Unsafe.Union (unsafeUnion)
@@ -33,7 +33,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "TranslatableOnPress") buildJsx
+        (React.reactComponent "TranslatableOnPress") buildJsx
 
 buildJsx props = React.do
   translation /\ setTranslation <- useState $ (Nothing :: Maybe String)

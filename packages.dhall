@@ -116,65 +116,61 @@ let additions =
   }
 -------------------------------
 -}
-
-
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.6-20200404/packages.dhall sha256:f239f2e215d0cbd5c203307701748581938f74c4c78f4aeffa32c11c131ef7b6
+      https://github.com/purescript/package-sets/releases/download/psc-0.14.5-20211116/packages.dhall sha256:7ba810597a275e43c83411d2ab0d4b3c54d0b551436f4b1632e9ff3eb62e327a
 
 let overrides = {=}
 
 let additions =
       { fixed-precision =
-          { dependencies =
-              [ "bigints", "maybe", "integers" ]
-          , repo =
-              "https://github.com/lumihq/purescript-fixed-precision"
-          , version =
-              "v4.0.1"
-          }
+        { dependencies = [ "bigints", "maybe", "integers" ]
+        , repo = "https://github.com/lumihq/purescript-fixed-precision"
+        , version = "v4.0.1"
+        }
+      , react-basic-native =
+        { dependencies = ["effect", "foreign-object", "js-date", "react-basic", "undefinable" ] 
+        , repo = "https://github.com/f-f/purescript-react-basic-native"
+        , version="v0.1.3"
+        }
       , tuples-native =
-          { dependencies =
-              [ "prelude", "unsafe-coerce", "typelevel", "generics-rep" ]
-          , repo =
-              "https://github.com/athanclark/purescript-tuples-native"
-          , version =
-              "v2.0.1"
-          }
+        { dependencies =
+          [ "prelude", "unsafe-coerce", "typelevel"]
+        , repo = "https://github.com/ajnsit/purescript-tuples-native"
+        , version = "5177b1a236a88c86ad3b2a82e439e064c379265e"
+        }
       , graphql =
-          { dependencies =
-              [ "argonaut-codecs"
-              , "argonaut-core"
-              , "enums"
-              , "foldable-traversable"
-              , "nullable"
-              , "numbers"
-              , "prelude"
-              , "psci-support"
-              , "record"
-              , "spec"
-              , "string-parsers"
-              ]
-          , repo =
-              "https://github.com/hendrikniemann/purescript-graphql"
-          , version =
-              "9171bf94c5ba8ddb7813b603c6c684eac2687eb3"
-          }
+        { dependencies =
+          [ "argonaut-codecs"
+          , "argonaut-core"
+          , "enums"
+          , "foldable-traversable"
+          , "nullable"
+          , "numbers"
+          , "prelude"
+          , "psci-support"
+          , "variant"
+          , "record"
+          , "spec"
+          , "argonaut"
+          , "string-parsers"
+          ]
+        , repo = "https://github.com/hendrikniemann/purescript-graphql"
+        , version = "1be1dabb629a90056c0ca064550bee27d5836036"
+        }
       , apollo =
-          { dependencies =
-              [ "aff-promise"
-              , "console"
-              , "effect"
-              , "graphql"
-              , "psci-support"
-              , "react-basic-hooks"
-              , "tuples-native"
-              , "typelevel"
-              ]
-          , repo =
-              "https://github.com/frasermince/purescript-apollo"
-          , version =
-              "master"
-          }
+        { dependencies =
+          [ "aff-promise"
+          , "console"
+          , "effect"
+          , "graphql"
+          , "psci-support"
+          , "react-basic-hooks"
+          , "tuples-native"
+          , "typelevel"
+          ]
+        , repo = "https://github.com/frasermince/purescript-apollo"
+        , version = "master"
+        }
       }
 
 in  upstream // overrides // additions

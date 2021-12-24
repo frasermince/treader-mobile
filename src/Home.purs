@@ -60,7 +60,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "Home") buildJsx
+        (React.reactComponent "Home") buildJsx
 
 checkEmptyIcon total goal p
   | total >= goal = element listIcon $ unsafeUnion p { color: "#000", icon: "checkbox-marked-outline" }

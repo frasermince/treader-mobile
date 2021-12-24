@@ -32,7 +32,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Account" $ buildJsx
+        React.reactComponent "Account" $ buildJsx
 
 
 buildJsx props = React.do

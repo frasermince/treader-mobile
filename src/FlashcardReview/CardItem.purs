@@ -31,7 +31,7 @@ import Effect.Class (liftEffect)
 import FS (audioDir, writeFile, exists, unlink, absintheFile, readDirectory)
 import Sound (play, Sound, release, stop, createSound, stopAndPlay)
 import Data.String (stripPrefix, Pattern(..))
-import Global (encodeURIComponent, decodeURIComponent)
+import JSURI (encodeURIComponent, decodeURIComponent)
 import Blur (blurView, vibrancyView)
 import AsyncStorage (getItem, setItem)
 import Animated (value, timing)
@@ -145,7 +145,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "CardItem" $ buildJsx
+        React.reactComponent "CardItem" $ buildJsx
 
 fileExists :: Maybe String -> Aff Boolean
 fileExists (Just filePath) = exists filePath

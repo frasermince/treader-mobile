@@ -11,7 +11,7 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..), fromMaybe)
 import Effect (Effect)
 import Effect.Random (randomInt)
-import Debug.Trace (spy)
+import Debug (spy)
 import Data.List (List, (:))
 import Data.Function (applyN)
 import Data.Foldable (foldl)

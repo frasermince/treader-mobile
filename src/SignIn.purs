@@ -11,7 +11,7 @@ import React.Basic.Events (EventFn, unsafeEventFn)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import Unsafe.Coerce (unsafeCoerce)
 import ApolloHooks (useMutation, gql, QueryState(..), DocumentNode, useApolloClient)
-import Debug.Trace
+import Debug (spy)
 import AsyncStorage (setItem)
 import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
@@ -49,7 +49,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "SignIn") buildJsx
+        (React.reactComponent "SignIn") buildJsx
 
 changeField setField =
   RNE.handler text \t ->

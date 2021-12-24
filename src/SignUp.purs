@@ -2,7 +2,7 @@ module SignUp where
 import Prelude
 import React.Basic.Native as RN
 import Effect.Unsafe (unsafePerformEffect)
-import React.Basic.Hooks (JSX, ReactComponent, component, element, useState, (/\), useContext)
+import React.Basic.Hooks (JSX, ReactComponent, component, useState, (/\), useContext)
 import React.Basic.Hooks as React
 import Markup as M
 import Paper (textInput, surface, button, title)
@@ -10,7 +10,7 @@ import React.Basic.Events (EventFn, unsafeEventFn)
 import React.Basic.Native.Events (NativeSyntheticEvent, handler, nativeEvent, timeStamp, capture_) as RNE
 import Unsafe.Coerce (unsafeCoerce)
 import ApolloHooks (useMutation, gql, QueryState(..), DocumentNode, useApolloClient)
-import Debug.Trace
+import Debug (spy)
 import AsyncStorage (setItem)
 import Context (dataStateContext, Context)
 import Effect.Class (liftEffect)
@@ -50,7 +50,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        (component "SignUp") buildJsx
+        (React.reactComponent "SignUp") buildJsx
 
 buildJsx props = React.do
   client <- useApolloClient

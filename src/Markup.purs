@@ -1,7 +1,7 @@
 module Markup where
 
 import Prelude
-import React.Basic.DOM.Internal (CSS)
+import React.Basic.DOM (CSS)
 import React.Basic.Native as RN
 import React.Basic.Hooks (JSX)
 import Unsafe.Coerce (unsafeCoerce)
@@ -10,7 +10,7 @@ import Data.Tuple
 import Record as Record
 import Data.Symbol (SProxy(..))
 import React.Basic.Hooks as H
-import Debug.Trace (spy)
+import Debug (spy)
 import Data.Maybe (fromMaybe)
 import Data.Array (head)
 import Data.Foldable (foldl)

@@ -52,7 +52,7 @@ useAudio tag audio = coerceHook $ React.do
   { setLoading, setError } <- useContext dataStateContext
   getAudio /\ d <- useMutation audioMutation { errorPolicy: "all" }
   numberOfAudio /\ setNumberOfAudio <- useState 0
-  audioPaths /\ setAudioPaths <- useState (mempty :: Map String String)
+  audioPaths /\ setAudioPaths <- useState (Map.empty :: Map String String)
   sound /\ setSound <- useState (Nothing :: Maybe Sound)
   soundText /\ setSoundText <- useState (Nothing :: Maybe String)
   let setAudioInformation :: String -> String -> Aff {sound :: Sound, path :: String}

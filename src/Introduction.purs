@@ -45,7 +45,7 @@ reactComponent :: ReactComponent Props
 reactComponent =
   unsafePerformEffect
     $ do
-        component "Introduction" $ buildJsx
+        React.reactComponent "Introduction" $ buildJsx
 
 radio Nothing choice p = element listIcon $ unsafeUnion p { color: "#000", icon: "radiobox-blank" }
 radio (Just selected) choice p
