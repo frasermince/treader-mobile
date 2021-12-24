@@ -92,6 +92,7 @@ buildJsx props = React.do
         r <- queryResult.state
         pure $ r.currentUser.isGuest
   useEffect unit do
+     liftEffect $ log "MAIN"
      purchaseErrorListener $ \e -> launchAff_ do
         liftEffect $ log $ "ERROR: " <> show e
      purchaseUpdatedListener $ \p -> launchAff_ do

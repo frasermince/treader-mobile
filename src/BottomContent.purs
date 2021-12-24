@@ -289,7 +289,7 @@ buildJsx props = React.do
   ref <- useRef null
   useEffect props.wordPlacement do
      result <- readRefMaybe ref
-     traverse_ (\s -> scrollTo (getNode s) 0) result
+     traverse_ (\s -> scrollTo (s) 0) result
      pure mempty
 
   pure $ M.getJsx do

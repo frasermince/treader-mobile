@@ -14,6 +14,7 @@ import Debug.Trace (spy)
 import Data.Maybe (fromMaybe)
 import Data.Array (head)
 import Data.Foldable (foldl)
+import SafeAreaContext (safeAreaView) as SC
 
 newtype Markup a
   = Markup (Tuple (Array JSX) a)
@@ -81,7 +82,7 @@ scrollView = parent RN.scrollView
 
 flatList = child RN.flatList
 
-safeAreaView = parent RN.safeAreaView
+safeAreaView = parentElement SC.safeAreaView
 
 --view :: forall p. Lacks "children" p => Record p -> Markup -> Markup
 view = parent RN.view
