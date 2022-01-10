@@ -14,6 +14,7 @@ module.exports = {
         "path": "path-webpack"
       }
     }],
-    "transform-inline-environment-variables"
+    "transform-inline-environment-variables",
+    "react-native-reanimated/plugin",
   ]
 }

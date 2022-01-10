@@ -2,7 +2,6 @@ module FlashcardReview.Main where
 
 import Prelude
 
-import Reanimated (AnimationXY, interpolate, useSharedValue, useAnimatedStyle)
 import ApolloHooks (useMutation, gql)
 import AsyncStorage (getItem, setItem)
 import ComponentTypes (Flashcard, StateChange)
@@ -30,8 +29,7 @@ import Effect.Aff (Aff, launchAff_, try)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Exception (message)
-import Effect.Uncurried (mkEffectFn1, mkEffectFn2)
-import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2)
+import Effect.Uncurried (runEffectFn1, EffectFn1, runEffectFn2, EffectFn2, mkEffectFn1, mkEffectFn2)
 import Effect.Unsafe (unsafePerformEffect)
 import FlashcardReview.CardItem as CardItem
 import Icon (materialIcon)
@@ -100,7 +98,7 @@ cardJsx setIsFlipped isFlipped swipeLeft swipeRight i cardData = do
       , active: active
       , translation: flashcard.sentence.translation
       }
-  where flashcard = cardData.x
+  where flashcard = spy "DATA" cardData.x
 
 reactComponent :: ReactComponent Props
 reactComponent =
@@ -169,83 +167,8 @@ handleResponse incrementSessionsMutation responseOrError redirect setError stack
               liftEffect $ runEffectFn2 redirect "ReviewEntry" {complete: true}
           | otherwise = mempty
 
-leftCircleStyle drag = useAnimatedStyle $ 
-  { width: 60
-  , height: 60
-  , borderRadius: 60/2
-  , borderWidth: 2
-  , borderColor: "red"
-  , position: "absolute"
-  , left: 0
-  , backgroundColor: "white"
-  , top: window.height / 3.0
-  , zIndex: 3
-  , elevation: 4
-  , justifyContent: "center"
-  , opacity: interpolate dragX
-      { inputRange: [-500.0, -90.0, 0.0]
-      , outputRange: [-0.1, 0.6, -0.1]
-      , extrapolate: "clamp"
-      }
-  , alignItems: "center"
-  , transform: t3
-       { translateX: interpolate (spy "DRAG" dragX)
-          { inputRange: [-500.0, -90.0, 0.0]
-          , outputRange: [0.1, 80.0, 0.1]
-          , extrapolate: "clamp"
-          }
-       }
-       { scale: interpolate dragX
-            { inputRange: [-500.0, 0.0]
-            , outputRange: [1.4, 1.0]
-            , extrapolate: "clamp"
-            }
-        }
-        { perspective: 1000}
-
-  }
-  where dragX = fromMaybe 0.0 $ _.x <$> drag
-
-rightCircleStyle drag = useAnimatedStyle $
-  { width: 60
-  , height: 60
-  , borderRadius: 60/2
-  , borderColor: "green"
-  , borderWidth: 2
-  , position: "absolute"
-  , right: 0
-  , backgroundColor: "white"
-  , top: window.height / 3.0
-  , opacity: interpolate drag
-      { inputRange: [0.0, 90.0, 500.0]
-      , outputRange: [-0.1, 0.6, -0.1]
-      , extrapolate: "clamp"
-      }
-  , zIndex: 3
-  , elevation: 4
-  , justifyContent: "center"
-  , alignItems: "center"
-  , transform: t3
-      {
-        translateX: interpolate (spy "DRAG" drag)
-          { inputRange: [0.0, 90.0, 500.0]
-          , outputRange: [0.1, -80.0, 0.1]
-          , extrapolate: "clamp"
-          }
-      }
-      { scale: interpolate drag
-            { inputRange: [0.0, 500.0]
-            , outputRange: [1.0, 1.4]
-            , extrapolate: "clamp"
-            }
-       }
-       { perspective: 1000}
-  }
-
-dragFn :: StateChange (Maybe AnimationXY) -> AnimationXY -> Effect Unit
-dragFn setDrag drag = setDrag \_ -> Just $ drag
-
-
+dragFn :: StateChange (Number) -> {x :: Number, y :: Number} -> Effect Unit
+dragFn setDrag drag = setDrag \_ -> drag.x
 buildJsx props = React.do
   swipeRef <- useRef null
   { setLoading, setError } <- useContext dataStateContext
@@ -305,33 +228,25 @@ cardsComponent =
 
 
 cardsJsx props = React.do
-  drag /\ setDrag <- useSharedValue (Nothing :: Maybe AnimationXY)
   isFlipped /\ setIsFlipped <- useState false
   let swipeLeft = do
         result <- readRefMaybe props.swipeRef
-        traverse_ (\s -> s.swipeLeft) result
+        traverse_ (\s -> runEffectFn1 s.swipeLeft 300) result
 
   let swipeRight = do
         result <- readRefMaybe props.swipeRef
-        traverse_ (\s -> s.swipeRight) result 
+        traverse_ (\s -> runEffectFn1 s.swipeRight 300) result 
 
-  afterSwipeLeftCallback <- useMemo ((_.word <$> _.x <$> last props.cardList) /\ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
-  afterSwipeRightCallback <- useMemo ((_.word <$> _.x <$> last props.cardList) /\ length props.cardList) $ \_ -> \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
-  dragCallback <- useMemo drag \_ -> dragFn setDrag
   pure $ M.getJsx do
     whiteImageBackground {style: M.css imageBackgroundStyles} do
-      M.view {style: M.css $ leftCircleStyle drag} do
-          M.text {style: M.css {color: "red", fontSize: 26}} $ M.string "x"
-      M.view {style: M.css $ rightCircleStyle $ fromMaybe 0.0 $ _.x <$> drag} do
-          materialIcon {name: "check", color: "green", size: 26}
       M.view {style: M.css { marginHorizontal: 10, height: window.height }} do
         cardStack
           { onSwipedLeft: mkEffectFn1 \i -> props.afterSwipeCallback (props.cardList !! (spy "i LEFT" i)) false i
           , onSwipedRight: mkEffectFn1 \i -> props.afterSwipeCallback (props.cardList !! (spy "i RIGHT" i)) true i
-          , setDrag: mkEffectFn1 $ dragCallback
           , verticalSwipe: false
           , horizontalSwipe: isFlipped
           , ref: props.swipeRef
+          , duration: 300
           , renderNoMoreCards: (\_ -> false)
           , horizontalThreshold: window.width / 3.0
           } $ mapWithIndex (cardJsx setIsFlipped isFlipped swipeLeft swipeRight) $ spy "FLASHCARDS" props.cardList
